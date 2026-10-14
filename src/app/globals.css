@@ -1,0 +1,94 @@
+@import "tailwindcss";
+
+/* Token statis [Sumber] */
+@theme {
+  --color-*: initial;
+  --shadow-*: initial;
+  --radius-*: initial;
+
+  --color-paper: #ffffff;
+  --color-ink: #151515;
+  --color-graphite: #424242;
+  --color-steel: #706f6f;
+  --color-rule: #dcdcdc;
+  --color-edge: #cbcac8;
+  --color-ice: #f0f8f9;
+  --color-network-green: #29735c;
+  --color-ledger-brown: #7b5953;
+  --color-alert: #b42318;      /* [Tambahan] */
+
+  --radius-button: 2px;
+  --radius-control: 4px;
+  --radius-card: 8px;
+  --radius-input: 0px;
+  --shadow-overlay: 0 20px 25px -5px rgb(0 0 0 / .04), 0 8px 10px -6px rgb(0 0 0 / .04);
+
+  --font-display: var(--font-manrope), ui-sans-serif, system-ui, sans-serif;
+  --font-sans: var(--font-inter), ui-sans-serif, system-ui, sans-serif;
+  --font-mono: var(--font-plex-mono), ui-monospace, SFMono-Regular, Menlo, monospace;
+}
+
+/* Token semantik yang berganti saat tema berubah */
+:root {
+  --canvas: #ffffff;
+  --panel: #f0f8f9;
+  --text: #151515;
+  --text-2: #424242;
+  --text-3: #706f6f;
+  --line: #dcdcdc;
+  --line-strong: #cbcac8;
+  --on-ink: #ffffff;
+  --accent: #29735c;
+  --accent-text: #29735c;
+  --series-in: #29735c;
+  --series-out: #151515;
+  --danger: #b42318;
+  --label: #7b5953;
+}
+
+/* [Tambahan] Tema gelap: turunan, tidak ada di situs sumber */
+:root[data-theme="dark"] {
+  --canvas: #0e1411;
+  --panel: #16201c;
+  --text: #f1f3f2;
+  --text-2: #c3c9c6;
+  --text-3: #8f9a95;
+  --line: #25302b;
+  --line-strong: #34413b;
+  --on-ink: #0e1411;
+  --accent: #29735c;
+  --accent-text: #6fc3a5;
+  --series-in: #6fc3a5;
+  --series-out: #e6e8e7;
+  --danger: #f2877d;
+  --label: #c9a79f;
+}
+@media (prefers-color-scheme: dark) {
+  :root[data-theme="system"] {
+    --canvas: #0e1411; --panel: #16201c; --text: #f1f3f2; --text-2: #c3c9c6;
+    --text-3: #8f9a95; --line: #25302b; --line-strong: #34413b; --on-ink: #0e1411;
+    --accent: #29735c; --accent-text: #6fc3a5; --series-in: #6fc3a5;
+    --series-out: #e6e8e7; --danger: #f2877d; --label: #c9a79f;
+  }
+}
+
+/* Utilitas semantik: bg-canvas, bg-panel, text-text, border-line, ... */
+@theme inline {
+  --color-canvas: var(--canvas);
+  --color-panel: var(--panel);
+  --color-text: var(--text);
+  --color-text-2: var(--text-2);
+  --color-text-3: var(--text-3);
+  --color-line: var(--line);
+  --color-line-strong: var(--line-strong);
+  --color-on-ink: var(--on-ink);
+  --color-accent: var(--accent);
+  --color-accent-text: var(--accent-text);
+  --color-series-in: var(--series-in);
+  --color-series-out: var(--series-out);
+  --color-danger: var(--danger);
+  --color-label: var(--label);
+}
+
+body { background: var(--canvas); color: var(--text); font-family: var(--font-sans); font-weight: 360; }
+.num { font-variant-numeric: tabular-nums; }

@@ -1,0 +1,259 @@
+// Skema data: Pencatatan Keuangan Sekolah | Bank Saku Digital
+// Sumber: Website.xlsx (sheet Dashboard, Data Siswa & Guru, Pemasukan, Pengeluaran, Pengaturan)
+//
+// Prisma 7: URL database TIDAK ditulis di sini. Lihat prisma.config.ts.
+// Konvensi: nama model dan field domain memakai istilah dari spreadsheet (Indonesia);
+// field teknis (createdAt, passwordHash, ...) memakai bahasa Inggris.
+
+generator client {
+  provider = "prisma-client"
+  output   = "../src/generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+// ───────────────────────── Enum ─────────────────────────
+
+enum Peran {
+  ADMIN // membuat akun (Kode + kata sandi awal), akses penuh
+  PETUGAS // mencatat pemasukan dan pengeluaran
+}
+
+enum TemaTampilan {
+  TERANG
+  GELAP
+  SISTEM
+}
+
+enum TipeAnggota {
+  SISWA
+  GURU
+}
+
+// Kolom "Metode" di sheet Pemasukan bernilai TF / ST.
+// ASUMSI: TF = Transfer, ST = Setor Tunai. Konfirmasi ke pemilik sebelum rilis.
+enum MetodeBayar {
+  TRANSFER // tampil "TF"
+  SETOR_TUNAI // tampil "ST"
+}
+
+// Tab "Bantuan" (BOSP, BPMU) dan tab "Donatur" (Haji Isam, OTA) memakai struktur kolom yang sama.
+enum KategoriSumberDana {
+  BANTUAN
+  DONATUR
+}
+
+// ───────────────────── Akun dan sesi ─────────────────────
+
+// Login memakai Kode + kata sandi yang dibuat oleh akun ADMIN (catatan di sheet Dashboard).
+// "Petugas" di semua tabel transaksi = Pengguna.
+model Pengguna {
+  id                 String       @id @default(cuid())
+  kode               String       @unique // dipakai untuk login
+  nama               String // contoh: "Bu Resa", "Pak Fajar"
+  passwordHash       String // argon2id; jangan pernah simpan teks asli
+  peran              Peran        @default(PETUGAS)
+  tema               TemaTampilan @default(SISTEM) // Pengaturan > Mode
+  wajibGantiPassword Boolean      @default(true) // true setelah admin membuat/reset akun
+  aktif              Boolean      @default(true) // nonaktifkan, jangan hapus (riwayat transaksi tetap utuh)
+  gagalLogin         Int          @default(0) // pembatasan percobaan login tanpa layanan tambahan
+  terkunciSampai     DateTime? // diisi saat gagalLogin melewati batas; kosongkan setelah login berhasil
+  createdAt          DateTime     @default(now())
+  updatedAt          DateTime     @updatedAt
+
+  sesi            Sesi[]
+  pembayaranSiswa PembayaranSiswa[]
+  pemasukanDana   PemasukanDana[]
+  pengeluaran     Pengeluaran[]
+
+  @@map("pengguna")
+}
+
+model Sesi {
+  id         String   @id @default(cuid())
+  tokenHash  String   @unique // simpan hash token, bukan token
+  penggunaId String
+  expiresAt  DateTime
+  createdAt  DateTime @default(now())
+
+  pengguna Pengguna @relation(fields: [penggunaId], references: [id], onDelete: Cascade)
+
+  @@index([penggunaId])
+  @@index([expiresAt])
+  @@map("sesi")
+}
+
+// ───────────────── Data Siswa dan Guru ─────────────────
+
+// Filter "Tahun" / "Tahun Ajaran" di setiap halaman, contoh: "2025/2026".
+model TahunAjaran {
+  id      String   @id @default(cuid())
+  nama    String   @unique
+  mulai   DateTime @db.Date
+  selesai DateTime @db.Date
+  aktif   Boolean  @default(false) // hanya satu yang aktif; jaga di aplikasi (lihat AGENTS.md)
+
+  penempatan     PenempatanKelas[]
+  jenisPemasukan JenisPemasukan[]
+
+  @@map("tahun_ajaran")
+}
+
+model Kelas {
+  id     String @id @default(cuid())
+  nama   String @unique // contoh: "VII-A"
+  urutan Int    @default(0)
+
+  penempatan PenempatanKelas[]
+
+  @@map("kelas")
+}
+
+// Satu baris di tabel "Data Siswa & Guru": No, Nama, Kelas/Guru, Kode UID.
+// Kode UID diperlakukan sebagai teks buram (contoh "10-0001"); jangan di-parse.
+model Anggota {
+  id        String      @id @default(cuid())
+  uid       String      @unique // Kode UID
+  nama      String
+  tipe      TipeAnggota
+  aktif     Boolean     @default(true)
+  createdAt DateTime    @default(now())
+  updatedAt DateTime    @updatedAt
+
+  penempatan PenempatanKelas[] // hanya untuk SISWA; GURU tidak punya penempatan
+
+  @@index([tipe, aktif])
+  @@map("anggota")
+}
+
+// Siswa X berada di kelas Y pada tahun ajaran Z.
+// Halaman Pemasukan memfilter berdasarkan Tahun Ajaran + Kelas lewat tabel ini.
+model PenempatanKelas {
+  id            String @id @default(cuid())
+  anggotaId     String
+  tahunAjaranId String
+  kelasId       String
+
+  anggota     Anggota     @relation(fields: [anggotaId], references: [id], onDelete: Restrict)
+  tahunAjaran TahunAjaran @relation(fields: [tahunAjaranId], references: [id], onDelete: Restrict)
+  kelas       Kelas       @relation(fields: [kelasId], references: [id], onDelete: Restrict)
+
+  pembayaran PembayaranSiswa[]
+
+  @@unique([anggotaId, tahunAjaranId])
+  @@index([tahunAjaranId, kelasId])
+  @@map("penempatan_kelas")
+}
+
+// ───────────────────── Pemasukan: dari siswa ─────────────────────
+
+// Kolom dinamis di tab "Dari Siswa": SPP, Daftar Ulang, Uang Gedung, Ujian, dst.
+// Tombol "Input" / "Tambah Kolom" membuat baris di tabel ini.
+model JenisPemasukan {
+  id            String   @id @default(cuid())
+  tahunAjaranId String
+  nama          String // "SPP", "Daftar Ulang", "Uang Gedung", ...
+  urutan        Int      @default(0) // urutan kolom di tabel
+  bulanan       Boolean  @default(false) // true: ada kolom "Bulan Terbayar" (SPP). false: tidak ada (Daftar Ulang).
+  // Nominal yang seharusnya dibayar per siswa (per bulan jika bulanan).
+  // null = tidak ada patokan, jadi tidak pernah ditandai "belum lunas".
+  nominalStandar Decimal? @db.Decimal(15, 0)
+  aktif          Boolean  @default(true)
+
+  tahunAjaran TahunAjaran       @relation(fields: [tahunAjaranId], references: [id], onDelete: Restrict)
+  pembayaran  PembayaranSiswa[]
+
+  @@unique([tahunAjaranId, nama])
+  @@map("jenis_pemasukan")
+}
+
+// Satu pembayaran siswa untuk satu jenis. Cicilan = beberapa baris; total dihitung dengan SUM.
+// Status "belum lunas" (angka merah) DIHITUNG di query: SUM(nominal) < nominalStandar.
+// Jangan simpan status lunas di kolom.
+//
+// INVARIAN (dijaga di aplikasi): jenisPemasukan.tahunAjaranId == penempatan.tahunAjaranId.
+model PembayaranSiswa {
+  id               String   @id @default(cuid())
+  penempatanId     String
+  jenisPemasukanId String
+  tanggal          DateTime @db.Date // "Tanggal Transaksi"
+  // Hanya diisi jika jenis.bulanan = true. Simpan tanggal 1 pada bulan tersebut.
+  bulanTerbayar DateTime?   @db.Date
+  metode        MetodeBayar
+  nominal       Decimal     @db.Decimal(15, 0) // Rupiah utuh, tanpa desimal
+  petugasId     String
+  catatan       String?
+  createdAt     DateTime    @default(now())
+  updatedAt     DateTime    @updatedAt
+  deletedAt     DateTime? // hapus lunak; semua query wajib menyaring deletedAt: null
+
+  penempatan     PenempatanKelas @relation(fields: [penempatanId], references: [id], onDelete: Restrict)
+  jenisPemasukan JenisPemasukan  @relation(fields: [jenisPemasukanId], references: [id], onDelete: Restrict)
+  petugas        Pengguna        @relation(fields: [petugasId], references: [id], onDelete: Restrict)
+
+  @@index([penempatanId, jenisPemasukanId])
+  @@index([jenisPemasukanId])
+  @@index([tanggal])
+  @@map("pembayaran_siswa")
+}
+
+// ─────────────── Pemasukan: bantuan dan donatur ───────────────
+
+// Daftar nama agar laporan tidak pecah oleh salah ketik ("BOSP" vs "bosp").
+model SumberDana {
+  id       String             @id @default(cuid())
+  kategori KategoriSumberDana
+  nama     String // "BOSP", "BPMU", "Haji Isam", "OTA"
+  aktif    Boolean            @default(true)
+
+  pemasukan PemasukanDana[]
+
+  @@unique([kategori, nama])
+  @@map("sumber_dana")
+}
+
+model PemasukanDana {
+  id           String    @id @default(cuid())
+  sumberDanaId String
+  tanggal      DateTime  @db.Date
+  nominal      Decimal   @db.Decimal(15, 0)
+  petugasId    String
+  catatan      String?
+  createdAt    DateTime  @default(now())
+  updatedAt    DateTime  @updatedAt
+  deletedAt    DateTime?
+
+  sumberDana SumberDana @relation(fields: [sumberDanaId], references: [id], onDelete: Restrict)
+  petugas    Pengguna   @relation(fields: [petugasId], references: [id], onDelete: Restrict)
+
+  @@index([sumberDanaId])
+  @@index([tanggal])
+  @@map("pemasukan_dana")
+}
+
+// ───────────────────────── Pengeluaran ─────────────────────────
+
+// Kolom sheet: No, Tanggal, Jenis Pengeluaran, Nominal, Petugas.
+// "Jenis Pengeluaran" di contoh berisi uraian bebas (Gaji Guru, Beli Printer, ...),
+// jadi disimpan sebagai teks. Tidak ada tabel kategori karena tidak ada di file.
+model Pengeluaran {
+  id        String    @id @default(cuid())
+  tanggal   DateTime  @db.Date
+  jenis     String
+  nominal   Decimal   @db.Decimal(15, 0)
+  petugasId String
+  catatan   String?
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+  deletedAt DateTime?
+
+  petugas Pengguna @relation(fields: [petugasId], references: [id], onDelete: Restrict)
+
+  @@index([tanggal])
+  @@map("pengeluaran")
+}
+
+// Total Saldo Dana Sekolah, total pemasukan, total pengeluaran, dan grafik bulanan
+// SELALU dihitung dari tabel di atas. Tidak ada tabel saldo.
