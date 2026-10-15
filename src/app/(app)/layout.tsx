@@ -3,6 +3,7 @@ import { getSessionUser } from "@/server/auth/session";
 import { Sidebar } from "@/components/Sidebar";
 import { GantiPasswordModal } from "@/components/GantiPasswordModal";
 import { PageTransitionIndicator } from "@/components/PageTransitionIndicator";
+import { VtuberGuideWrapper } from "@/components/vtuber/VtuberGuideWrapper";
 
 export default async function AppLayout({
   children,
@@ -21,6 +22,7 @@ export default async function AppLayout({
       <main className="flex-1 min-w-0 p-6 lg:p-8">
         <div className="max-w-[1200px] mx-auto w-full page-transition">{children}</div>
       </main>
+      <VtuberGuideWrapper />
       {user.wajibGantiPassword && (
         <GantiPasswordModal open={true} isWajib={true} />
       )}

@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { cookies } from "next/headers";
 import { manrope, inter, plexMono } from "./fonts";
 import { ToastProvider } from "@/components/ui/Toast";
+import { MotionProvider } from "@/components/motion/MotionProvider";
 import "./globals.css";
 
 export const metadata: Metadata = {
@@ -26,8 +27,11 @@ export default async function RootLayout({
       className={`${manrope.variable} ${inter.variable} ${plexMono.variable}`}
     >
       <body>
-        <ToastProvider>{children}</ToastProvider>
+        <MotionProvider>
+          <ToastProvider>{children}</ToastProvider>
+        </MotionProvider>
       </body>
     </html>
   );
 }
+

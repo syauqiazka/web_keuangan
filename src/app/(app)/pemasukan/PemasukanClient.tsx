@@ -4,6 +4,8 @@ import { useRouter } from "next/navigation";
 import { useCallback } from "react";
 import { Select } from "@/components/ui/Select";
 import { Button } from "@/components/ui/Button";
+import { FadeIn } from "@/components/motion/FadeIn";
+import { StaggerGroup, StaggerItem } from "@/components/motion/StaggerGroup";
 import { TabDariSiswa } from "@/app/(app)/pemasukan/TabDariSiswa";
 import { TabDana } from "@/app/(app)/pemasukan/TabDana";
 import type {
@@ -106,32 +108,38 @@ export function PemasukanClient({
   return (
     <div className="space-y-6">
       {/* Header */}
-      <div className="pb-4 border-b border-line">
-        <h1 className="text-[32px] font-[400] font-display text-text leading-[1.25]">
-          Pemasukan
-        </h1>
-      </div>
+      <FadeIn>
+        <div className="pb-4 border-b border-line">
+          <h1 className="text-[32px] font-[400] font-display text-text leading-[1.25]">
+            Pemasukan
+          </h1>
+        </div>
+      </FadeIn>
 
       {/* Ringkasan */}
       <div className="space-y-3">
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-          <div className="bg-canvas p-6 border border-line rounded-[8px]">
-            <div className="text-[12px] font-[500] font-mono text-label uppercase tracking-[0.08em] mb-2">
-              {labelBulan}
+        <StaggerGroup className="grid grid-cols-1 sm:grid-cols-2 gap-4" staggerDelay={0.1}>
+          <StaggerItem>
+            <div className="bg-canvas p-6 border border-line rounded-[8px]">
+              <div className="text-[12px] font-[500] font-mono text-label uppercase tracking-[0.08em] mb-2">
+                {labelBulan}
+              </div>
+              <div className="text-[32px] font-[400] font-display text-text leading-[1.25] num">
+                {ringkasan.jumlahBulanIniFormatted}
+              </div>
             </div>
-            <div className="text-[32px] font-[400] font-display text-text leading-[1.25] num">
-              {ringkasan.jumlahBulanIniFormatted}
+          </StaggerItem>
+          <StaggerItem>
+            <div className="bg-canvas p-6 border border-line rounded-[8px]">
+              <div className="text-[12px] font-[500] font-mono text-label uppercase tracking-[0.08em] mb-2">
+                Total Pemasukan Per Tahun
+              </div>
+              <div className="text-[32px] font-[400] font-display text-text leading-[1.25] num">
+                {ringkasan.totalPerTahunFormatted}
+              </div>
             </div>
-          </div>
-          <div className="bg-canvas p-6 border border-line rounded-[8px]">
-            <div className="text-[12px] font-[500] font-mono text-label uppercase tracking-[0.08em] mb-2">
-              Total Pemasukan Per Tahun
-            </div>
-            <div className="text-[32px] font-[400] font-display text-text leading-[1.25] num">
-              {ringkasan.totalPerTahunFormatted}
-            </div>
-          </div>
-        </div>
+          </StaggerItem>
+        </StaggerGroup>
 
         {/* Baris rincian per jenis berupa daftar label-angka (DESIGN.md bagian 8) */}
         {ringkasan.perJenis.length > 0 && (

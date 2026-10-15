@@ -9,6 +9,8 @@ import { Button } from "@/components/ui/Button";
 import { Select } from "@/components/ui/Select";
 import { DataGrid, type ColumnDef } from "@/components/ui/DataGrid";
 import { useToast } from "@/components/ui/Toast";
+import { FadeIn } from "@/components/motion/FadeIn";
+import { StaggerGroup, StaggerItem } from "@/components/motion/StaggerGroup";
 import {
   simpanBatchPengeluaranAction,
   type BatchPengeluaranInput,
@@ -214,41 +216,47 @@ export function PengeluaranClient({
   return (
     <div className="space-y-6">
       {/* Header Halaman */}
-      <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-4 pb-4 border-b border-line">
-        <h1 className="text-[32px] font-[400] font-display text-text leading-[1.25]">
-          Pengeluaran
-        </h1>
-        <div className="flex items-center gap-2">
-          <Button
-            type="button"
-            variant="secondary"
-            size="sm"
-            onClick={() => setIsEditing((prev) => !prev)}
-          >
-            {isEditing ? "Batal" : "Input"}
-          </Button>
+      <FadeIn>
+        <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-4 pb-4 border-b border-line">
+          <h1 className="text-[32px] font-[400] font-display text-text leading-[1.25]">
+            Pengeluaran
+          </h1>
+          <div className="flex items-center gap-2">
+            <Button
+              type="button"
+              variant="secondary"
+              size="sm"
+              onClick={() => setIsEditing((prev) => !prev)}
+            >
+              {isEditing ? "Batal" : "Input"}
+            </Button>
+          </div>
         </div>
-      </div>
+      </FadeIn>
 
       {/* Ringkasan Pengeluaran: Bulan Ini & Total Per Tahun */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-        <div className="bg-canvas border border-line rounded-[8px] p-6">
-          <p className="font-mono text-[14px] text-label mb-2">
-            Jumlah Pengeluaran Bulan Ini
-          </p>
-          <p className="text-[32px] font-semibold text-text num tabular-nums">
-            {ringkasan.jumlahBulanIniFormatted}
-          </p>
-        </div>
-        <div className="bg-canvas border border-line rounded-[8px] p-6">
-          <p className="font-mono text-[14px] text-label mb-2">
-            Total Pengeluaran Per Tahun
-          </p>
-          <p className="text-[32px] font-semibold text-text num tabular-nums">
-            {ringkasan.totalPerTahunFormatted}
-          </p>
-        </div>
-      </div>
+      <StaggerGroup className="grid grid-cols-1 sm:grid-cols-2 gap-4" staggerDelay={0.1}>
+        <StaggerItem>
+          <div className="bg-canvas border border-line rounded-[8px] p-6">
+            <p className="font-mono text-[14px] text-label mb-2">
+              Jumlah Pengeluaran Bulan Ini
+            </p>
+            <p className="text-[32px] font-semibold text-text num tabular-nums">
+              {ringkasan.jumlahBulanIniFormatted}
+            </p>
+          </div>
+        </StaggerItem>
+        <StaggerItem>
+          <div className="bg-canvas border border-line rounded-[8px] p-6">
+            <p className="font-mono text-[14px] text-label mb-2">
+              Total Pengeluaran Per Tahun
+            </p>
+            <p className="text-[32px] font-semibold text-text num tabular-nums">
+              {ringkasan.totalPerTahunFormatted}
+            </p>
+          </div>
+        </StaggerItem>
+      </StaggerGroup>
 
       {/* Filter Form (GET) – Tarik Data */}
       {!isEditing && (
