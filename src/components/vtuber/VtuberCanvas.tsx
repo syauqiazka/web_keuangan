@@ -295,17 +295,22 @@ export function VtuberCanvas({
         const modelHeight =
           live2dDisplay.internalModel?.originalHeight ||
           (Number.isFinite(model.height) && model.height > 0 ? model.height : height);
-        const scale = Math.min(
+        // Zoom ke framing bust-up seperti tourguide referensi. Model full-body
+        // terlalu jauh jika dipaksa muat seluruh canvas; perbesar dan turunkan
+        // titik pusat supaya wajah tetap di dalam frame sementara kaki terpotong.
+        const fitScale = Math.min(
           (width * 0.78) / modelWidth,
           (height * 0.88) / modelHeight
         );
+        const scale = fitScale * 2.6;
+        const modelCenterY = height * 0.94;
         model.scale.set(scale);
         live2dDisplay.anchor?.set(0.5, 0.5);
         if (live2dDisplay.position) {
-          live2dDisplay.position.set(width / 2, height / 2);
+          live2dDisplay.position.set(width / 2, modelCenterY);
         } else {
           model.x = width / 2;
-          model.y = height / 2;
+          model.y = modelCenterY;
         }
 
         app.stage.addChild(model);
@@ -371,16 +376,18 @@ export function VtuberCanvas({
               const modelHeight =
                 display.internalModel?.originalHeight ||
                 (Number.isFinite(model.height) && model.height > 0 ? model.height : newH);
-              const s = Math.min(
+              const fitScale = Math.min(
                 (newW * 0.78) / modelWidth,
                 (newH * 0.88) / modelHeight
               );
+              const s = fitScale * 2.6;
               model.scale.set(s);
+              const modelCenterY = newH * 0.94;
               if (display.position) {
-                display.position.set(newW / 2, newH / 2);
+                display.position.set(newW / 2, modelCenterY);
               } else {
                 model.x = newW / 2;
-                model.y = newH / 2;
+                model.y = modelCenterY;
               }
             }
           }
