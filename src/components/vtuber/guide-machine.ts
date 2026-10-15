@@ -47,6 +47,9 @@ export function guideReducer(state: MachineState, action: GuideAction): MachineS
       };
 
     case "FINISH_GREET":
+      if (state.current === "minimized" && state.previous === "greeting") {
+        return { ...state, previous: "idle" };
+      }
       if (state.current !== "greeting") return state;
       return {
         ...state,
@@ -93,6 +96,9 @@ export function guideReducer(state: MachineState, action: GuideAction): MachineS
       };
 
     case "FINISH_THINKING":
+      if (state.current === "minimized" && state.previous === "thinking") {
+        return { ...state, previous: "idle", errorMessage: null };
+      }
       if (state.current !== "thinking") return state;
       return {
         ...state,
@@ -110,6 +116,9 @@ export function guideReducer(state: MachineState, action: GuideAction): MachineS
       };
 
     case "FINISH_SPEAKING":
+      if (state.current === "minimized" && state.previous === "speaking") {
+        return { ...state, previous: "idle" };
+      }
       if (state.current !== "speaking") return state;
       return {
         ...state,
