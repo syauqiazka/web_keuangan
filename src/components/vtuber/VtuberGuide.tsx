@@ -7,7 +7,7 @@
 
 import React, { useReducer, useState, useEffect, useRef, useCallback } from "react";
 import { usePathname } from "next/navigation";
-import { X, ChevronUp, Bot } from "lucide-react";
+import { X, Bot } from "lucide-react";
 import { VtuberCanvas } from "./VtuberCanvas";
 import { GuideControls } from "./GuideControls";
 import { GuideTutorial } from "./GuideTutorial";
@@ -22,6 +22,8 @@ export function VtuberGuide() {
 
   // Tab aktif di panel bawah: "tutorial" atau "chat"
   const [activeTab, setActiveTab] = useState<"tutorial" | "chat">("tutorial");
+  // Avatar selalu mengambang; panel panduan dibuka terpisah saat avatar ditekan.
+  const [isPanelOpen, setIsPanelOpen] = useState(false);
 
   // TTS State
   const [voiceEnabled, setVoiceEnabled] = useState(false);
@@ -238,91 +240,113 @@ export function VtuberGuide() {
     }
   };
 
-  // Tampilan Minimized (Floating Pill Button)
-  if (state.current === "minimized") {
-    return (
-      <div className="fixed bottom-5 right-5 z-40">
-        <button
-          type="button"
-          onClick={() => dispatch({ type: "RESTORE" })}
-          className="flex items-center gap-2.5 px-3.5 py-2 rounded-[4px] border border-line bg-canvas text-text shadow-sm hover:border-line-strong hover:bg-panel transition-colors group"
-          title="Buka panduan VTuber"
-        >
-          <span className="relative flex h-2.5 w-2.5">
-            <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-accent opacity-75" />
-            <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-accent" />
-          </span>
-          <Bot className="w-4 h-4 text-accent" strokeWidth={1.5} />
-          <span className="text-xs font-medium">Turguide</span>
-          <ChevronUp className="w-3.5 h-3.5 text-text-3 group-hover:text-text transition-colors" strokeWidth={1.5} />
-        </button>
-      </div>
-    );
-  }
+  const handleOpenPanel = () => {
+    if (state.current === "minimized") {
+      dispatch({ type: "RESTORE" });
+    }
+    setIsPanelOpen(true);
+  };
 
-  // Tampilan Full Panel
+  const handleClosePanel = () => {
+    setIsPanelOpen(false);
+    if (state.current !== "minimized") {
+      dispatch({ type: "MINIMIZE" });
+    }
+  };
+
+  // Karakter tetap mengambang di luar panel. Panel hanya berisi panduan / chat.
   return (
-    <aside
-      aria-label="Panduan Interaktif VTuber"
-      className="fixed bottom-4 right-4 z-40 w-[310px] sm:w-[330px] rounded-[8px] border border-line bg-canvas shadow-lg overflow-hidden flex flex-col font-sans transition-all duration-200"
-    >
-      {/* Header Bar */}
-      <div className="flex items-center justify-between px-3 py-2 border-b border-line bg-panel text-xs">
-        <div className="flex items-center gap-2">
-          <span className="w-2 h-2 rounded-full bg-accent" />
-          <span className="font-medium text-text">Turguide Digital</span>
-          <span className="text-[10px] text-text-3 font-mono px-1 py-0.5 rounded border border-line">
-            v1.0
-          </span>
-        </div>
+    <div className="pointer-events-none fixed bottom-2 right-2 sm:bottom-4 sm:right-4 z-40 flex max-w-[calc(100vw-16px)] items-end justify-end gap-1.5 sm:gap-3 font-sans">
+      {isPanelOpen && (
+        <aside
+          aria-label="Panduan Interaktif VTuber"
+          className="pointer-events-auto flex max-h-[min(76vh,680px)] w-[calc(100vw-126px)] max-w-[320px] flex-col overflow-hidden rounded-[8px] border border-line bg-canvas shadow-xl sm:w-[320px]"
+        >
+          <div className="flex items-center justify-between border-b border-line bg-panel px-3 py-2 text-xs">
+            <div className="flex items-center gap-2">
+              <span className="h-2 w-2 rounded-full bg-accent" />
+              <span className="font-medium text-text">Turguide Digital</span>
+              <span className="rounded border border-line px-1 py-0.5 font-mono text-[10px] text-text-3">
+                v1.0
+              </span>
+            </div>
+            <button
+              type="button"
+              onClick={handleClosePanel}
+              className="rounded-[2px] p-1 text-text-3 transition-colors hover:bg-canvas hover:text-text"
+              title="Tutup panel panduan"
+              aria-label="Tutup panel panduan"
+            >
+              <X className="h-3.5 w-3.5" strokeWidth={1.5} />
+            </button>
+          </div>
+
+          <div className="min-h-0 flex-1 overflow-y-auto bg-canvas">
+            {activeTab === "tutorial" ? (
+              <GuideTutorial
+                tutorial={currentTutorial}
+                currentStepIndex={state.tutorialStepIndex}
+                onNext={handleNextStep}
+                onPrev={handlePrevStep}
+                onReset={handleResetTutorial}
+                onFinish={handleFinishTutorial}
+              />
+            ) : (
+              <GuideChat
+                messages={messages}
+                isThinking={isThinking}
+                errorMessage={chatError}
+                onSendMessage={handleSendMessage}
+              />
+            )}
+          </div>
+
+          <GuideControls
+            activeTab={activeTab}
+            voiceEnabled={voiceEnabled}
+            onSelectTab={setActiveTab}
+            onToggleVoice={handleToggleVoice}
+            onMinimize={handleClosePanel}
+          />
+        </aside>
+      )}
+
+      <div className={`pointer-events-auto relative flex shrink-0 flex-col items-center justify-end ${isPanelOpen ? "w-[108px] sm:w-[160px]" : "w-[174px] sm:w-[230px]"}`}>
         <button
           type="button"
-          onClick={() => dispatch({ type: "MINIMIZE" })}
-          className="p-1 rounded-[2px] text-text-3 hover:text-text hover:bg-canvas transition-colors"
-          title="Sembunyikan"
-          aria-label="Sembunyikan panduan"
+          onClick={isPanelOpen ? handleClosePanel : handleOpenPanel}
+          aria-label={isPanelOpen ? "Tutup panduan VTuber" : "Buka panduan dan Tanya AI"}
+          aria-expanded={isPanelOpen}
+          className="group relative block w-full cursor-pointer rounded-t-full outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2 focus-visible:ring-offset-canvas"
+          title={isPanelOpen ? "Tutup panduan" : "Klik karakter untuk membuka panduan"}
         >
-          <X className="w-3.5 h-3.5" strokeWidth={1.5} />
+          {!isPanelOpen && (
+            <span className="absolute -top-1 left-1/2 z-10 -translate-x-1/2 whitespace-nowrap rounded-full border border-line bg-canvas/95 px-3 py-1 text-[11px] font-medium text-text shadow-sm backdrop-blur-sm">
+              <span className="mr-1.5 inline-block h-1.5 w-1.5 rounded-full bg-accent align-middle" />
+              Turguide · Klik untuk bicara
+            </span>
+          )}
+          <div
+            className={`relative w-full overflow-visible ${isPanelOpen ? "h-[205px] sm:h-[260px]" : "h-[270px] sm:h-[350px]"}`}
+          >
+            <VtuberCanvas state={state.current} isSpeaking={isSpeaking} />
+          </div>
         </button>
-      </div>
 
-      {/* Area Canvas VTuber Live2D / Avatar */}
-      <div className="relative w-full h-[180px] bg-panel/40 border-b border-line flex items-center justify-center">
-        <VtuberCanvas
-          state={state.current}
-          isSpeaking={isSpeaking}
-        />
-      </div>
-
-      {/* Konten Tab Aktif: Panduan atau Chat AI */}
-      <div className="bg-canvas">
-        {activeTab === "tutorial" ? (
-          <GuideTutorial
-            tutorial={currentTutorial}
-            currentStepIndex={state.tutorialStepIndex}
-            onNext={handleNextStep}
-            onPrev={handlePrevStep}
-            onReset={handleResetTutorial}
-            onFinish={handleFinishTutorial}
-          />
-        ) : (
-          <GuideChat
-            messages={messages}
-            isThinking={isThinking}
-            errorMessage={chatError}
-            onSendMessage={handleSendMessage}
-          />
+        {isPanelOpen && (
+          <div className="mt-1 flex w-full items-center justify-center gap-1.5 rounded-full border border-line bg-canvas/95 px-2 py-1.5 text-[10px] text-text-2 shadow-sm backdrop-blur-sm sm:text-xs">
+            <Bot className="h-3.5 w-3.5 shrink-0 text-accent" strokeWidth={1.5} />
+            <span className="truncate">Turguide Digital</span>
+            <button
+              type="button"
+              onClick={() => setActiveTab(activeTab === "tutorial" ? "chat" : "tutorial")}
+              className="shrink-0 rounded-full border border-line px-2 py-0.5 font-medium hover:bg-panel"
+            >
+              {activeTab === "tutorial" ? "Tanya AI" : "Panduan"}
+            </button>
+          </div>
         )}
       </div>
-
-      {/* Bilah Kontrol di Bagian Bawah */}
-      <GuideControls
-        activeTab={activeTab}
-        voiceEnabled={voiceEnabled}
-        onSelectTab={setActiveTab}
-        onToggleVoice={handleToggleVoice}
-        onMinimize={() => dispatch({ type: "MINIMIZE" })}
-      />
-    </aside>
+    </div>
   );
 }
