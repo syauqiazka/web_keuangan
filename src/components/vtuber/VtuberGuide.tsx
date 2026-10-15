@@ -130,6 +130,7 @@ export function VtuberGuide() {
   useEffect(() => {
     synthRef.current?.cancel();
     setIsSpeaking(false);
+    dispatch({ type: "FINISH_SPEAKING" });
   }, [pathname]);
 
   // Saat panel diminimalkan, hentikan suara agar tidak berbicara di latar belakang.
@@ -146,6 +147,7 @@ export function VtuberGuide() {
     if (!nextVal && synthRef.current) {
       synthRef.current.cancel();
       setIsSpeaking(false);
+      dispatch({ type: "FINISH_SPEAKING" });
     }
   };
 
