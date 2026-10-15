@@ -47,7 +47,10 @@ function ensureCubismCoreLoaded(): Promise<void> {
         reject(new Error("Live2DCubismCore termuat, tetapi tidak terinisialisasi."));
       }
     };
-    const handleError = () => reject(new Error("Gagal memuat Live2DCubismCore."));
+    const handleError = () => {
+      if (script?.isConnected) script.remove();
+      reject(new Error("Gagal memuat Live2DCubismCore."));
+    };
 
     if (script?.dataset.loaded === "true") {
       handleLoad();
@@ -173,8 +176,8 @@ export function VtuberCanvas({
         );
 
         if (cancelled) {
+          // Cleanup effect sudah menghancurkan Application bila komponen dilepas.
           model.destroy();
-          app.destroy({ removeView: true }, { children: true });
           return;
         }
 
