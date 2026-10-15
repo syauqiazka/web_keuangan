@@ -13,6 +13,7 @@ export type GuideAction =
   | { type: "PREV_TUTORIAL_STEP" }
   | { type: "EXIT_TUTORIAL" }
   | { type: "START_THINKING" }
+  | { type: "FINISH_THINKING" }
   | { type: "START_SPEAKING" }
   | { type: "FINISH_SPEAKING" }
   | { type: "SET_ERROR"; message: string }
@@ -88,6 +89,15 @@ export function guideReducer(state: MachineState, action: GuideAction): MachineS
         ...state,
         previous: state.current,
         current: "thinking",
+        errorMessage: null,
+      };
+
+    case "FINISH_THINKING":
+      if (state.current !== "thinking") return state;
+      return {
+        ...state,
+        previous: "thinking",
+        current: "idle",
         errorMessage: null,
       };
 
