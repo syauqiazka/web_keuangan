@@ -22,6 +22,26 @@ interface Live2DLipSyncControls {
   stopLipSync?: () => void;
 }
 
+interface Live2DModelDisplay {
+  internalModel?: {
+    originalWidth?: number;
+    originalHeight?: number;
+    coreModel?: {
+      setPartOpacityById?: (partId: string, opacity: number) => void;
+      getPartIndex?: (partId: string) => number;
+      setPartOpacityByIndex?: (partIndex: number, opacity: number) => void;
+    };
+  };
+  width: number;
+  height: number;
+  scale: { set: (x: number, y?: number) => void };
+  position?: { set: (x: number, y: number) => void };
+  x: number;
+  y: number;
+  anchor?: { set: (x: number, y: number) => void };
+  destroy: () => void;
+}
+
 type CubismWindow = Window & { Live2DCubismCore?: unknown };
 
 let cubismCoreLoadPromise: Promise<void> | null = null;
@@ -147,9 +167,12 @@ export function VtuberCanvas({
         await app.init({
           width,
           height,
+          // backgroundAlpha harus ditetapkan SEBELUM renderer dibuat agar
+          // WebGL context memiliki alpha channel. Mengubah CSS saja tidak cukup.
           backgroundAlpha: 0,
           backgroundColor: 0x000000,
           clearBeforeRender: true,
+          premultipliedAlpha: true,
           antialias: true,
           resolution: window.devicePixelRatio || 1,
           autoDensity: true,
@@ -227,16 +250,49 @@ export function VtuberCanvas({
           return;
         }
 
-        // Fit seluruh model ke area transparan agar kepala/badan tidak terpotong.
-        // Sisakan ruang kecil di sekeliling karakter untuk efek mengambang.
+        const live2dDisplay = model as unknown as Live2DModelDisplay;
+
+        // Hiyori menyediakan PartBackground untuk preview aplikasi desktop.
+        // Sembunyikan bagian tersebut supaya hanya artwork karakter yang tampak
+        // dan latar dashboard terlihat melalui area transparan.
+        try {
+          const coreModel = live2dDisplay.internalModel?.coreModel;
+          if (typeof coreModel?.setPartOpacityById === "function") {
+            coreModel.setPartOpacityById("PartBackground", 0);
+          } else if (
+            typeof coreModel?.getPartIndex === "function" &&
+            typeof coreModel?.setPartOpacityByIndex === "function"
+          ) {
+            const backgroundPartIndex = coreModel.getPartIndex("PartBackground");
+            if (backgroundPartIndex >= 0) {
+              coreModel.setPartOpacityByIndex(backgroundPartIndex, 0);
+            }
+          }
+        } catch (error) {
+          // Alpha pada canvas tetap aktif meskipun model tidak menyediakan API parts.
+          console.warn("[VtuberCanvas] Tidak dapat menyembunyikan PartBackground:", error);
+        }
+
+        // Gunakan ukuran canvas asli Live2D jika tersedia. Model ditempatkan tepat
+        // di tengah viewport agar tidak hanya menyisakan bagian rambut di bawah.
+        const modelWidth =
+          live2dDisplay.internalModel?.originalWidth ||
+          (Number.isFinite(model.width) && model.width > 0 ? model.width : width);
+        const modelHeight =
+          live2dDisplay.internalModel?.originalHeight ||
+          (Number.isFinite(model.height) && model.height > 0 ? model.height : height);
         const scale = Math.min(
-          (width * 0.92) / model.width,
-          (height * 0.92) / model.height
+          (width * 0.78) / modelWidth,
+          (height * 0.88) / modelHeight
         );
         model.scale.set(scale);
-        model.anchor.set(0.5, 0.04);
-        model.x = width / 2;
-        model.y = height * 0.04;
+        live2dDisplay.anchor?.set(0.5, 0.5);
+        if (live2dDisplay.position) {
+          live2dDisplay.position.set(width / 2, height / 2);
+        } else {
+          model.x = width / 2;
+          model.y = height / 2;
+        }
 
         app.stage.addChild(model);
         live2dModelRef.current = model as unknown as Live2DLipSyncControls;
@@ -293,13 +349,24 @@ export function VtuberCanvas({
             const { width: newW, height: newH } = entry.contentRect;
             if (newW > 0 && newH > 0 && appInstance && !cancelled) {
               appInstance.renderer.resize(newW, newH);
-              model.x = newW / 2;
-              model.y = newH * 0.04;
+              const display = model as unknown as Live2DModelDisplay;
+              const modelWidth =
+                display.internalModel?.originalWidth ||
+                (Number.isFinite(model.width) && model.width > 0 ? model.width : newW);
+              const modelHeight =
+                display.internalModel?.originalHeight ||
+                (Number.isFinite(model.height) && model.height > 0 ? model.height : newH);
               const s = Math.min(
-                (newW * 0.92) / model.width,
-                (newH * 0.92) / model.height
+                (newW * 0.78) / modelWidth,
+                (newH * 0.88) / modelHeight
               );
               model.scale.set(s);
+              if (display.position) {
+                display.position.set(newW / 2, newH / 2);
+              } else {
+                model.x = newW / 2;
+                model.y = newH / 2;
+              }
             }
           }
         });
