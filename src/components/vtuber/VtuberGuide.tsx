@@ -27,6 +27,7 @@ export function VtuberGuide() {
   const [voiceEnabled, setVoiceEnabled] = useState(false);
   const [isSpeaking, setIsSpeaking] = useState(false);
   const synthRef = useRef<SpeechSynthesis | null>(null);
+  const speakTextRef = useRef<(text: string) => void>(() => {});
 
   // Chat State
   const [messages, setMessages] = useState<ChatMessage[]>([]);
@@ -51,9 +52,17 @@ export function VtuberGuide() {
   // Fungsi Narasi Suara
   const speakText = useCallback(
     (text: string) => {
-      if (!voiceEnabled || !synthRef.current) return;
+      const synth = synthRef.current;
+      if (
+        !voiceEnabled ||
+        !synth ||
+        typeof window === "undefined" ||
+        typeof SpeechSynthesisUtterance === "undefined"
+      ) {
+        return;
+      }
 
-      synthRef.current.cancel();
+      synth.cancel();
 
       // Hapus karakter markdown atau simbol
       const cleanText = text.replace(/[*_#`~[\]]/g, "").trim();
@@ -64,36 +73,36 @@ export function VtuberGuide() {
       utterance.rate = 1.0;
       utterance.pitch = 1.05;
 
-      // Pilih suara id-ID jika tersedia
-      const voices = synthRef.current.getVoices();
-      const idVoice = voices.find((v) => v.lang.startsWith("id"));
-      if (idVoice) {
-        utterance.voice = idVoice;
-      }
+      // Pilih suara Indonesia jika tersedia.
+      const voices = synth.getVoices();
+      const idVoice = voices.find((voice) => voice.lang.toLowerCase().startsWith("id"));
+      if (idVoice) utterance.voice = idVoice;
 
       utterance.onstart = () => {
         setIsSpeaking(true);
         dispatch({ type: "START_SPEAKING" });
       };
 
-      utterance.onend = () => {
+      const finishSpeaking = () => {
         setIsSpeaking(false);
         dispatch({ type: "FINISH_SPEAKING" });
       };
+      utterance.onend = finishSpeaking;
+      utterance.onerror = finishSpeaking;
 
-      utterance.onerror = () => {
-        setIsSpeaking(false);
-        dispatch({ type: "FINISH_SPEAKING" });
-      };
-
-      synthRef.current.speak(utterance);
+      synth.speak(utterance);
     },
     [voiceEnabled]
   );
 
-  // Greeting Otomatis saat pertama kali dibuka
+  // Referensi terbaru mencegah perubahan toggle suara mengulang greeting otomatis.
+  speakTextRef.current = speakText;
+
+  // Greeting otomatis saat halaman dibuka atau rute berubah.
   useEffect(() => {
-    const timer = setTimeout(() => {
+    let finishTimer: ReturnType<typeof setTimeout> | undefined;
+
+    const greetingTimer = setTimeout(() => {
       const greetingMsg = `Halo! Selamat datang di Bank Saku Digital. Saya siap memandu Anda di halaman ${currentTutorial.pageTitle}.`;
       setMessages([
         {
@@ -104,23 +113,31 @@ export function VtuberGuide() {
         },
       ]);
       dispatch({ type: "GREET" });
-      speakText(greetingMsg);
+      speakTextRef.current(greetingMsg);
 
-      setTimeout(() => {
+      finishTimer = setTimeout(() => {
         dispatch({ type: "FINISH_GREET" });
       }, 3500);
     }, 1200);
 
-    return () => clearTimeout(timer);
-  }, [currentTutorial.pageTitle, speakText]);
+    return () => {
+      clearTimeout(greetingTimer);
+      if (finishTimer) clearTimeout(finishTimer);
+    };
+  }, [currentTutorial.pageTitle]);
 
-  // Hentikan suara saat rute berpindah atau saat minimize
+  // Hentikan narasi hanya saat rute berubah, bukan setiap state mesin berubah.
   useEffect(() => {
-    if (synthRef.current) {
-      synthRef.current.cancel();
-      setIsSpeaking(false);
-    }
-  }, [pathname, state]);
+    synthRef.current?.cancel();
+    setIsSpeaking(false);
+  }, [pathname]);
+
+  // Saat panel diminimalkan, hentikan suara agar tidak berbicara di latar belakang.
+  useEffect(() => {
+    if (state.current !== "minimized") return;
+    synthRef.current?.cancel();
+    setIsSpeaking(false);
+  }, [state.current]);
 
   // Toggle Suara
   const handleToggleVoice = () => {
