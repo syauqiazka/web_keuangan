@@ -1,8 +1,8 @@
 "use client";
 
 /**
- * VtuberGuide.tsx — Komponen Utama VTuber Turguide Bank Saku Digital
- * Menggabungkan Live2D Canvas, State Machine, Panduan Tutorial, AI Companion, dan Audio TTS.
+ * VtuberGuide.tsx — Komponen utama panduan interaktif Bank Saku Digital.
+ * Menggabungkan avatar Alya, state machine, tutorial, AI Companion, dan audio TTS.
  */
 
 import React, { useReducer, useState, useEffect, useRef, useCallback } from "react";
@@ -356,10 +356,10 @@ export function VtuberGuide() {
           onClick={isPanelOpen ? handleClosePanel : handleOpenPanel}
           aria-label={isPanelOpen ? "Tutup panduan VTuber" : "Buka panduan dan Tanya AI"}
           aria-expanded={isPanelOpen}
-          className="pointer-events-auto relative block w-[132px] cursor-pointer appearance-none border-0 bg-transparent p-0 shadow-none outline-none focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent sm:w-[208px] lg:w-[252px]"
+          className="pointer-events-auto relative block w-[160px] cursor-pointer appearance-none border-0 bg-transparent p-0 shadow-none outline-none focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent sm:w-[280px] lg:w-[340px]"
           title={isPanelOpen ? "Tutup panduan" : "Buka panduan dan Tanya AI"}
         >
-          <div className="relative h-[220px] w-full overflow-visible bg-transparent sm:h-[340px] lg:h-[415px]">
+          <div className="relative h-[250px] w-full overflow-visible bg-transparent sm:h-[420px] lg:h-[500px]">
             <AlyaAvatar state={state.current} isSpeaking={isSpeaking} />
           </div>
         </button>
