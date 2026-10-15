@@ -102,6 +102,8 @@ export function VtuberCanvas({
     let cancelled = false;
     let appInstance: Application | null = null;
     let resizeObserver: ResizeObserver | null = null;
+    let modelLoadTimer: ReturnType<typeof setTimeout> | undefined;
+    let modelLoadAbandoned = false;
     // Track jumlah error render berturut-turut; jika > threshold, fallback
     let renderErrorCount = 0;
     const RENDER_ERROR_THRESHOLD = 5;
@@ -158,14 +160,15 @@ export function VtuberCanvas({
         // browser dapat menampilkan bidang putih di belakang karakter.
         app.renderer.background.alpha = 0;
         app.renderer.background.clearBeforeRender = true;
-        app.canvas.style.background = "transparent";
-        app.canvas.style.backgroundColor = "transparent";
-        app.canvas.style.display = "block";
-        app.canvas.style.position = "absolute";
-        app.canvas.style.inset = "0";
-        app.canvas.style.width = "100%";
-        app.canvas.style.height = "100%";
-        app.canvas.style.pointerEvents = "none";
+        const canvas = app.canvas as HTMLCanvasElement;
+        canvas.style.background = "transparent";
+        canvas.style.backgroundColor = "transparent";
+        canvas.style.display = "block";
+        canvas.style.position = "absolute";
+        canvas.style.inset = "0";
+        canvas.style.width = "100%";
+        canvas.style.height = "100%";
+        canvas.style.pointerEvents = "none";
         appInstance = app;
 
         if (cancelled) {
@@ -177,12 +180,11 @@ export function VtuberCanvas({
         if (!mount) return;
         mount.style.background = "transparent";
         mount.innerHTML = "";
-        mount.appendChild(app.canvas as HTMLCanvasElement);
+        mount.appendChild(canvas);
 
         // Hindari spinner/canvas putih yang menggantung tanpa batas bila model
         // atau salah satu aset Live2D gagal dijawab oleh server.
-        let modelLoadAbandoned = false;
-        let modelLoadTimer: ReturnType<typeof setTimeout> | undefined;
+        modelLoadAbandoned = false;
         const modelPromise = Live2DModel.from(
           "/live2d/guide/guide.model3.json",
           {
@@ -330,6 +332,10 @@ export function VtuberCanvas({
           }
           appInstance = null;
         }
+        if (modelLoadTimer) {
+          clearTimeout(modelLoadTimer);
+          modelLoadTimer = undefined;
+        }
         if (canvasMountRef.current) canvasMountRef.current.innerHTML = "";
 
         if (!cancelled) {
@@ -346,6 +352,11 @@ export function VtuberCanvas({
 
     return () => {
       cancelled = true;
+      if (modelLoadTimer) {
+        clearTimeout(modelLoadTimer);
+        modelLoadTimer = undefined;
+        modelLoadAbandoned = true;
+      }
       if (resizeObserver) {
         resizeObserver.disconnect();
       }
@@ -465,7 +476,7 @@ export function VtuberCanvas({
       />
 
       {isLoading && (
-        <div className="absolute inset-0 flex items-center justify-center text-xs text-text-3 font-mono">
+        <div className="pointer-events-none absolute inset-0 z-20 flex items-center justify-center bg-transparent text-xs text-text-3 font-mono">
           <div className="flex items-center gap-2">
             <span className="w-2 h-2 rounded-full bg-accent animate-ping" />
             <span>Memuat karakter...</span>
@@ -475,7 +486,7 @@ export function VtuberCanvas({
 
       {useFallback && !isLoading && (
         <div
-          className="relative flex flex-col items-center justify-center transition-transform duration-300"
+          className="relative z-10 flex flex-col items-center justify-end transition-transform duration-300 bg-transparent"
           style={{ transform: `translateY(${breathe}px)` }}
         >
           {/* Interactive Stylized Avatar: Sesuai Design System Modern Treasury */}
