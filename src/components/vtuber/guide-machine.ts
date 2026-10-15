@@ -127,6 +127,15 @@ export function guideReducer(state: MachineState, action: GuideAction): MachineS
       };
 
     case "SET_ERROR":
+      // Jangan membuka kembali panel jika request selesai gagal saat diminimalkan.
+      if (state.current === "minimized") {
+        return {
+          ...state,
+          previous: "error",
+          current: "minimized",
+          errorMessage: action.message,
+        };
+      }
       return {
         ...state,
         previous: state.current,
