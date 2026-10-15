@@ -219,6 +219,9 @@ export function VtuberGuide() {
 
       setMessages((prev) => [...prev, guideMsg]);
       speakText(data.reply);
+      // Selesaikan status berpikir walaupun suara dimatikan atau tidak didukung
+      // browser. Jika TTS mulai setelah ini, START_SPEAKING akan mengambil alih.
+      dispatch({ type: "FINISH_THINKING" });
     } catch (err: unknown) {
       const errText = err instanceof Error ? err.message : "Terjadi kesalahan saat memproses pertanyaan.";
       setChatError(errText);
