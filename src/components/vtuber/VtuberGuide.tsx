@@ -7,7 +7,7 @@
 
 import React, { useReducer, useState, useEffect, useRef, useCallback } from "react";
 import { usePathname } from "next/navigation";
-import { X, Bot } from "lucide-react";
+import { X } from "lucide-react";
 import { VtuberCanvas } from "./VtuberCanvas";
 import { GuideControls } from "./GuideControls";
 import { GuideTutorial } from "./GuideTutorial";
@@ -256,7 +256,7 @@ export function VtuberGuide() {
 
   // Karakter tetap mengambang di luar panel. Panel hanya berisi panduan / chat.
   return (
-    <div className="pointer-events-none fixed bottom-2 right-2 sm:bottom-4 sm:right-4 z-40 flex max-w-[calc(100vw-16px)] items-end justify-end gap-1.5 sm:gap-3 font-sans">
+    <div className="pointer-events-none fixed bottom-0 right-0 z-40 flex max-w-[calc(100vw-8px)] items-end justify-end gap-1.5 pr-1 font-sans sm:gap-3 sm:pr-2">
       {isPanelOpen && (
         <aside
           aria-label="Panduan Interaktif VTuber"
@@ -311,34 +311,26 @@ export function VtuberGuide() {
         </aside>
       )}
 
-      <div className={`pointer-events-auto relative flex shrink-0 flex-col items-center justify-end ${isPanelOpen ? "w-[108px] sm:w-[160px]" : "w-[174px] sm:w-[230px]"}`}>
+      <div className={`pointer-events-auto relative flex shrink-0 flex-col items-center justify-end ${isPanelOpen ? "w-[88px] sm:w-[156px]" : "w-[142px] sm:w-[210px] lg:w-[238px]"}`}>
         <button
           type="button"
           onClick={isPanelOpen ? handleClosePanel : handleOpenPanel}
           aria-label={isPanelOpen ? "Tutup panduan VTuber" : "Buka panduan dan Tanya AI"}
           aria-expanded={isPanelOpen}
-          className="group relative block w-full cursor-pointer rounded-t-full outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2 focus-visible:ring-offset-canvas"
+          className="group relative block w-full cursor-pointer appearance-none border-0 bg-transparent p-0 shadow-none outline-none focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent"
           title={isPanelOpen ? "Tutup panduan" : "Klik karakter untuk membuka panduan"}
         >
           {!isPanelOpen && (
-            <span className="absolute -top-1 left-1/2 z-10 -translate-x-1/2 whitespace-nowrap rounded-full border border-line bg-canvas/95 px-3 py-1 text-[11px] font-medium text-text shadow-sm backdrop-blur-sm">
-              <span className="mr-1.5 inline-block h-1.5 w-1.5 rounded-full bg-accent align-middle" />
-              Turguide · Klik untuk bicara
+            <span className="pointer-events-none absolute left-1/2 top-1 z-10 -translate-x-1/2 -translate-y-full whitespace-nowrap text-[11px] font-medium text-text-2 opacity-0 drop-shadow-[0_1px_3px_rgba(0,0,0,0.65)] transition-opacity group-hover:opacity-100 group-focus-visible:opacity-100">
+              Klik untuk membuka panduan
             </span>
           )}
           <div
-            className={`relative w-full overflow-visible ${isPanelOpen ? "h-[205px] sm:h-[260px]" : "h-[270px] sm:h-[350px]"}`}
+            className={`relative w-full overflow-visible bg-transparent ${isPanelOpen ? "h-[190px] sm:h-[260px]" : "h-[245px] sm:h-[330px] lg:h-[385px]"}`}
           >
             <VtuberCanvas state={state.current} isSpeaking={isSpeaking} />
           </div>
         </button>
-
-        {isPanelOpen && (
-          <div className="mt-1 flex w-full items-center justify-center gap-1.5 rounded-full border border-line bg-canvas/95 px-2 py-1.5 text-[10px] text-text-2 shadow-sm backdrop-blur-sm sm:text-xs">
-            <Bot className="h-3.5 w-3.5 shrink-0 text-accent" strokeWidth={1.5} />
-            <span className="truncate">Turguide Digital</span>
-          </div>
-        )}
       </div>
     </div>
   );
