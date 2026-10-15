@@ -3,6 +3,7 @@ import { db } from "@/lib/db";
 import { getSessionUser } from "@/server/auth/session";
 import type { Prisma } from "@/generated/prisma/client";
 import { formatRupiah } from "@/lib/money";
+import { getTotalPengeluaran } from "./totals";
 
 export interface PengeluaranRow {
   id: string;
@@ -75,12 +76,7 @@ export async function getPengeluaranList(params: {
       : {}),
   };
 
-  const filterTahun: Prisma.PengeluaranWhereInput = {
-    deletedAt: null,
-    ...(startDate && endDate ? { tanggal: { gte: startDate, lte: endDate } } : {}),
-  };
-
-  const [rows, total, sumBulan, sumTahun] = await Promise.all([
+  const [rows, total, totalsResult] = await Promise.all([
     db.pengeluaran.findMany({
       where: filterTanggal,
       include: { petugas: true },
@@ -89,22 +85,10 @@ export async function getPengeluaranList(params: {
       take,
     }),
     db.pengeluaran.count({ where: filterTanggal }),
-    // Ringkasan bulan ini (filter bulan aktif)
-    startBulan && endBulan
-      ? db.pengeluaran.aggregate({
-          where: { deletedAt: null, tanggal: { gte: startBulan, lte: endBulan } },
-          _sum: { nominal: true },
-        })
-      : Promise.resolve({ _sum: { nominal: null } }),
-    // Total tahun
-    db.pengeluaran.aggregate({
-      where: filterTahun,
-      _sum: { nominal: true },
-    }),
+    getTotalPengeluaran({ tahunAjaranId, bulan }),
   ]);
 
-  const jumlahBulanIni = Number(sumBulan._sum.nominal ?? 0);
-  const totalPerTahun = Number(sumTahun._sum.nominal ?? 0);
+  const { totalBulanIni: jumlahBulanIni, totalPerTahun } = totalsResult;
 
   return {
     rows: rows.map((r) => ({

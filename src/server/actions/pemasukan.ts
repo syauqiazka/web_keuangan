@@ -332,3 +332,255 @@ export async function tambahSumberDanaAction(params: {
   });
   return { success: true, sumberDanaId: created.id };
 }
+
+// ─── Batch Simpan Pemasukan Dana (Tab Bantuan / Donatur) ──────────
+
+export interface BatchPemasukanDanaInput {
+  id?: string;
+  sumberDanaId: string;
+  tanggal: string; // DD-MM-YYYY atau YYYY-MM-DD
+  nominal: number | string;
+  catatan?: string;
+  kategori: "BANTUAN" | "DONATUR";
+}
+
+export async function simpanBatchPemasukanDanaAction(
+  items: BatchPemasukanDanaInput[]
+): Promise<ActionState> {
+  const user = await requirePetugas().catch(() => null);
+  if (!user) return { error: "Sesi tidak valid. Silakan masuk kembali." };
+
+  if (!items || items.length === 0) {
+    return { error: "Tidak ada data untuk disimpan." };
+  }
+
+  interface ValidatedDanaRow {
+    id?: string;
+    sumberDanaId: string;
+    tanggalDate: Date;
+    nominalNum: number;
+    catatan?: string;
+  }
+
+  const validated: ValidatedDanaRow[] = [];
+
+  for (let i = 0; i < items.length; i++) {
+    const item = items[i];
+    if (!item.sumberDanaId) {
+      return { error: `Baris ${i + 1}: Sumber dana wajib dipilih.` };
+    }
+
+    const tanggalDate = parseTanggal(item.tanggal);
+    if (!tanggalDate) {
+      return { error: `Baris ${i + 1}: Format tanggal tidak valid (gunakan DD-MM-YYYY).` };
+    }
+
+    let nominalNum = 0;
+    if (typeof item.nominal === "number") {
+      nominalNum = item.nominal;
+    } else if (typeof item.nominal === "string") {
+      const cleaned = item.nominal.replace(/[Rp\s.]/g, "").replace(",", "");
+      nominalNum = parseInt(cleaned, 10);
+    }
+
+    if (isNaN(nominalNum) || nominalNum <= 0) {
+      return { error: `Baris ${i + 1}: Nominal harus lebih dari 0.` };
+    }
+
+    validated.push({
+      id: item.id,
+      sumberDanaId: item.sumberDanaId,
+      tanggalDate,
+      nominalNum,
+      catatan: item.catatan?.trim() || undefined,
+    });
+  }
+
+  try {
+    await db.$transaction(async (tx) => {
+      for (const row of validated) {
+        if (row.id) {
+          const existing = await tx.pemasukanDana.findFirst({
+            where: { id: row.id, deletedAt: null },
+          });
+          if (!existing) {
+            throw new Error(`Data pemasukan dana tidak ditemukan.`);
+          }
+          if (user.peran !== "ADMIN" && existing.petugasId !== user.id) {
+            throw new Error(`Anda tidak memiliki izin mengubah data milik petugas lain.`);
+          }
+
+          await tx.pemasukanDana.update({
+            where: { id: row.id },
+            data: {
+              sumberDanaId: row.sumberDanaId,
+              tanggal: row.tanggalDate,
+              nominal: row.nominalNum,
+              catatan: row.catatan ?? null,
+            },
+          });
+        } else {
+          await tx.pemasukanDana.create({
+            data: {
+              sumberDanaId: row.sumberDanaId,
+              tanggal: row.tanggalDate,
+              nominal: row.nominalNum,
+              catatan: row.catatan ?? null,
+              petugasId: user.id,
+            },
+          });
+        }
+      }
+    });
+
+    return { success: true };
+  } catch (err: unknown) {
+    const msg = err instanceof Error ? err.message : "Gagal menyimpan pemasukan dana.";
+    return { error: msg };
+  }
+}
+
+// ─── Batch Simpan Pembayaran Siswa (Tab Dari Siswa) ───────────────
+
+export interface BatchPembayaranSiswaInput {
+  id?: string;
+  penempatanId: string;
+  jenisPemasukanId: string;
+  tanggal: string; // DD-MM-YYYY atau YYYY-MM-DD
+  bulanTerbayar?: string; // nomor bulan "1"-"12" atau ISO tanggal 1
+  metode: "TRANSFER" | "SETOR_TUNAI";
+  nominal: number | string;
+  catatan?: string;
+}
+
+export async function simpanBatchPembayaranSiswaAction(
+  items: BatchPembayaranSiswaInput[]
+): Promise<ActionState> {
+  const user = await requirePetugas().catch(() => null);
+  if (!user) return { error: "Sesi tidak valid. Silakan masuk kembali." };
+
+  if (!items || items.length === 0) {
+    return { error: "Tidak ada data pembayaran siswa untuk disimpan." };
+  }
+
+  interface ValidatedPembayaranRow {
+    id?: string;
+    penempatanId: string;
+    jenisPemasukanId: string;
+    tanggalDate: Date;
+    bulanTerbayarDate: Date | null;
+    metode: "TRANSFER" | "SETOR_TUNAI";
+    nominalNum: number;
+    catatan?: string;
+  }
+
+  const validated: ValidatedPembayaranRow[] = [];
+
+  for (let i = 0; i < items.length; i++) {
+    const item = items[i];
+    if (!item.penempatanId || !item.jenisPemasukanId) {
+      return { error: `Baris ${i + 1}: Data penempatan atau jenis pemasukan tidak valid.` };
+    }
+
+    const tanggalDate = parseTanggal(item.tanggal);
+    if (!tanggalDate) {
+      return { error: `Baris ${i + 1}: Format tanggal tidak valid (gunakan DD-MM-YYYY).` };
+    }
+
+    let bulanTerbayarDate: Date | null = null;
+    if (item.bulanTerbayar) {
+      if (/^\d{1,2}$/.test(item.bulanTerbayar)) {
+        const m = parseInt(item.bulanTerbayar, 10);
+        const y = tanggalDate.getUTCFullYear();
+        bulanTerbayarDate = new Date(Date.UTC(y, m - 1, 1));
+      } else {
+        const parsed = parseTanggal(item.bulanTerbayar);
+        if (parsed) {
+          bulanTerbayarDate = new Date(Date.UTC(parsed.getUTCFullYear(), parsed.getUTCMonth(), 1));
+        }
+      }
+    }
+
+    let nominalNum = 0;
+    if (typeof item.nominal === "number") {
+      nominalNum = item.nominal;
+    } else if (typeof item.nominal === "string") {
+      const cleaned = item.nominal.replace(/[Rp\s.]/g, "").replace(",", "");
+      nominalNum = parseInt(cleaned, 10);
+    }
+
+    if (isNaN(nominalNum) || nominalNum <= 0) {
+      return { error: `Baris ${i + 1}: Nominal harus lebih dari 0.` };
+    }
+
+    validated.push({
+      id: item.id,
+      penempatanId: item.penempatanId,
+      jenisPemasukanId: item.jenisPemasukanId,
+      tanggalDate,
+      bulanTerbayarDate,
+      metode: item.metode,
+      nominalNum,
+      catatan: item.catatan?.trim() || undefined,
+    });
+  }
+
+  try {
+    await db.$transaction(async (tx) => {
+      for (const row of validated) {
+        // Validasi invarian: jenis.bulanan = true wajib ada bulanTerbayar
+        const jenis = await tx.jenisPemasukan.findUnique({
+          where: { id: row.jenisPemasukanId },
+        });
+        if (!jenis) {
+          throw new Error(`Jenis pemasukan tidak ditemukan.`);
+        }
+        if (jenis.bulanan && !row.bulanTerbayarDate) {
+          throw new Error(`Jenis pemasukan bulanan (${jenis.nama}) wajib menyertakan bulan terbayar.`);
+        }
+
+        if (row.id) {
+          const existing = await tx.pembayaranSiswa.findFirst({
+            where: { id: row.id, deletedAt: null },
+          });
+          if (!existing) {
+            throw new Error(`Data pembayaran tidak ditemukan.`);
+          }
+          if (user.peran !== "ADMIN" && existing.petugasId !== user.id) {
+            throw new Error(`Anda tidak memiliki izin mengubah data milik petugas lain.`);
+          }
+
+          await tx.pembayaranSiswa.update({
+            where: { id: row.id },
+            data: {
+              tanggal: row.tanggalDate,
+              bulanTerbayar: jenis.bulanan ? row.bulanTerbayarDate : null,
+              metode: row.metode,
+              nominal: row.nominalNum,
+              catatan: row.catatan ?? null,
+            },
+          });
+        } else {
+          await tx.pembayaranSiswa.create({
+            data: {
+              penempatanId: row.penempatanId,
+              jenisPemasukanId: row.jenisPemasukanId,
+              tanggal: row.tanggalDate,
+              bulanTerbayar: jenis.bulanan ? row.bulanTerbayarDate : null,
+              metode: row.metode,
+              nominal: row.nominalNum,
+              catatan: row.catatan ?? null,
+              petugasId: user.id,
+            },
+          });
+        }
+      }
+    });
+
+    return { success: true };
+  } catch (err: unknown) {
+    const msg = err instanceof Error ? err.message : "Gagal menyimpan pembayaran siswa.";
+    return { error: msg };
+  }
+}
+

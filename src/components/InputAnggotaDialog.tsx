@@ -78,8 +78,8 @@ export function InputAnggotaDialog({
           id="uid"
           name="uid"
           label="Kode UID"
-          placeholder="Contoh: 10-0001"
-          required
+          placeholder="Otomatis jika dikosongkan"
+          helperText="Kosongkan untuk pembuatan otomatis (mis. SW-1234)"
           error={state?.fieldErrors?.uid}
           disabled={isPending}
           className="font-mono"

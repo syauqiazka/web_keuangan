@@ -7,8 +7,7 @@ import type { TemaTampilan } from "@/generated/prisma/client";
 
 export async function setTemaAction(tema: TemaTampilan) {
   const cookieStore = await cookies();
-  const cookieVal =
-    tema === "TERANG" ? "terang" : tema === "GELAP" ? "gelap" : "sistem";
+  const cookieVal = tema === "GELAP" ? "gelap" : "terang";
 
   cookieStore.set("tema", cookieVal, {
     path: "/",

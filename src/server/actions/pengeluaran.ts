@@ -172,3 +172,113 @@ export async function hapusPengeluaranAction(
 
   return { success: true };
 }
+
+// ─── Batch Simpan Pengeluaran (Mode Edit Grid) ─────────────────────
+
+export interface BatchPengeluaranInput {
+  id?: string;
+  tanggal: string; // DD-MM-YYYY atau YYYY-MM-DD
+  jenis: string;
+  nominal: number | string;
+  catatan?: string;
+}
+
+export async function simpanBatchPengeluaranAction(
+  items: BatchPengeluaranInput[]
+): Promise<ActionState> {
+  const user = await requirePetugas().catch(() => null);
+  if (!user) return { error: "Sesi tidak valid. Silakan masuk kembali." };
+
+  if (!items || items.length === 0) {
+    return { error: "Tidak ada data pengeluaran untuk disimpan." };
+  }
+
+  // Validasi dan parsing tiap baris
+  interface ValidatedRow {
+    id?: string;
+    tanggalDate: Date;
+    jenis: string;
+    nominalNum: number;
+    catatan?: string;
+  }
+
+  const validated: ValidatedRow[] = [];
+
+  for (let i = 0; i < items.length; i++) {
+    const item = items[i];
+    const jenis = item.jenis?.trim();
+    if (!jenis) {
+      return { error: `Baris ${i + 1}: Jenis pengeluaran wajib diisi.` };
+    }
+
+    const tanggalDate = parseTanggal(item.tanggal);
+    if (!tanggalDate) {
+      return { error: `Baris ${i + 1}: Format tanggal tidak valid (gunakan DD-MM-YYYY).` };
+    }
+
+    let nominalNum = 0;
+    if (typeof item.nominal === "number") {
+      nominalNum = item.nominal;
+    } else if (typeof item.nominal === "string") {
+      const cleaned = item.nominal.replace(/[Rp\s.]/g, "").replace(",", "");
+      nominalNum = parseInt(cleaned, 10);
+    }
+
+    if (isNaN(nominalNum) || nominalNum <= 0) {
+      return { error: `Baris ${i + 1}: Nominal harus lebih dari 0.` };
+    }
+
+    validated.push({
+      id: item.id,
+      tanggalDate,
+      jenis,
+      nominalNum,
+      catatan: item.catatan?.trim() || undefined,
+    });
+  }
+
+  // Jalankan dalam satu transaksi
+  try {
+    await db.$transaction(async (tx) => {
+      for (const row of validated) {
+        if (row.id) {
+          const existing = await tx.pengeluaran.findFirst({
+            where: { id: row.id, deletedAt: null },
+          });
+          if (!existing) {
+            throw new Error(`Data pengeluaran ${row.id} tidak ditemukan.`);
+          }
+          if (user.peran !== "ADMIN" && existing.petugasId !== user.id) {
+            throw new Error(`Anda tidak memiliki izin mengubah data pengeluaran milik petugas lain.`);
+          }
+
+          await tx.pengeluaran.update({
+            where: { id: row.id },
+            data: {
+              tanggal: row.tanggalDate,
+              jenis: row.jenis,
+              nominal: row.nominalNum,
+              catatan: row.catatan ?? null,
+            },
+          });
+        } else {
+          await tx.pengeluaran.create({
+            data: {
+              tanggal: row.tanggalDate,
+              jenis: row.jenis,
+              nominal: row.nominalNum,
+              catatan: row.catatan ?? null,
+              petugasId: user.id,
+            },
+          });
+        }
+      }
+    });
+
+    return { success: true };
+  } catch (err: unknown) {
+    const msg = err instanceof Error ? err.message : "Gagal menyimpan pengeluaran.";
+    return { error: msg };
+  }
+}
+

@@ -2,6 +2,7 @@ import "server-only";
 import { db } from "@/lib/db";
 import { getSessionUser } from "@/server/auth/session";
 import { formatRupiah } from "@/lib/money";
+import { getTotalPemasukan } from "./totals";
 
 // ─── Types ───────────────────────────────────────────────────────
 
@@ -236,20 +237,10 @@ export async function getRingkasanPemasukan(params: {
 
   let startTahun: Date | undefined;
   let endTahun: Date | undefined;
-  let startBulan: Date | undefined;
-  let endBulan: Date | undefined;
 
   if (tahunAjaranId) {
     const ta = await db.tahunAjaran.findUnique({ where: { id: tahunAjaranId } });
     if (ta) { startTahun = ta.mulai; endTahun = ta.selesai; }
-  }
-
-  if (bulan) {
-    const [y, m] = bulan.split("-").map(Number);
-    if (!isNaN(y) && !isNaN(m)) {
-      startBulan = new Date(Date.UTC(y, m - 1, 1));
-      endBulan = new Date(Date.UTC(y, m, 0));
-    }
   }
 
   const filterTahun = {
@@ -257,25 +248,14 @@ export async function getRingkasanPemasukan(params: {
     ...(startTahun && endTahun ? { tanggal: { gte: startTahun, lte: endTahun } } : {}),
   };
 
-  const filterBulan = startBulan && endBulan
-    ? { deletedAt: null as null, tanggal: { gte: startBulan, lte: endBulan } }
-    : filterTahun;
-
   const filterDanaTahun = {
     deletedAt: null as null,
     ...(startTahun && endTahun ? { tanggal: { gte: startTahun, lte: endTahun } } : {}),
   };
 
-  const filterDanaBulan = startBulan && endBulan
-    ? { deletedAt: null as null, tanggal: { gte: startBulan, lte: endBulan } }
-    : filterDanaTahun;
-
-  const [sumSiswaTahun, sumDanaTahun, sumSiswaBulan, sumDanaBulan, jenisGroups] =
+  const [{ totalBulanIni: jumlahBulanIni, totalPerTahun }, jenisGroups, bantuanSum, donaturSum] =
     await Promise.all([
-      db.pembayaranSiswa.aggregate({ where: filterTahun, _sum: { nominal: true } }),
-      db.pemasukanDana.aggregate({ where: filterDanaTahun, _sum: { nominal: true } }),
-      db.pembayaranSiswa.aggregate({ where: filterBulan, _sum: { nominal: true } }),
-      db.pemasukanDana.aggregate({ where: filterDanaBulan, _sum: { nominal: true } }),
+      getTotalPemasukan({ tahunAjaranId, bulan }),
       // Per jenis pemasukan (hanya siswa)
       tahunAjaranId
         ? db.pembayaranSiswa.groupBy({
@@ -284,15 +264,15 @@ export async function getRingkasanPemasukan(params: {
             _sum: { nominal: true },
           })
         : Promise.resolve([]),
+      db.pemasukanDana.aggregate({
+        where: { ...filterDanaTahun, sumberDana: { kategori: "BANTUAN" } },
+        _sum: { nominal: true },
+      }),
+      db.pemasukanDana.aggregate({
+        where: { ...filterDanaTahun, sumberDana: { kategori: "DONATUR" } },
+        _sum: { nominal: true },
+      }),
     ]);
-
-  const totalSiswaTahun = Number(sumSiswaTahun._sum.nominal ?? 0);
-  const totalDanaTahun = Number(sumDanaTahun._sum.nominal ?? 0);
-  const totalPerTahun = totalSiswaTahun + totalDanaTahun;
-
-  const totalSiswaBulan = Number(sumSiswaBulan._sum.nominal ?? 0);
-  const totalDanaBulan = Number(sumDanaBulan._sum.nominal ?? 0);
-  const jumlahBulanIni = totalSiswaBulan + totalDanaBulan;
 
   // Resolve jenis names
   let perJenis: { nama: string; total: number; totalFormatted: string }[] = [];
@@ -307,6 +287,16 @@ export async function getRingkasanPemasukan(params: {
       const total = Number(g._sum.nominal ?? 0);
       return { nama: jenisMap[g.jenisPemasukanId] ?? "—", total, totalFormatted: formatRupiah(total) };
     });
+  }
+
+  const totalBantuan = Number(bantuanSum._sum.nominal ?? 0);
+  if (totalBantuan > 0) {
+    perJenis.push({ nama: "Bantuan", total: totalBantuan, totalFormatted: formatRupiah(totalBantuan) });
+  }
+
+  const totalDonatur = Number(donaturSum._sum.nominal ?? 0);
+  if (totalDonatur > 0) {
+    perJenis.push({ nama: "Donatur", total: totalDonatur, totalFormatted: formatRupiah(totalDonatur) });
   }
 
   return {

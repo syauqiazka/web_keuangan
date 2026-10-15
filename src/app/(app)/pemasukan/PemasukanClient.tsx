@@ -96,6 +96,13 @@ export function PemasukanClient({
     ...kelasList.map((k) => ({ value: k.id, label: k.nama })),
   ];
 
+  const namaBulanTerpilih = bulanNomor
+    ? BULAN_OPTIONS.find((b) => b.value === bulanNomor)?.label
+    : null;
+  const labelBulan = namaBulanTerpilih
+    ? `Jumlah Pemasukan Bulan ${namaBulanTerpilih}`
+    : "Jumlah Pemasukan Bulan Ini";
+
   return (
     <div className="space-y-6">
       {/* Header */}
@@ -110,7 +117,7 @@ export function PemasukanClient({
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
           <div className="bg-canvas p-6 border border-line rounded-[8px]">
             <div className="text-[12px] font-[500] font-mono text-label uppercase tracking-[0.08em] mb-2">
-              Jumlah Pemasukan Bulan Ini
+              {labelBulan}
             </div>
             <div className="text-[32px] font-[400] font-display text-text leading-[1.25] num">
               {ringkasan.jumlahBulanIniFormatted}

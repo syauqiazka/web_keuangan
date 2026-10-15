@@ -1,19 +1,21 @@
 "use client";
 
+import * as React from "react";
 import { useState, useActionState } from "react";
 import { hitungStatusLunas } from "@/lib/status-lunas";
 import { formatRupiah } from "@/lib/money";
 import { Button } from "@/components/ui/Button";
-import {
-  tambahPembayaranSiswaAction,
-  hapusPembayaranSiswaAction,
-  tambahJenisPemasukanAction,
-  type ActionState,
-} from "@/server/actions/pemasukan";
 import { Dialog } from "@/components/ui/Dialog";
 import { Input } from "@/components/ui/Input";
 import { Select } from "@/components/ui/Select";
-import type { JenisPemasukanOption, SiswaSel } from "@/server/queries/pemasukan";
+import { useToast } from "@/components/ui/Toast";
+import {
+  tambahJenisPemasukanAction,
+  tambahPembayaranSiswaAction,
+  hapusPembayaranSiswaAction,
+  type ActionState,
+} from "@/server/actions/pemasukan";
+import type { JenisPemasukanOption, SiswaSel, PembayaranSel } from "@/server/queries/pemasukan";
 
 interface TabDariSiswaProps {
   jenisOptions: JenisPemasukanOption[];
@@ -31,10 +33,23 @@ function formatTanggal(iso: string): string {
   return `${day}-${month}-${year}`;
 }
 
-// Format ISO date -> bulan (e.g., "Jan 2026")
+// Format ISO date -> nama bulan (contoh: "Oktober 2026")
 function formatBulan(iso: string): string {
   const d = new Date(iso);
-  const bulanNames = ["Jan","Feb","Mar","Apr","Mei","Jun","Jul","Ags","Sep","Okt","Nov","Des"];
+  const bulanNames = [
+    "Januari",
+    "Februari",
+    "Maret",
+    "April",
+    "Mei",
+    "Juni",
+    "Juli",
+    "Agustus",
+    "September",
+    "Oktober",
+    "November",
+    "Desember",
+  ];
   return `${bulanNames[d.getUTCMonth()]} ${d.getUTCFullYear()}`;
 }
 
@@ -43,9 +58,24 @@ const METODE_OPTIONS = [
   { value: "TRANSFER", label: "TF" },
 ];
 
-// ─── Dialog Tambah Jenis Pemasukan ───────────────────────────────
+const BULAN_DAFTAR = [
+  { value: "1", label: "Januari" },
+  { value: "2", label: "Februari" },
+  { value: "3", label: "Maret" },
+  { value: "4", label: "April" },
+  { value: "5", label: "Mei" },
+  { value: "6", label: "Juni" },
+  { value: "7", label: "Juli" },
+  { value: "8", label: "Agustus" },
+  { value: "9", label: "September" },
+  { value: "10", label: "Oktober" },
+  { value: "11", label: "November" },
+  { value: "12", label: "Desember" },
+];
 
-function DialogTambahJenis({
+// ─── Dialog Tambah Jenis Pemasukan (Tambah Kolom) ─────────────────
+
+function DialogTambahKolom({
   tahunAjaranId,
   open,
   onClose,
@@ -59,55 +89,37 @@ function DialogTambahJenis({
   const [state, formAction, isPending] = useActionState<ActionState | null, FormData>(
     async (_prev, fd) => {
       const result = await tambahJenisPemasukanAction(_prev, fd);
-      if (result.success) { onSuccess(); onClose(); }
+      if (result.success) {
+        onSuccess();
+        onClose();
+      }
       return result;
     },
     null
   );
 
   return (
-    <Dialog open={open} title="Tambah Jenis Pemasukan" onClose={onClose}>
+    <Dialog open={open} title="Tambah Kolom Pemasukan Baru" onClose={onClose}>
       <form action={formAction} className="space-y-4">
         <input type="hidden" name="tahunAjaranId" value={tahunAjaranId} />
+        {/* Kolom baru selalu tidak bulanan (3 sub-kolom) sesuai AGENTS.md 4.4 */}
+        <input type="hidden" name="bulanan" value="false" />
+
         <Input
-          id="jenis-nama"
+          id="kolom-nama"
           name="nama"
-          label="Nama Jenis"
-          placeholder="Contoh: SPP, Daftar Ulang, Uang Gedung"
+          label="Nama Kolom (Jenis Pemasukan)"
+          placeholder="Contoh: Uang Gedung, Ujian, dsb."
           required
         />
-        <div>
-          <label className="block text-[14px] font-[500] text-text mb-1">
-            Tipe
-          </label>
-          <div className="flex gap-4">
-            {[
-              { value: "false", label: "Satu kali (Daftar Ulang, dll.)" },
-              { value: "true", label: "Bulanan (SPP)" },
-            ].map((opt) => (
-              <label key={opt.value} className="flex items-center gap-2 text-[14px] text-text cursor-pointer">
-                <input
-                  type="radio"
-                  name="bulanan"
-                  value={opt.value}
-                  defaultChecked={opt.value === "false"}
-                  className="accent-accent"
-                />
-                {opt.label}
-              </label>
-            ))}
-          </div>
-        </div>
         <Input
-          id="jenis-nominal"
+          id="kolom-nominal"
           name="nominalStandar"
           label="Nominal Standar (opsional)"
-          placeholder="Contoh: 150.000"
-          helperText="Kosongkan jika tidak ada patokan lunas."
+          placeholder="Contoh: 200.000"
+          helperText="Kosongkan jika nominal tidak memiliki patokan lunas."
         />
-        {state?.error && (
-          <p className="text-[14px] text-danger">{state.error}</p>
-        )}
+        {state?.error && <p className="text-[14px] text-danger">{state.error}</p>}
         <div className="flex justify-end gap-2 pt-2">
           <Button type="button" variant="secondary" onClick={onClose}>
             Batal
@@ -121,37 +133,45 @@ function DialogTambahJenis({
   );
 }
 
-// ─── Dialog Tambah Pembayaran ─────────────────────────────────────
+// ─── Dialog Tambah Pembayaran Siswa ───────────────────────────────
 
 function DialogTambahPembayaran({
   open,
   onClose,
   onSuccess,
   penempatanId,
-  namasSiswa,
-  jenis: jenisList,
+  namaSiswa,
+  jenisList,
 }: {
   open: boolean;
   onClose: () => void;
   onSuccess: () => void;
   penempatanId: string;
-  namasSiswa: string;
-  jenis: JenisPemasukanOption[];
+  namaSiswa: string;
+  jenisList: JenisPemasukanOption[];
 }) {
   const [selectedJenisId, setSelectedJenisId] = useState(jenisList[0]?.id ?? "");
   const selectedJenis = jenisList.find((j) => j.id === selectedJenisId);
 
+  const today = new Date();
+  const defaultToday = `${String(today.getDate()).padStart(2, "0")}-${String(
+    today.getMonth() + 1
+  ).padStart(2, "0")}-${today.getFullYear()}`;
+
   const [state, formAction, isPending] = useActionState<ActionState | null, FormData>(
     async (_prev, fd) => {
       const result = await tambahPembayaranSiswaAction(_prev, fd);
-      if (result.success) { onSuccess(); onClose(); }
+      if (result.success) {
+        onSuccess();
+        onClose();
+      }
       return result;
     },
     null
   );
 
   return (
-    <Dialog open={open} title={`Tambah Pembayaran — ${namasSiswa}`} onClose={onClose}>
+    <Dialog open={open} title={`Catat Pembayaran — ${namaSiswa}`} onClose={onClose}>
       <form action={formAction} className="space-y-4">
         <input type="hidden" name="penempatanId" value={penempatanId} />
         <Select
@@ -159,49 +179,40 @@ function DialogTambahPembayaran({
           label="Jenis Pemasukan"
           value={selectedJenisId}
           onChange={(e) => setSelectedJenisId(e.target.value)}
-          options={jenisList.map((j) => ({ value: j.id, label: j.nama }))}
+          options={jenisList.map((j) => ({
+            value: j.id,
+            label: `${j.nama}${j.nominalStandar ? ` (${formatRupiah(j.nominalStandar)})` : ""}`,
+          }))}
         />
         <Input
           id="bayar-tanggal"
           name="tanggal"
           label="Tanggal Transaksi"
+          defaultValue={defaultToday}
           placeholder="DD-MM-YYYY"
           required
         />
         {selectedJenis?.bulanan && (
-          <Input
-            id="bayar-bulan"
+          <Select
             name="bulanTerbayar"
             label="Bulan Terbayar"
-            placeholder="YYYY-MM (contoh: 2026-01)"
-            required
+            defaultValue={String(today.getMonth() + 1)}
+            options={BULAN_DAFTAR}
           />
         )}
-        <Select
-          name="metode"
-          label="Metode"
-          options={METODE_OPTIONS}
-        />
+        <Select name="metode" label="Metode Pembayaran" options={METODE_OPTIONS} />
         <Input
           id="bayar-nominal"
           name="nominal"
-          label="Nominal (Rp)"
-          placeholder={
-            selectedJenis?.nominalStandar
-              ? formatRupiah(selectedJenis.nominalStandar)
-              : "Contoh: 150.000"
+          label="Nominal"
+          defaultValue={
+            selectedJenis?.nominalStandar ? String(selectedJenis.nominalStandar) : ""
           }
+          placeholder="Contoh: 150.000"
           required
         />
-        <Input
-          id="bayar-catatan"
-          name="catatan"
-          label="Catatan (opsional)"
-          placeholder=""
-        />
-        {state?.error && (
-          <p className="text-[14px] text-danger">{state.error}</p>
-        )}
+        <Input id="bayar-catatan" name="catatan" label="Catatan (opsional)" placeholder="" />
+        {state?.error && <p className="text-[14px] text-danger">{state.error}</p>}
         <div className="flex justify-end gap-2 pt-2">
           <Button type="button" variant="secondary" onClick={onClose}>
             Batal
@@ -215,7 +226,7 @@ function DialogTambahPembayaran({
   );
 }
 
-// ─── Hapus Pembayaran ─────────────────────────────────────────────
+// ─── Tombol Hapus Pembayaran ──────────────────────────────────────
 
 function TombolHapusPembayaran({
   id,
@@ -234,24 +245,22 @@ function TombolHapusPembayaran({
   );
 
   return (
-    <form action={formAction} className="inline">
+    <form action={formAction} className="inline ml-1">
       <input type="hidden" name="id" value={id} />
       <button
         type="submit"
         disabled={isPending}
         className="text-[11px] text-text-3 hover:text-danger disabled:opacity-40"
-        title="Hapus pembayaran"
+        title="Hapus pembayaran ini"
       >
         ×
       </button>
-      {state?.error && (
-        <span className="text-[11px] text-danger ml-1">{state.error}</span>
-      )}
+      {state?.error && <span className="text-[11px] text-danger">{state.error}</span>}
     </form>
   );
 }
 
-// ─── Tab Utama ────────────────────────────────────────────────────
+// ─── Komponen Utama TabDariSiswa ──────────────────────────────────
 
 export function TabDariSiswa({
   jenisOptions,
@@ -259,7 +268,9 @@ export function TabDariSiswa({
   tahunAjaranId,
   onRefresh,
 }: TabDariSiswaProps) {
-  const [dialogJenisOpen, setDialogJenisOpen] = useState(false);
+  const { showToast } = useToast();
+  const [isEditing, setIsEditing] = useState(false);
+  const [dialogKolomOpen, setDialogKolomOpen] = useState(false);
   const [dialogBayarState, setDialogBayarState] = useState<{
     open: boolean;
     penempatanId: string;
@@ -274,20 +285,32 @@ export function TabDariSiswa({
     );
   }
 
-  if (jenisOptions.length === 0) {
+  // ATURAN: SPP selalu grup pertama (dan satu-satunya yang bulanan)
+  const sortedJenis = [...jenisOptions].sort((a, b) => {
+    if (a.bulanan && !b.bulanan) return -1;
+    if (!a.bulanan && b.bulanan) return 1;
+    return a.urutan - b.urutan;
+  });
+
+  if (sortedJenis.length === 0) {
     return (
       <div className="space-y-4 py-4">
         <p className="text-[14px] text-text-3">
           Belum ada jenis pemasukan untuk tahun ajaran ini.
         </p>
-        <Button type="button" variant="secondary" size="sm" onClick={() => setDialogJenisOpen(true)}>
+        <Button
+          type="button"
+          variant="secondary"
+          size="sm"
+          onClick={() => setDialogKolomOpen(true)}
+        >
           + Tambah Kolom
         </Button>
-        {dialogJenisOpen && (
-          <DialogTambahJenis
+        {dialogKolomOpen && (
+          <DialogTambahKolom
             tahunAjaranId={tahunAjaranId}
-            open={dialogJenisOpen}
-            onClose={() => setDialogJenisOpen(false)}
+            open={dialogKolomOpen}
+            onClose={() => setDialogKolomOpen(false)}
             onSuccess={onRefresh}
           />
         )}
@@ -297,174 +320,325 @@ export function TabDariSiswa({
 
   return (
     <div className="space-y-4">
-      {/* Tombol aksi */}
-      <div className="flex gap-2">
-        <Button type="button" variant="secondary" size="sm" onClick={() => setDialogJenisOpen(true)}>
-          + Tambah Kolom
-        </Button>
+      {/* Toolbar Aksi Tab */}
+      <div className="flex flex-wrap items-center justify-between gap-3 pb-2 border-b border-line">
+        <div className="flex items-center gap-2">
+          <Button
+            type="button"
+            variant="secondary"
+            size="sm"
+            onClick={() => setIsEditing((prev) => !prev)}
+          >
+            {isEditing ? "Batal" : "Input"}
+          </Button>
+
+          {isEditing && (
+            <Button
+              type="button"
+              variant="secondary"
+              size="sm"
+              onClick={() => setDialogKolomOpen(true)}
+            >
+              + Tambah Kolom
+            </Button>
+          )}
+        </div>
+
+        <div className="flex items-center gap-4 text-[12px] text-text-3">
+          <span>
+            <span className="text-danger font-[600]">Nominal Merah</span> = belum lunas (kurang dari standar)
+          </span>
+        </div>
       </div>
 
-      {/* Tabel lebar */}
+      {/* Grid Tabel Lebar */}
       <div className="w-full overflow-x-auto border border-line">
-        <table className="border-collapse text-[13px]" style={{ minWidth: "600px" }}>
+        <table className="border-collapse text-[13px] w-full" style={{ minWidth: "900px" }}>
           <thead>
+            {/* Header Grup Pemasukan */}
             <tr className="border-b border-line-strong bg-canvas">
-              <th className="px-3 py-2.5 text-right font-semibold text-text sticky left-0 bg-canvas z-10" style={{ minWidth: "48px" }}>No</th>
-              <th className="px-3 py-2.5 text-left font-semibold text-text sticky left-12 bg-canvas z-10" style={{ minWidth: "160px" }}>Nama Siswa</th>
-              <th className="px-3 py-2.5 text-left font-semibold text-text sticky left-[208px] bg-canvas z-10 border-r border-line-strong" style={{ minWidth: "100px" }}>Kode UID</th>
-              {jenisOptions.map((jenis) => (
-                <th
-                  key={jenis.id}
-                  colSpan={jenis.bulanan ? 3 : 2}
-                  className="px-3 py-2 text-center font-semibold text-text border-l border-line-strong"
-                >
-                  <div>{jenis.nama}</div>
-                  {jenis.nominalStandar !== null && (
-                    <div className="text-[11px] font-[400] text-text-3 font-mono">
-                      {formatRupiah(jenis.nominalStandar)}
-                    </div>
-                  )}
-                </th>
-              ))}
-              <th className="px-3 py-2 text-center font-semibold text-text border-l border-line-strong" style={{ minWidth: "80px" }}>
-                Aksi
+              <th
+                rowSpan={2}
+                className="px-3 py-2.5 text-right font-semibold text-text sticky left-0 bg-canvas z-20 border-r border-line"
+                style={{ width: "48px" }}
+              >
+                No
               </th>
+              <th
+                rowSpan={2}
+                className="px-3 py-2.5 text-left font-semibold text-text sticky left-12 bg-canvas z-20 border-r border-line"
+                style={{ minWidth: "160px" }}
+              >
+                Nama Siswa
+              </th>
+              <th
+                rowSpan={2}
+                className="px-3 py-2.5 text-left font-semibold text-text sticky left-[208px] bg-canvas z-20 border-r border-line-strong"
+                style={{ width: "110px" }}
+              >
+                Kode UID
+              </th>
+
+              {/* Kolom Grup Jenis Pemasukan */}
+              {sortedJenis.map((jenis) => {
+                // SPP: 4 sub-kolom (Tanggal Transaksi, Bulan Terbayar, Metode, Petugas/Nominal)
+                // Jenis lain: 3 sub-kolom (Tanggal Transaksi, Metode, Petugas/Nominal)
+                const colSpanCount = jenis.bulanan ? 4 : 3;
+
+                return (
+                  <th
+                    key={jenis.id}
+                    colSpan={colSpanCount}
+                    className="px-3 py-2 text-center font-semibold text-text border-r border-line-strong last:border-r-0"
+                  >
+                    <div className="font-semibold text-[14px]">{jenis.nama}</div>
+                    {jenis.nominalStandar !== null ? (
+                      <div className="text-[12px] font-normal text-text-3 font-mono">
+                        Standar: {formatRupiah(jenis.nominalStandar)}
+                      </div>
+                    ) : (
+                      <div className="text-[11px] font-normal text-text-3 italic">
+                        Tanpa patokan lunas
+                      </div>
+                    )}
+                  </th>
+                );
+              })}
+
+              {isEditing && (
+                <th
+                  rowSpan={2}
+                  className="px-3 py-2 text-center font-semibold text-text border-l border-line-strong"
+                  style={{ width: "100px" }}
+                >
+                  Aksi
+                </th>
+              )}
             </tr>
-            {/* Sub-header */}
+
+            {/* Sub-Header Kolom */}
             <tr className="border-b border-line bg-canvas">
-              <th className="sticky left-0 bg-canvas z-10"></th>
-              <th className="sticky left-12 bg-canvas z-10"></th>
-              <th className="sticky left-[208px] bg-canvas z-10 border-r border-line-strong"></th>
-              {jenisOptions.map((jenis) => (
+              {sortedJenis.map((jenis) =>
                 jenis.bulanan ? (
-                  <>
-                    <th key={`${jenis.id}-tanggal`} className="px-2 py-1.5 text-[12px] font-[500] text-text-3 text-left border-l border-line-strong">Tanggal</th>
-                    <th key={`${jenis.id}-bulan`} className="px-2 py-1.5 text-[12px] font-[500] text-text-3 text-left">Bulan</th>
-                    <th key={`${jenis.id}-nominal`} className="px-2 py-1.5 text-[12px] font-[500] text-text-3 text-right">Nominal</th>
-                  </>
+                  // SPP: 4 sub-kolom
+                  <React.Fragment key={`${jenis.id}-subheaders`}>
+                    <th className="px-2 py-1.5 text-[12px] font-[500] text-text-3 text-left border-r border-line">
+                      Tanggal
+                    </th>
+                    <th className="px-2 py-1.5 text-[12px] font-[500] text-text-3 text-left border-r border-line">
+                      Bulan Terbayar
+                    </th>
+                    <th className="px-2 py-1.5 text-[12px] font-[500] text-text-3 text-center border-r border-line w-16">
+                      Metode
+                    </th>
+                    <th className="px-2 py-1.5 text-[12px] font-[500] text-text-3 text-right border-r border-line-strong">
+                      Nominal & Petugas
+                    </th>
+                  </React.Fragment>
                 ) : (
-                  <>
-                    <th key={`${jenis.id}-tanggal`} className="px-2 py-1.5 text-[12px] font-[500] text-text-3 text-left border-l border-line-strong">Tanggal</th>
-                    <th key={`${jenis.id}-nominal`} className="px-2 py-1.5 text-[12px] font-[500] text-text-3 text-right">Nominal</th>
-                  </>
+                  // Jenis lain: 3 sub-kolom
+                  <React.Fragment key={`${jenis.id}-subheaders`}>
+                    <th className="px-2 py-1.5 text-[12px] font-[500] text-text-3 text-left border-r border-line">
+                      Tanggal
+                    </th>
+                    <th className="px-2 py-1.5 text-[12px] font-[500] text-text-3 text-center border-r border-line w-16">
+                      Metode
+                    </th>
+                    <th className="px-2 py-1.5 text-[12px] font-[500] text-text-3 text-right border-r border-line-strong">
+                      Nominal & Petugas
+                    </th>
+                  </React.Fragment>
                 )
-              ))}
-              <th className="border-l border-line-strong"></th>
+              )}
             </tr>
           </thead>
+
           <tbody>
-            {siswaRows.length === 0 && (
+            {siswaRows.length === 0 ? (
               <tr>
-                <td colSpan={3 + jenisOptions.reduce((acc, j) => acc + (j.bulanan ? 3 : 2), 0) + 1}
-                  className="px-4 py-8 text-center text-text-3">
-                  Belum ada siswa pada kelas/tahun ajaran ini.
+                <td
+                  colSpan={
+                    3 +
+                    sortedJenis.reduce((acc, j) => acc + (j.bulanan ? 4 : 3), 0) +
+                    (isEditing ? 1 : 0)
+                  }
+                  className="px-4 py-8 text-center text-text-3 font-[360]"
+                >
+                  Belum ada siswa pada filter yang dipilih.
                 </td>
               </tr>
-            )}
-            {siswaRows.map((siswa, idx) => (
-              <tr key={siswa.penempatanId} className="border-b border-line hover:bg-panel">
-                <td className="px-3 py-2 text-right text-text-3 num sticky left-0 bg-canvas z-10">{idx + 1}</td>
-                <td className="px-3 py-2 text-text sticky left-12 bg-canvas z-10">{siswa.nama}</td>
-                <td className="px-3 py-2 font-mono text-[12px] text-text-2 sticky left-[208px] bg-canvas z-10 border-r border-line-strong">
-                  {siswa.uid}
-                </td>
-                {jenisOptions.map((jenis) => {
-                  const pembayaran = siswa.pembayaran[jenis.id] ?? [];
-                  const status = hitungStatusLunas(
-                    pembayaran.map((p) => p.nominal),
-                    jenis.nominalStandar
-                  );
-                  const isKurang = !status.lunas;
+            ) : (
+              siswaRows.map((siswa, idx) => (
+                <tr
+                  key={siswa.penempatanId}
+                  className="border-b border-line hover:bg-panel transition-colors"
+                >
+                  <td className="px-3 py-2 text-right text-text-3 num sticky left-0 bg-canvas z-10 border-r border-line">
+                    {idx + 1}
+                  </td>
+                  <td className="px-3 py-2 text-text sticky left-12 bg-canvas z-10 border-r border-line font-[360]">
+                    {siswa.nama}
+                  </td>
+                  <td className="px-3 py-2 font-mono text-[12px] text-text-2 sticky left-[208px] bg-canvas z-10 border-r border-line-strong">
+                    {siswa.uid}
+                  </td>
 
-                  // Ambil pembayaran terakhir untuk tampilan utama
-                  const last = pembayaran[pembayaran.length - 1];
+                  {sortedJenis.map((jenis) => {
+                    const pembayaranList: PembayaranSel[] = siswa.pembayaran[jenis.id] ?? [];
+                    const status = hitungStatusLunas(
+                      pembayaranList.map((p) => p.nominal),
+                      jenis.nominalStandar
+                    );
 
-                  return jenis.bulanan ? (
-                    <>
-                      <td key={`${jenis.id}-tanggal`} className="px-2 py-2 text-text-2 num border-l border-line-strong">
-                        {last ? formatTanggal(last.tanggal) : "—"}
-                      </td>
-                      <td key={`${jenis.id}-bulan`} className="px-2 py-2 text-text-2">
-                        {last?.bulanTerbayar ? formatBulan(last.bulanTerbayar) : "—"}
-                      </td>
-                      <td key={`${jenis.id}-nominal`} className={`px-2 py-2 text-right num ${isKurang ? "text-danger font-[600]" : "text-text"}`}>
-                        <div className="flex items-center justify-end gap-1">
-                          <span>{pembayaran.length > 0 ? formatRupiah(status.totalTerbayar) : "—"}</span>
-                          {last && <TombolHapusPembayaran id={last.id} onSuccess={onRefresh} />}
-                        </div>
-                        {isKurang && status.teksKekurangan && (
-                          <div className="text-[11px] font-[400] text-danger">{status.teksKekurangan}</div>
-                        )}
-                        {status.isCicilan && pembayaran.length > 1 && (
-                          <div className="text-[10px] text-text-3">{pembayaran.length}× cicilan</div>
-                        )}
-                      </td>
-                    </>
-                  ) : (
-                    <>
-                      <td key={`${jenis.id}-tanggal`} className="px-2 py-2 text-text-2 num border-l border-line-strong">
-                        {last ? formatTanggal(last.tanggal) : "—"}
-                      </td>
-                      <td key={`${jenis.id}-nominal`} className={`px-2 py-2 text-right num ${isKurang ? "text-danger font-[600]" : "text-text"}`}>
-                        <div className="flex items-center justify-end gap-1">
-                          <span>{pembayaran.length > 0 ? formatRupiah(status.totalTerbayar) : "—"}</span>
-                          {last && <TombolHapusPembayaran id={last.id} onSuccess={onRefresh} />}
-                        </div>
-                        {isKurang && status.teksKekurangan && (
-                          <div className="text-[11px] font-[400] text-danger">{status.teksKekurangan}</div>
-                        )}
-                      </td>
-                    </>
-                  );
-                })}
-                <td className="px-2 py-2 text-center border-l border-line-strong">
-                  <button
-                    type="button"
-                    onClick={() =>
-                      setDialogBayarState({
-                        open: true,
-                        penempatanId: siswa.penempatanId,
-                        namaSiswa: siswa.nama,
-                      })
+                    const isBelumLunas = !status.lunas;
+                    const last = pembayaranList[pembayaranList.length - 1];
+
+                    if (jenis.bulanan) {
+                      // SPP: 4 sub-kolom
+                      return (
+                        <React.Fragment key={`${siswa.penempatanId}-${jenis.id}`}>
+                          <td className="px-2 py-2 text-text-2 num border-r border-line text-left">
+                            {last ? formatTanggal(last.tanggal) : "—"}
+                          </td>
+                          <td className="px-2 py-2 text-text-2 border-r border-line text-left">
+                            {last?.bulanTerbayar ? formatBulan(last.bulanTerbayar) : "—"}
+                          </td>
+                          <td className="px-2 py-2 text-center text-text-2 border-r border-line font-mono text-[12px]">
+                            {last ? (last.metode === "TRANSFER" ? "TF" : "ST") : "—"}
+                          </td>
+                          <td className="px-2 py-2 text-right border-r border-line-strong">
+                            {pembayaranList.length === 0 ? (
+                              <span className="text-text-3">—</span>
+                            ) : (
+                              <div>
+                                <div
+                                  className={`num font-semibold flex items-center justify-end gap-1 ${
+                                    isBelumLunas ? "text-danger" : "text-text"
+                                  }`}
+                                >
+                                  <span>{formatRupiah(status.totalTerbayar)}</span>
+                                  {isEditing && last && (
+                                    <TombolHapusPembayaran id={last.id} onSuccess={onRefresh} />
+                                  )}
+                                </div>
+                                {isBelumLunas && status.teksKekurangan && (
+                                  <div className="text-[11px] font-[400] text-danger mt-0.5">
+                                    {status.teksKekurangan}
+                                  </div>
+                                )}
+                                {last?.petugasNama && (
+                                  <div className="text-[10px] text-text-3">
+                                    oleh {last.petugasNama}
+                                  </div>
+                                )}
+                                {status.isCicilan && (
+                                  <div className="text-[10px] text-label font-mono">
+                                    {pembayaranList.length}x cicilan
+                                  </div>
+                                )}
+                              </div>
+                            )}
+                          </td>
+                        </React.Fragment>
+                      );
                     }
-                    className="text-[12px] text-accent hover:underline"
-                    title="Tambah pembayaran"
-                  >
-                    + Bayar
-                  </button>
-                </td>
-              </tr>
-            ))}
+
+                    // Jenis Lain: 3 sub-kolom
+                    return (
+                      <React.Fragment key={`${siswa.penempatanId}-${jenis.id}`}>
+                        <td className="px-2 py-2 text-text-2 num border-r border-line text-left">
+                          {last ? formatTanggal(last.tanggal) : "—"}
+                        </td>
+                        <td className="px-2 py-2 text-center text-text-2 border-r border-line font-mono text-[12px]">
+                          {last ? (last.metode === "TRANSFER" ? "TF" : "ST") : "—"}
+                        </td>
+                        <td className="px-2 py-2 text-right border-r border-line-strong">
+                          {pembayaranList.length === 0 ? (
+                            <span className="text-text-3">—</span>
+                          ) : (
+                            <div>
+                              <div
+                                className={`num font-semibold flex items-center justify-end gap-1 ${
+                                  isBelumLunas ? "text-danger" : "text-text"
+                                }`}
+                              >
+                                <span>{formatRupiah(status.totalTerbayar)}</span>
+                                {isEditing && last && (
+                                  <TombolHapusPembayaran id={last.id} onSuccess={onRefresh} />
+                                )}
+                              </div>
+                              {isBelumLunas && status.teksKekurangan && (
+                                <div className="text-[11px] font-[400] text-danger mt-0.5">
+                                  {status.teksKekurangan}
+                                </div>
+                              )}
+                              {last?.petugasNama && (
+                                <div className="text-[10px] text-text-3">
+                                  oleh {last.petugasNama}
+                                </div>
+                              )}
+                              {status.isCicilan && (
+                                <div className="text-[10px] text-label font-mono">
+                                  {pembayaranList.length}x cicilan
+                                </div>
+                              )}
+                            </div>
+                          )}
+                        </td>
+                      </React.Fragment>
+                    );
+                  })}
+
+                  {isEditing && (
+                    <td className="px-2 py-2 text-center border-l border-line-strong">
+                      <Button
+                        type="button"
+                        variant="secondary"
+                        size="sm"
+                        onClick={() =>
+                          setDialogBayarState({
+                            open: true,
+                            penempatanId: siswa.penempatanId,
+                            namaSiswa: siswa.nama,
+                          })
+                        }
+                      >
+                        + Bayar
+                      </Button>
+                    </td>
+                  )}
+                </tr>
+              ))
+            )}
           </tbody>
         </table>
       </div>
 
-      {/* Legenda status */}
-      <div className="flex gap-4 text-[12px] text-text-3">
-        <span>
-          <span className="text-danger font-[600]">Merah</span> = nominal kurang dari standar
-        </span>
-      </div>
-
-      {/* Dialog tambah jenis */}
-      {dialogJenisOpen && (
-        <DialogTambahJenis
+      {/* Dialog Tambah Kolom Baru */}
+      {dialogKolomOpen && (
+        <DialogTambahKolom
           tahunAjaranId={tahunAjaranId}
-          open={dialogJenisOpen}
-          onClose={() => setDialogJenisOpen(false)}
-          onSuccess={onRefresh}
+          open={dialogKolomOpen}
+          onClose={() => setDialogKolomOpen(false)}
+          onSuccess={() => {
+            showToast("Kolom pemasukan baru berhasil ditambahkan.", "success");
+            onRefresh();
+          }}
         />
       )}
 
-      {/* Dialog tambah pembayaran */}
+      {/* Dialog Tambah Pembayaran Siswa */}
       {dialogBayarState.open && (
         <DialogTambahPembayaran
           open={dialogBayarState.open}
           onClose={() => setDialogBayarState((s) => ({ ...s, open: false }))}
-          onSuccess={onRefresh}
+          onSuccess={() => {
+            showToast("Pembayaran berhasil dicatat.", "success");
+            onRefresh();
+          }}
           penempatanId={dialogBayarState.penempatanId}
-          namasSiswa={dialogBayarState.namaSiswa}
-          jenis={jenisOptions}
+          namaSiswa={dialogBayarState.namaSiswa}
+          jenisList={sortedJenis}
         />
       )}
     </div>

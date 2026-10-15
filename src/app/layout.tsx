@@ -17,11 +17,7 @@ export default async function RootLayout({
   const cookieStore = await cookies();
   const temaCookie = cookieStore.get("tema")?.value;
   const dataTheme =
-    temaCookie === "gelap" || temaCookie === "dark"
-      ? "dark"
-      : temaCookie === "sistem" || temaCookie === "system"
-      ? "system"
-      : undefined;
+    temaCookie === "gelap" || temaCookie === "dark" ? "dark" : undefined;
 
   return (
     <html

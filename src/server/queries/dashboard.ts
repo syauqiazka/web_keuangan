@@ -18,6 +18,8 @@ export interface GrafikBulanData {
   pengeluaran: number;
 }
 
+import { getTotalPemasukan, getTotalPengeluaran } from "./totals";
+
 export async function getDashboardRingkasan(
   tahun: number
 ): Promise<DashboardRingkasan> {
@@ -32,29 +34,12 @@ export async function getDashboardRingkasan(
   };
   if (!user) return empty;
 
-  const startDate = new Date(Date.UTC(tahun, 0, 1));
-  const endDate = new Date(Date.UTC(tahun, 11, 31));
+  const [{ totalPerTahun: totalPemasukan }, { totalPerTahun: totalPengeluaran }] =
+    await Promise.all([
+      getTotalPemasukan({ tahun }),
+      getTotalPengeluaran({ tahun }),
+    ]);
 
-  const filterDate = { gte: startDate, lte: endDate };
-
-  const [sumSiswa, sumDana, sumKeluar] = await Promise.all([
-    db.pembayaranSiswa.aggregate({
-      where: { deletedAt: null, tanggal: filterDate },
-      _sum: { nominal: true },
-    }),
-    db.pemasukanDana.aggregate({
-      where: { deletedAt: null, tanggal: filterDate },
-      _sum: { nominal: true },
-    }),
-    db.pengeluaran.aggregate({
-      where: { deletedAt: null, tanggal: filterDate },
-      _sum: { nominal: true },
-    }),
-  ]);
-
-  const totalPemasukan =
-    Number(sumSiswa._sum.nominal ?? 0) + Number(sumDana._sum.nominal ?? 0);
-  const totalPengeluaran = Number(sumKeluar._sum.nominal ?? 0);
   const totalSaldo = totalPemasukan - totalPengeluaran;
 
   return {

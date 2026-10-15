@@ -2,6 +2,8 @@
 
 import * as React from "react";
 import { formatRupiah } from "@/lib/money";
+import { parseTsv } from "@/lib/tsv-paste";
+import { Button } from "./Button";
 
 export interface ColumnDef<T> {
   id: string;
@@ -13,8 +15,22 @@ export interface ColumnDef<T> {
   width?: string;
   isMono?: boolean;
   isMoney?: boolean;
-  render?: (row: T, index: number, isEditing: boolean) => React.ReactNode;
   editable?: boolean;
+  render?: (row: T, index: number, isEditing: boolean) => React.ReactNode;
+  renderEdit?: (
+    row: T,
+    index: number,
+    value: unknown,
+    onChange: (newValue: unknown) => void,
+    inputProps: {
+      onKeyDown: (e: React.KeyboardEvent) => void;
+      onPaste: (e: React.ClipboardEvent) => void;
+      "data-grid-cell": string;
+      hasError: boolean;
+      errorMessage?: string;
+    }
+  ) => React.ReactNode;
+  validate?: (val: unknown, row: T) => { valid: boolean; error?: string };
 }
 
 export interface ColumnGroupDef {
@@ -25,102 +41,340 @@ export interface ColumnGroupDef {
 export interface DataGridProps<T> {
   columns: ColumnDef<T>[];
   data: T[];
-  keyField: (row: T) => string;
+  keyField: (row: T, index: number) => string;
   columnGroups?: ColumnGroupDef[];
   totals?: Record<string, number | string>;
-  isRowUnsaved?: (row: T, index: number) => boolean;
-  onSaveRow?: (row: T, index: number) => Promise<void> | void;
-  onCancelEdit?: (row: T, index: number) => void;
+  isEditing?: boolean;
+  onToggleEdit?: () => void;
+  onSave?: (data: T[]) => Promise<void> | void;
+  onAddRow?: () => void;
+  createNewRow?: () => T;
+  enablePaste?: boolean;
   emptyMessage?: string;
   className?: string;
+  isSaving?: boolean;
+  showToolbar?: boolean;
+  toolbarExtra?: React.ReactNode;
 }
 
 export function DataGrid<T>({
   columns,
-  data,
+  data: initialData,
   keyField,
   columnGroups,
   totals,
-  isRowUnsaved,
-  onSaveRow,
-  onCancelEdit,
+  isEditing = false,
+  onToggleEdit,
+  onSave,
+  onAddRow,
+  createNewRow,
+  enablePaste = true,
   emptyMessage = "Belum ada data.",
   className = "",
+  isSaving = false,
+  showToolbar = false,
+  toolbarExtra,
 }: DataGridProps<T>) {
-  const [editingRowIndex, setEditingRowIndex] = React.useState<number | null>(null);
-  const [editingColId, setEditingColId] = React.useState<string | null>(null);
+  const containerId = React.useId();
 
-  const handleKeyDown = (
-    e: React.KeyboardEvent,
-    row: T,
-    rowIndex: number
-  ) => {
-    if (e.key === "Enter") {
-      e.preventDefault();
-      if (onSaveRow) {
-        onSaveRow(row, rowIndex);
+  // Data lokal di dalam grid saat mode edit
+  const [gridData, setGridData] = React.useState<T[]>(initialData);
+  const [unsavedRowIndices, setUnsavedRowIndices] = React.useState<Set<number>>(new Set());
+  const [cellErrors, setCellErrors] = React.useState<Record<string, string>>({}); // key: `${rowIndex}_${colId}`
+  const [focusedCell, setFocusedCell] = React.useState<{ row: number; col: number } | null>(null);
+
+  // Sync saat data berubah atau keluar dari mode edit
+  const [prevData, setPrevData] = React.useState(initialData);
+  const [prevEditing, setPrevEditing] = React.useState(isEditing);
+
+  if (!isEditing && (initialData !== prevData || isEditing !== prevEditing)) {
+    setPrevData(initialData);
+    setPrevEditing(isEditing);
+    setGridData(initialData);
+    setUnsavedRowIndices(new Set());
+    setCellErrors({});
+  }
+
+  // Peringatan unsaved changes saat pengguna meninggalkan halaman
+  React.useEffect(() => {
+    const handleBeforeUnload = (e: BeforeUnloadEvent) => {
+      if (unsavedRowIndices.size > 0) {
+        e.preventDefault();
+        e.returnValue = "";
       }
-      setEditingRowIndex(null);
-      setEditingColId(null);
-    } else if (e.key === "Escape") {
-      e.preventDefault();
-      if (onCancelEdit) {
-        onCancelEdit(row, rowIndex);
+    };
+    window.addEventListener("beforeunload", handleBeforeUnload);
+    return () => window.removeEventListener("beforeunload", handleBeforeUnload);
+  }, [unsavedRowIndices.size]);
+
+  const focusCell = (rowIdx: number, colIdx: number) => {
+    if (typeof document === "undefined") return;
+    const container = document.getElementById(containerId);
+    const el = container?.querySelector<HTMLElement>(
+      `[data-grid-cell="${rowIdx}-${colIdx}"]`
+    );
+    if (el) {
+      el.focus();
+      if ("select" in el && typeof (el as HTMLInputElement).select === "function") {
+        (el as HTMLInputElement).select();
       }
-      setEditingRowIndex(null);
-      setEditingColId(null);
+      setFocusedCell({ row: rowIdx, col: colIdx });
     }
   };
 
+  const handleCellChange = (rowIdx: number, colId: string, value: unknown) => {
+    setGridData((prev) => {
+      const next = [...prev];
+      const row = { ...next[rowIdx], [colId]: value };
+      next[rowIdx] = row;
+      return next;
+    });
+
+    setUnsavedRowIndices((prev) => {
+      const next = new Set(prev);
+      next.add(rowIdx);
+      return next;
+    });
+
+    // Validasi sel jika ada aturan validasi
+    const colDef = columns.find((c) => c.id === colId);
+    if (colDef?.validate) {
+      const res = colDef.validate(value, gridData[rowIdx]);
+      const errKey = `${rowIdx}_${colId}`;
+      setCellErrors((prev) => {
+        const next = { ...prev };
+        if (!res.valid) {
+          next[errKey] = res.error ?? "Nilai tidak valid.";
+        } else {
+          delete next[errKey];
+        }
+        return next;
+      });
+    }
+  };
+
+  const handleCellKeyDown = (
+    e: React.KeyboardEvent,
+    rowIdx: number,
+    colIdx: number
+  ) => {
+    if (e.key === "Enter") {
+      // Enter di dalam sel: pindah ke sel di bawahnya (bukan menyimpan baris!)
+      e.preventDefault();
+      const nextRow = rowIdx + 1;
+      if (nextRow < gridData.length) {
+        focusCell(nextRow, colIdx);
+      } else if (onAddRow || createNewRow) {
+        // Jika sudah di baris terakhir, tambah baris baru otomatis
+        handleTambahBaris(colIdx);
+      }
+    } else if (e.key === "Escape") {
+      (e.target as HTMLElement).blur();
+    }
+  };
+
+  const handleTambahBaris = (focusColIdx = 0) => {
+    let newRowObj: T;
+    if (createNewRow) {
+      newRowObj = createNewRow();
+    } else {
+      newRowObj = {} as T;
+    }
+
+    setGridData((prev) => [...prev, newRowObj]);
+    setUnsavedRowIndices((prev) => {
+      const next = new Set(prev);
+      next.add(gridData.length);
+      return next;
+    });
+
+    if (onAddRow) {
+      onAddRow();
+    }
+
+    setTimeout(() => {
+      focusCell(gridData.length, focusColIdx);
+    }, 50);
+  };
+
+  const handlePaste = (
+    e: React.ClipboardEvent,
+    startRowIdx: number,
+    startColIdx: number
+  ) => {
+    if (!enablePaste || !isEditing) return;
+
+    const clipboardText = e.clipboardData.getData("text/plain");
+    if (!clipboardText) return;
+
+    e.preventDefault();
+    const matrix = parseTsv(clipboardText);
+    if (matrix.length === 0) return;
+
+    const editableCols = columns.map((col, idx) => ({ col, idx })).filter((c) => c.col.editable);
+    const startEditablePos = editableCols.findIndex((c) => c.idx === startColIdx);
+    if (startEditablePos === -1) return;
+
+    const nextData = [...gridData];
+    const newUnsaved = new Set(unsavedRowIndices);
+    const newErrors = { ...cellErrors };
+
+    matrix.forEach((pRow, rOffset) => {
+      const targetRowIdx = startRowIdx + rOffset;
+
+      while (nextData.length <= targetRowIdx) {
+        const fresh = createNewRow ? createNewRow() : ({} as T);
+        nextData.push(fresh);
+      }
+
+      newUnsaved.add(targetRowIdx);
+      const row = { ...nextData[targetRowIdx] };
+
+      pRow.forEach((val, cOffset) => {
+        const editableTargetPos = startEditablePos + cOffset;
+        if (editableTargetPos < editableCols.length) {
+          const { col } = editableCols[editableTargetPos];
+          (row as Record<string, unknown>)[col.id] = val;
+
+          if (col.validate) {
+            const check = col.validate(val, row);
+            const errKey = `${targetRowIdx}_${col.id}`;
+            if (!check.valid) {
+              newErrors[errKey] = check.error ?? "Nilai tidak valid.";
+            } else {
+              delete newErrors[errKey];
+            }
+          }
+        }
+      });
+
+      nextData[targetRowIdx] = row;
+    });
+
+    setGridData(nextData);
+    setUnsavedRowIndices(newUnsaved);
+    setCellErrors(newErrors);
+  };
+
+  const handleSave = async () => {
+    if (Object.keys(cellErrors).length > 0) {
+      alert("Terdapat data yang belum valid. Silakan periksa sel yang bermasalah sebelum menyimpan.");
+      return;
+    }
+    if (onSave) {
+      await onSave(gridData);
+      setUnsavedRowIndices(new Set());
+    }
+  };
+
+  const hasErrors = Object.keys(cellErrors).length > 0;
+  const displayData = isEditing ? gridData : initialData;
+
   return (
-    <div className={`w-full overflow-x-auto border border-line ${className}`}>
-      <table className="w-full border-collapse text-[14px]">
-        {/* Header Grup Jika Ada */}
-        {columnGroups && columnGroups.length > 0 && (
+    <div id={containerId} className={`w-full space-y-3 ${className}`}>
+      {/* Toolbar Grid (Input / Batal, Tambah Baris, Simpan) */}
+      {showToolbar && (
+        <div className="flex flex-wrap items-center justify-between gap-3 pb-2">
+          <div className="flex items-center gap-2">
+            {onToggleEdit && (
+              <Button
+                type="button"
+                variant="secondary"
+                size="sm"
+                onClick={onToggleEdit}
+              >
+                {isEditing ? "Batal" : "Input"}
+              </Button>
+            )}
+
+            {isEditing && (
+              <Button
+                type="button"
+                variant="secondary"
+                size="sm"
+                onClick={() => handleTambahBaris(0)}
+              >
+                Tambah Baris
+              </Button>
+            )}
+
+            {toolbarExtra}
+          </div>
+
+          {isEditing && onSave && (
+            <div className="flex items-center gap-3">
+              {unsavedRowIndices.size > 0 && (
+                <span className="font-mono text-[12px] text-label">
+                  {unsavedRowIndices.size} baris belum disimpan
+                </span>
+              )}
+              <Button
+                type="button"
+                variant="primary"
+                size="sm"
+                disabled={isSaving || hasErrors}
+                onClick={handleSave}
+              >
+                {isSaving ? "Menyimpan…" : "Simpan"}
+              </Button>
+            </div>
+          )}
+        </div>
+      )}
+
+      {/* Tabel Data Asli */}
+      <div className="w-full overflow-x-auto border border-line">
+        <table className="w-full border-collapse text-[14px]">
+          {/* Header Grup Jika Ada */}
+          {columnGroups && columnGroups.length > 0 && (
+            <thead>
+              <tr className="border-b border-line-strong bg-canvas">
+                {columnGroups.map((grp, i) => (
+                  <th
+                    key={`${grp.title}-${i}`}
+                    colSpan={grp.columnsCount}
+                    className="px-3 py-2 text-center font-semibold text-text border-r border-line-strong last:border-r-0"
+                  >
+                    {grp.title}
+                  </th>
+                ))}
+                {isEditing && <th className="w-28 border-b border-line-strong"></th>}
+              </tr>
+            </thead>
+          )}
+
+          {/* Header Kolom */}
           <thead>
             <tr className="border-b border-line-strong bg-canvas">
-              {columnGroups.map((grp, i) => (
-                <th
-                  key={`${grp.title}-${i}`}
-                  colSpan={grp.columnsCount}
-                  className="px-3 py-2 text-center font-semibold text-text border-r border-line-strong last:border-r-0"
-                >
-                  {grp.title}
-                </th>
-              ))}
-            </tr>
-          </thead>
-        )}
+              {columns.map((col) => {
+                const alignClass =
+                  col.align === "right"
+                    ? "text-right"
+                    : col.align === "center"
+                    ? "text-center"
+                    : "text-left";
 
-        {/* Header Kolom */}
-        <thead>
-          <tr className="border-b border-line-strong bg-canvas">
-            {columns.map((col) => {
-              const alignClass =
-                col.align === "right"
-                  ? "text-right"
-                  : col.align === "center"
-                  ? "text-center"
-                  : "text-left";
+                const stickyClass = col.sticky
+                  ? "sticky left-0 bg-canvas z-10"
+                  : "";
 
-              const stickyClass = col.sticky
-                ? "sticky left-0 bg-canvas z-10"
-                : "";
-
-              return (
-                <th
-                  key={col.id}
-                  style={{
-                    width: col.width,
-                    left: col.sticky && col.stickyOffset !== undefined ? `${col.stickyOffset}px` : undefined,
-                  }}
-                  className={`px-3 py-2.5 h-10 font-semibold text-text whitespace-nowrap ${alignClass} ${stickyClass}`}
-                >
-                  {col.header}
-                </th>
-              );
-            })}
-              {isRowUnsaved && (
+                return (
+                  <th
+                    key={col.id}
+                    style={{
+                      width: col.width,
+                      left:
+                        col.sticky && col.stickyOffset !== undefined
+                          ? `${col.stickyOffset}px`
+                          : undefined,
+                    }}
+                    className={`px-3 py-2.5 h-10 font-semibold text-text whitespace-nowrap ${alignClass} ${stickyClass}`}
+                  >
+                    {col.header}
+                  </th>
+                );
+              })}
+              {isEditing && (
                 <th className="px-3 py-2.5 h-10 text-right font-semibold text-text w-28 whitespace-nowrap">
                   Status
                 </th>
@@ -130,29 +384,27 @@ export function DataGrid<T>({
 
           {/* Isi Baris */}
           <tbody>
-            {data.length === 0 ? (
+            {displayData.length === 0 ? (
               <tr>
                 <td
-                  colSpan={columns.length + (isRowUnsaved ? 1 : 0)}
+                  colSpan={columns.length + (isEditing ? 1 : 0)}
                   className="px-4 py-8 text-center text-text-3 font-[360]"
                 >
                   {emptyMessage}
                 </td>
               </tr>
             ) : (
-              data.map((row, rowIndex) => {
-                const isUnsaved = isRowUnsaved ? isRowUnsaved(row, rowIndex) : false;
-                const isEditing = editingRowIndex === rowIndex;
+              displayData.map((row, rowIndex) => {
+                const isUnsaved = unsavedRowIndices.has(rowIndex);
 
                 return (
                   <tr
-                    key={keyField(row)}
-                    onKeyDown={(e) => handleKeyDown(e, row, rowIndex)}
+                    key={keyField(row, rowIndex)}
                     className={`border-b border-line h-10 transition-colors ${
                       isUnsaved ? "bg-panel" : "hover:bg-panel"
                     }`}
                   >
-                    {columns.map((col) => {
+                    {columns.map((col, colIndex) => {
                       const alignClass =
                         col.align === "right"
                           ? "text-right"
@@ -164,39 +416,100 @@ export function DataGrid<T>({
                         ? "sticky left-0 bg-canvas z-10"
                         : "";
 
-                      const isColEditing = isEditing && editingColId === col.id;
-                      const cellEditingClass = isColEditing
+                      const isCellFocused =
+                        focusedCell?.row === rowIndex && focusedCell?.col === colIndex;
+
+                      const errKey = `${rowIndex}_${col.id}`;
+                      const cellError = cellErrors[errKey];
+
+                      const cellEditingClass = isCellFocused
                         ? "bg-canvas outline outline-1 outline-text -outline-offset-1"
                         : "";
+
+                      const cellErrorClass = cellError
+                        ? "outline outline-1 outline-danger -outline-offset-1 text-danger"
+                        : "";
+
+                      const rawValue = (row as Record<string, unknown>)[col.id];
 
                       return (
                         <td
                           key={col.id}
                           style={{
-                            left: col.sticky && col.stickyOffset !== undefined ? `${col.stickyOffset}px` : undefined,
+                            left:
+                              col.sticky && col.stickyOffset !== undefined
+                                ? `${col.stickyOffset}px`
+                                : undefined,
                           }}
-                          onClick={() => {
-                            if (col.editable) {
-                              setEditingRowIndex(rowIndex);
-                              setEditingColId(col.id);
-                            }
-                          }}
-                          className={`px-3 py-2 whitespace-nowrap ${alignClass} ${stickyClass} ${cellEditingClass} ${
+                          className={`px-3 py-2 whitespace-nowrap ${alignClass} ${stickyClass} ${cellEditingClass} ${cellErrorClass} ${
                             col.isMono ? "font-mono" : ""
                           } ${col.isMoney || col.align === "right" ? "num" : ""}`}
+                          onClick={() => {
+                            if (isEditing && col.editable) {
+                              focusCell(rowIndex, colIndex);
+                            }
+                          }}
                         >
-                          {col.render
-                            ? col.render(row, rowIndex, isEditing)
-                            : col.isMoney
-                            ? typeof (row as Record<string, unknown>)[col.id] === "number"
-                              ? formatRupiah((row as Record<string, unknown>)[col.id] as number)
-                              : String((row as Record<string, unknown>)[col.id] ?? "-")
-                            : String((row as Record<string, unknown>)[col.id] ?? "-")}
+                          {isEditing && col.editable ? (
+                            col.renderEdit ? (
+                              col.renderEdit(
+                                row,
+                                rowIndex,
+                                rawValue,
+                                (val) => handleCellChange(rowIndex, col.id, val),
+                                {
+                                  onKeyDown: (e) =>
+                                    handleCellKeyDown(e, rowIndex, colIndex),
+                                  onPaste: (e) =>
+                                    handlePaste(e, rowIndex, colIndex),
+                                  "data-grid-cell": `${rowIndex}-${colIndex}`,
+                                  hasError: Boolean(cellError),
+                                  errorMessage: cellError,
+                                }
+                              )
+                            ) : (
+                              <div className="relative">
+                                <input
+                                  data-grid-cell={`${rowIndex}-${colIndex}`}
+                                  type="text"
+                                  value={typeof rawValue === "string" || typeof rawValue === "number" ? String(rawValue) : ""}
+                                  onChange={(e) =>
+                                    handleCellChange(rowIndex, col.id, e.target.value)
+                                  }
+                                  onKeyDown={(e) =>
+                                    handleCellKeyDown(e, rowIndex, colIndex)
+                                  }
+                                  onPaste={(e) =>
+                                    handlePaste(e, rowIndex, colIndex)
+                                  }
+                                  onFocus={() =>
+                                    setFocusedCell({ row: rowIndex, col: colIndex })
+                                  }
+                                  className={`w-full bg-canvas text-[14px] px-1 py-0.5 border border-line-strong rounded-none outline-none focus:outline-2 focus:outline-accent -outline-offset-1 text-inherit ${alignClass}`}
+                                />
+                                {cellError && (
+                                  <span className="block text-[11px] text-danger mt-0.5">
+                                    {cellError}
+                                  </span>
+                                )}
+                              </div>
+                            )
+                          ) : col.render ? (
+                            col.render(row, rowIndex, isEditing)
+                          ) : col.isMoney ? (
+                            typeof rawValue === "number" ? (
+                              formatRupiah(rawValue)
+                            ) : (
+                              String(rawValue ?? "-")
+                            )
+                          ) : (
+                            String(rawValue ?? "-")
+                          )}
                         </td>
                       );
                     })}
 
-                    {isRowUnsaved && (
+                    {isEditing && (
                       <td className="px-3 py-2 text-right whitespace-nowrap">
                         {isUnsaved && (
                           <span className="font-mono text-[12px] text-label font-medium">
@@ -243,11 +556,12 @@ export function DataGrid<T>({
                     </td>
                   );
                 })}
-                {isRowUnsaved && <td className="px-3 py-2"></td>}
+                {isEditing && <td className="px-3 py-2"></td>}
               </tr>
             </tfoot>
           )}
         </table>
       </div>
+    </div>
   );
 }

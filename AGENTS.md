@@ -10,7 +10,7 @@ Baca file ini sampai selesai sebelum menulis kode. Baca `DESIGN.md` sebelum meny
 |---|---|---|
 | Tampilan, warna, font, komponen, larangan visual | `DESIGN.md` | Turunan dari Modern Treasury (Refero Styles). Patuhi daftar larangan di bagian 12. |
 | Struktur data | `prisma/schema.prisma` | Sudah divalidasi dengan Prisma 7.10. Ubah hanya lewat migrasi dan sebutkan alasannya. |
-| Fitur dan aturan bisnis | file ini, bagian 4 dan 5 | Berasal dari `Website.xlsx` milik pemilik. |
+| Fitur dan aturan bisnis | file ini, bagian 4 dan 5 | Berasal dari `Website.xlsx` dan penjelasan lisan pemilik (transkrip). Jika keduanya berbeda, pakai penjelasan pemilik dan catat perbedaannya di bagian 9. |
 | Logo | `assets/logo-bank-saku-digital.jpeg` | Salin ke `public/`. Jangan diubah warnanya. |
 
 Jika dua sumber bertentangan atau ada hal yang tidak tercakup: **berhenti dan tanyakan ke pemilik**, jangan menebak. Daftar pertanyaan yang sudah diketahui ada di bagian 9.
@@ -117,57 +117,72 @@ Rute memakai istilah Indonesia sesuai menu spreadsheet.
 
 Urutan menu di sidebar: **Dashboard, Data Siswa & Guru, Pemasukan, Pengeluaran, Pengaturan**. Header aplikasi: "Pencatatan Keuangan Sekolah" dan "Bank Saku Digital", dengan logo.
 
+### 4.0 Pola kerja yang sama di semua halaman data (penjelasan pemilik)
+
+Halaman Data Siswa & Guru, Pemasukan, dan Pengeluaran memakai pola yang sama:
+
+1. **Pilih filter, lalu tekan Enter / Tarik Data.** Data muncul sebagai tabel. Tombol ini bernama **Enter** di Data Siswa & Guru dan **Tarik Data** di Pemasukan dan Pengeluaran; perilakunya sama (kirim filter, muat data). Tabel awalnya **hanya-baca**.
+2. **Klik Input** untuk masuk mode edit. Sel menjadi bisa diubah dan tombol **Tambah Baris** (serta **Tambah Kolom** di Pemasukan > Dari Siswa) muncul. Tombol Input berubah menjadi **Batal**.
+3. **Klik Simpan** untuk menyimpan semua perubahan sekaligus dalam satu transaksi database. Sebelum Simpan, tidak ada yang tertulis ke database. Peringatkan bila pengguna meninggalkan halaman dengan perubahan yang belum disimpan.
+4. **Tabel harus bisa di-copy dan di-paste.** Alasan pemilik: guru/petugas menyalin data dari Excel. Gunakan elemen `<table>` asli supaya salin bawaan browser bekerja, dan tangani event `paste` (teks TSV dari Excel/Google Sheets) di mode edit: tempel dari sel yang terfokus mengisi ke bawah dan ke kanan, menambah baris bila kurang. Tiap sel divalidasi setelah paste; sel bermasalah ditandai, dan Simpan ditolak sampai diperbaiki. Paste aktif di Data Siswa & Guru, Bantuan, Donatur, dan Pengeluaran. Tidak perlu di Pemasukan > Dari Siswa.
+
 ### 4.1 Login
 - Masuk dengan **Kode** dan **Kata sandi**. Akun dibuat oleh admin (catatan di sheet Dashboard). Tidak ada pendaftaran mandiri.
 - Setelah admin membuat atau mengatur ulang akun, `wajibGantiPassword = true`: pengguna dipaksa ke dialog Ganti Kata Sandi sebelum bisa memakai halaman lain.
 
 ### 4.2 Dashboard
-- Filter **Tahun** (tahun kalender, contoh 2026).
-- Tiga angka: **Total Saldo Dana Sekolah**, **Pemasukan**, **Pengeluaran** untuk tahun terpilih. Saldo = Pemasukan − Pengeluaran (sesuai contoh di spreadsheet: 1.067.000.000 − 700.000.000 = 367.000.000).
-- Grafik batang Januari–Desember: Pemasukan vs Pengeluaran per bulan (satuan juta rupiah). Pemasukan = pembayaran siswa + bantuan + donatur.
+- Filter **Tahun** (tahun kalender): daftar pilihan berisi semua tahun dari transaksi tertua sampai tahun berjalan (contoh 2024, 2025, 2026). Klik tahun, angka dan grafik berganti.
+- Tiga angka: **Total Saldo Dana Sekolah**, **Pemasukan**, **Pengeluaran** untuk tahun terpilih. Saldo = total pemasukan − total pengeluaran pada tahun itu (contoh: 1.067.000.000 − 700.000.000 = 367.000.000).
+- Angka Pemasukan di sini **harus sama persis** dengan "Total Pemasukan Per Tahun" di halaman Pemasukan, dan Pengeluaran dengan "Total Pengeluaran Per Tahun" di halaman Pengeluaran. Gunakan satu fungsi query yang sama untuk keduanya; jangan menghitung dua kali di dua tempat.
+- Grafik batang Januari–Desember: **hijau = Pemasukan, biru = Pengeluaran** (permintaan pemilik; warna persisnya di `DESIGN.md`). Pemasukan = pembayaran siswa + bantuan + donatur.
 - Logo ditampilkan di header, bukan sebagai hiasan di badan halaman.
 
 ### 4.3 Data Siswa & Guru
-- Filter: **Tahun Ajaran**, **Kelas** (atau "Guru").
-- Tabel: **No, Nama, Kelas/Guru, Kode UID**.
-- Form tambah (tombol **Input**): Tahun Ajaran, Kelas atau Guru, Nama, Kode UID. Tombol **Simpan**.
-- **Tambah Baris** menambah baris kosong; **Enter** menyimpan baris.
+- Filter: **Tahun Ajaran** dan **Kelas** (atau "Guru"), lalu tombol **Enter** (lihat 4.0). Contoh dari pemilik: tahun ajaran 2022, kelas 10.
+- Tabel: **No, Nama, Kelas/Guru, Kode UID**. Satu kelas bisa sampai sekitar 50 siswa; tampilkan semuanya (tanpa paginasi) dan biarkan halaman bergulir ke bawah. Tinggi tampilan awal sekitar 20 baris.
+- Data siswa ini adalah **sumber daftar nama di Pemasukan > Dari Siswa**: nama di sana terhubung otomatis ke sini, tidak diketik ulang.
+- Mode edit mengikuti 4.0 (Input, Tambah Baris, Simpan, paste dari Excel). Kolom Kelas/Guru di mode edit berupa pilihan (kelas, atau Guru), bukan teks bebas.
 - Model: `Anggota` (siswa atau guru, `uid` unik) dan `PenempatanKelas` (siswa di kelas X pada tahun ajaran Y). Guru tidak punya penempatan.
 
 ### 4.4 Pemasukan
-Filter: **Tahun Ajaran**, **Kelas**, **Bulan**, tombol **Tarik Data**. Ringkasan: **Jumlah Pemasukan Bulan Ini** dan **Total Pemasukan Per Tahun**, dengan rincian per jenis (contoh di spreadsheet: SPP, Daftar Ulang, Uang Gedung). Tiga tab:
+Pemasukan sekolah punya tiga sumber, masing-masing satu tab: **Dari Siswa**, **Bantuan**, **Donatur**.
+
+Filter: **Tahun Ajaran**, **Kelas**, **Bulan**, tombol **Tarik Data**. Di atas tabel ada dua ringkasan:
+- **Total Pemasukan Per Tahun**: jumlah semua sumber pada tahun terpilih, **seluruh kelas** (kelas 10, 11, 12, masing-masing A/B/C, dikumulatifkan). Sama dengan angka Pemasukan di Dashboard. Disertai rincian per jenis, contoh dari pemilik: SPP 700 juta, Daftar Ulang 67 juta, Uang Gedung 300 juta, ditambah Bantuan dan Donatur.
+- **Jumlah Pemasukan Bulan Ini** (nama label mengikuti bulan terpilih): jumlah semua sumber pada bulan dan tahun terpilih, kumulatif SPP, Daftar Ulang, dan seterusnya. Contoh pemilik: Tahun 2026, bulan Oktober, Tarik Data, jumlah muncul.
+Filter **Kelas** hanya menentukan baris yang tampil di tabel Dari Siswa; ringkasan di atas tidak ikut berubah karenanya.
 
 **Dari Siswa**
-- Tabel lebar: kolom tetap **No, Nama Siswa, Kode UID**, lalu satu **grup kolom per jenis pemasukan**.
-- Grup **SPP** (bulanan): Tanggal Transaksi, **Bulan Terbayar**, Metode (TF/ST), Petugas, dengan Nominal di atas sub-kolom.
-- Grup **Daftar Ulang** (tidak bulanan): Tanggal Transaksi, Metode, Petugas. Tidak ada Bulan Terbayar.
-- Grup lain ("Dll.."): Uang Gedung, Ujian, dan seterusnya.
-- Tombol **Input** (kelola jenis pemasukan) dan **Tambah Kolom** menentukan kolom apa yang ada. Itu membuat/mengubah `JenisPemasukan` (nama, `bulanan` ya/tidak, nominal standar) untuk tahun ajaran terpilih. Tombol **Tambah Baris** menambah pembayaran.
+- Kolom tetap **No, Nama Siswa, Kode UID** (terhubung ke Data Siswa), lalu satu **grup kolom per jenis pemasukan**.
+- **SPP selalu grup pertama dan satu-satunya yang bulanan**, dengan **empat** sub-kolom: Tanggal Transaksi, **Bulan Terbayar** (mis. Januari atau Februari), Metode (TF/ST), Petugas. Nominal ditampilkan di atas sub-kolom.
+- Jenis lain (Daftar Ulang, Ujian, Uang Gedung, Uang Pangkal Praktik, ...) selalu **tiga** sub-kolom: Tanggal Transaksi, Metode, Petugas.
+- **Tambah Kolom** (mode edit) menambah jenis pemasukan baru di sebelah kanan, sesuai kebutuhan sekolah. Dialognya meminta Nama dan (opsional) nominal standar. Jenis baru selalu tidak bulanan (tiga sub-kolom). Model: `JenisPemasukan`, per tahun ajaran. **Tambah Baris** menambah pembayaran.
 - **Nominal berwarna merah bila belum lunas** (contoh: Daftar Ulang 150.000 dari standar 200.000). Lihat aturan di 5.3.
-- Tombol: Input, Simpan, Tarik Data, Tambah Baris, Tambah Kolom.
 
 **Bantuan**
-- Kolom: **No, Jenis Bantuan (BOSP, BPMU), Tanggal, Nominal, Petugas**. Model: `PemasukanDana` dengan `SumberDana.kategori = BANTUAN`.
+- Kolom: **No, Jenis Bantuan, Tanggal, Nominal, Petugas**. Contoh jenis menurut pemilik: BOSP, BPMU, PIP. Model: `PemasukanDana` dengan `SumberDana.kategori = BANTUAN`.
 
 **Donatur**
-- Kolom: **No, Nama Donatur (Haji Isam, OTA), Tanggal, Nominal, Petugas**. Model sama dengan kategori `DONATUR`.
+- Kolom: **No, Jenis/Nama Donatur, Tanggal, Nominal, Petugas**. Contoh menurut pemilik: OTA, hibah (dana hibah), sedekah, infak; spreadsheet juga memuat nama orang (Haji Isam). Model sama dengan kategori `DONATUR`.
+- Pada Bantuan dan Donatur, kolom pertama berupa pilihan dari `SumberDana` dengan opsi menambah nama baru, supaya ejaan tidak pecah.
 
 ### 4.5 Pengeluaran
 - Filter: **Tahun Ajaran**, **Bulan**, tombol **Tarik Data**.
 - Ringkasan: **Jumlah Pengeluaran Bulan Ini** dan **Total Pengeluaran Per Tahun**.
+- **Total Pengeluaran Per Tahun** sama persis dengan angka Pengeluaran di Dashboard. **Jumlah Pengeluaran Bulan Ini** adalah kumulatif semua pengeluaran pada bulan terpilih.
 - Tabel: **No, Tanggal, Jenis Pengeluaran, Nominal, Petugas** (contoh: 13-10-2026, Gaji Guru, 100.000.000, Bu Resa).
-- Tombol: Input, Simpan, Tarik Data, Tambah Baris.
+- Mode edit mengikuti 4.0 (Input, Tambah Baris, Simpan, paste dari Excel).
 
 ### 4.6 Pengaturan
 1. **Ganti Kata Sandi**
 2. **Log Out** (tampil sebagai "Keluar")
-3. **Mode** (Terang / Gelap / Sistem). Simpan ke `Pengguna.tema` dan cookie `tema` supaya tidak berkedip saat dimuat.
+3. **Mode**: dua pilihan saja, **Terang** (siang) dan **Gelap**, sesuai penjelasan pemilik. Simpan ke `Pengguna.tema` dan cookie `tema` supaya tidak berkedip saat dimuat.
 
 ### 4.7 Tambahan di luar spreadsheet (satu-satunya)
 Spreadsheet menyatakan akun dibuat oleh admin tetapi tidak punya layar untuk itu. Bangun halaman minimal **Kelola Akun** di bawah Pengaturan, hanya untuk `ADMIN`: daftar akun, buat akun (Kode, Nama, Peran, kata sandi awal), atur ulang kata sandi, nonaktifkan. Akun admin pertama dibuat oleh `prisma/seed.ts` dari `SEED_ADMIN_*`.
 
 ### 4.8 Jangan dibangun (tidak ada di spreadsheet)
-Pencarian global, ekspor Excel/PDF, impor massal, notifikasi, kategori pengeluaran, laporan cetak, portal untuk siswa/orang tua, tabungan siswa. Jika tampaknya perlu, tulis sebagai saran ke pemilik, jangan dikerjakan.
+Pencarian global, ekspor Excel/PDF, unggah berkas Excel (yang diminta pemilik hanya **paste** dari clipboard, lihat 4.0), notifikasi, kategori pengeluaran, laporan cetak, portal untuk siswa/orang tua, tabungan siswa. Jika tampaknya perlu, tulis sebagai saran ke pemilik, jangan dikerjakan.
 
 ## 5. Aturan bisnis dan data
 
@@ -191,6 +206,7 @@ Pencarian global, ekspor Excel/PDF, impor massal, notifikasi, kategori pengeluar
 
 ### 5.4 Ringkasan dan grafik
 - Pemasukan = Σ `PembayaranSiswa.nominal` + Σ `PemasukanDana.nominal`. Pengeluaran = Σ `Pengeluaran.nominal`. Semua dengan `deletedAt: null`.
+- Total tahunan dan bulanan **tidak** difilter kelas. Dashboard, halaman Pemasukan, dan halaman Pengeluaran memakai fungsi query yang sama (`getTotalPemasukan`, `getTotalPengeluaran`), supaya angkanya tidak pernah berbeda.
 - Dashboard: filter berdasarkan tahun kalender dari kolom tanggal. Halaman Pemasukan/Pengeluaran: rentang `TahunAjaran.mulai`–`selesai`, dan filter Bulan berdasarkan **tanggal transaksi**.
 - Agregasi per bulan: satu query `$queryRaw` dengan `date_trunc('month', tanggal)`; ubah `bigint/Decimal` ke `number`. Jangan memuat semua baris ke memori lalu menjumlahkan di JS.
 - **Tidak ada tabel saldo.** Saldo selalu dihitung.
@@ -219,8 +235,9 @@ Pencarian global, ekspor Excel/PDF, impor massal, notifikasi, kategori pengeluar
 
 - Patuhi `DESIGN.md`. Sebelum selesai tiap halaman, jalankan daftar larangan di bagian 12 dan perbaiki pelanggaran.
 - Filter disimpan di **URL** (`?tahunAjaran=...&kelas=...&bulan=...`). Tombol **Tarik Data** adalah submit form GET yang memuat ulang data sesuai filter.
-- Grid entri bekerja seperti lembar kerja: Enter menyimpan baris, Tab/Shift+Tab pindah sel, Esc membatalkan, Tambah Baris memindahkan fokus ke sel pertama baris baru. Detail visual di `DESIGN.md` bagian 7.
-- Tabel besar dipaginasi di server (50 baris per halaman).
+- Alur Tarik Data / Enter, Input, Simpan, dan paste mengikuti bagian 4.0. Di dalam sel: Tab/Shift+Tab pindah sel ke samping, Enter pindah ke sel di bawahnya, Esc membatalkan perubahan sel, Tambah Baris memindahkan fokus ke sel pertama baris baru. Enter di dalam sel **tidak** menyimpan. Detail visual di `DESIGN.md` bagian 7.
+- Simpan mengirim semua baris yang berubah ke satu Server Action dan menulisnya dalam satu transaksi. Jika ada baris yang gagal validasi, tidak ada yang tersimpan dan galat dikembalikan per baris/sel.
+- Data Siswa & Guru tidak dipaginasi (sudah difilter per kelas). Tabel pembayaran dan transaksi yang besar dipaginasi di server (50 baris per halaman).
 - Pesan sukses/galat dalam Bahasa Indonesia, kalimat pendek, tanpa tanda seru dan emoji.
 - Tema: `data-theme` pada `<html>` diatur di server dari cookie `tema`. Jangan memakai kelas `dark:` Tailwind; pakai token semantik (`bg-canvas`, `text-text`, `border-line`).
 
@@ -243,15 +260,17 @@ Kerjakan berurutan; setiap tahap harus lolos `npm run lint`, `npx tsc --noEmit`,
 
 Gunakan asumsi bawaan di bawah sampai pemilik menjawab, dan tandai dengan komentar `// ASUMSI:` di kode.
 
+Sudah dijawab lewat penjelasan pemilik (jangan ditanyakan lagi): arti Enter/Tarik Data/Input/Simpan (4.0), total pemasukan mencakup semua sumber dan sama dengan Dashboard (4.2, 4.4), SPP empat kolom dan jenis lain tiga (4.4), mode hanya terang/gelap (4.6), tabel harus bisa copy-paste (4.0), warna grafik hijau dan biru (4.2).
+
 1. **"ST"** pada kolom Metode: diasumsikan *Setor Tunai* (TF = Transfer). Benar?
-2. **Saldo awal / pindahan antar-tahun:** Total Saldo saat ini = Pemasukan − Pengeluaran pada tahun terpilih. Apakah saldo akhir tahun lalu perlu terbawa?
-3. **"Tarik Data":** diasumsikan menerapkan filter dan memuat data. Apakah maksudnya juga mengunduh/ekspor?
-4. **"Enter":** diasumsikan menyimpan baris yang sedang diedit. Benar?
-5. **Akses siswa/guru:** diasumsikan hanya admin dan petugas yang login. Apakah siswa atau guru juga perlu melihat datanya (mengingat nama "Bank Saku Digital")?
-6. **SPP beberapa bulan sekaligus:** diasumsikan satu pembayaran per bulan, tampil sebagai sub-baris dalam sel. Apakah ada pembayaran yang mencakup beberapa bulan?
-7. **Total Pemasukan Per Tahun** di halaman Pemasukan diasumsikan mencakup siswa + bantuan + donatur (contoh spreadsheet hanya menjumlahkan jenis dari siswa).
-8. **Kode UID:** formatnya (mis. `10-0001`) dibuat siapa dan apa artinya awalan `10`? Saat ini diperlakukan sebagai teks unik biasa.
-9. **Siapa yang boleh mengubah/menghapus transaksi** milik petugas lain? Saat ini: petugas hanya boleh mengubah miliknya, admin boleh semua.
+2. **Saldo awal / pindahan antar-tahun:** Total Saldo = pemasukan − pengeluaran pada tahun terpilih, sesuai penjelasan pemilik. Apakah saldo akhir tahun lalu perlu terbawa ke tahun berikutnya?
+3. **Akses siswa/guru:** diasumsikan hanya admin dan petugas yang login. Apakah siswa atau guru juga perlu melihat datanya (mengingat nama "Bank Saku Digital")?
+4. **SPP beberapa bulan sekaligus:** diasumsikan satu pembayaran per bulan, tampil sebagai sub-baris dalam sel. Apakah ada pembayaran yang mencakup beberapa bulan?
+5. **Kode UID:** pemilik bilang "kita akan kasih kode UID" dan menyebut isinya "ada tiga" (kalimat kurang jelas di transkrip). Apa format dan artinya? Saat ini diperlakukan sebagai teks unik biasa, dan contoh `10-0001` di spreadsheet tidak diurai.
+6. **Filter Kelas pada ringkasan Pemasukan:** diasumsikan ringkasan (tahunan dan bulanan) selalu seluruh sekolah, dan filter Kelas hanya mengatur baris tabel. Benar? (Pemilik menyebut "kelasnya kebalik" tanpa penjelasan.)
+7. **Ringkasan "Jumlah Pemasukan Bulan Ini"** diasumsikan mencakup Bantuan dan Donatur, bukan hanya SPP dan jenis dari siswa ("SPP, daftar ulang dan sebagainya"). Benar?
+8. **Siapa yang boleh mengubah/menghapus transaksi** milik petugas lain? Saat ini: petugas hanya boleh mengubah miliknya, admin boleh semua.
+9. **Daftar Tahun di Dashboard:** diasumsikan dari tahun transaksi tertua sampai tahun berjalan. Perlu tahun masa depan juga (pemilik menyebut "2025, 2026, 2027 dan seterusnya")?
 
 ## 10. Aturan kerja untuk agen
 
@@ -262,13 +281,3 @@ Gunakan asumsi bawaan di bawah sampai pemilik menjawab, dan tandai dengan koment
 - Jangan menyalin komponen dari shadcn/ui atau template dashboard. Bangun dari token `DESIGN.md`.
 - Bila ragu antara dua tafsir spreadsheet, pilih yang lebih sederhana dan tulis keraguannya di bagian 9.
 - Jangan menulis klaim "sudah diuji" untuk hal yang belum benar-benar dijalankan.
-
-<!-- BEGIN:nextjs-agent-rules -->
-
-## This is NOT the Next.js you know
-
-This version has breaking changes — APIs, conventions, and file structure may all differ from your training data. Read the relevant guide in `node_modules/next/dist/docs/` (resolved from this file's directory; in monorepos the `next` package may not be visible from the repo root) before writing any code. Heed deprecation notices.
-
-This block is written and re-added by `next dev` — verify at `node_modules/next/dist/server/lib/generate-agent-files.js`. Removing it from a diff only re-creates the uncommitted change; committing it with your work keeps the tree clean.
-
-<!-- END:nextjs-agent-rules -->

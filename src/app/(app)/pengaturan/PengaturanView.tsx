@@ -11,7 +11,7 @@ import type { TemaTampilan } from "@/generated/prisma/client";
 
 export function PengaturanView({ user }: { user: SessionUser }) {
   const [modalGantiPasswordOpen, setModalGantiPasswordOpen] = useState(false);
-  const [tema, setTema] = useState<TemaTampilan>(user.tema || "SISTEM");
+  const [tema, setTema] = useState<TemaTampilan>(user.tema === "GELAP" ? "GELAP" : "TERANG");
   const [isUpdatingTema, setIsUpdatingTema] = useState(false);
 
   const handleTemaChange = async (selectedTema: TemaTampilan) => {
@@ -20,13 +20,10 @@ export function PengaturanView({ user }: { user: SessionUser }) {
     try {
       await setTemaAction(selectedTema);
       // Terapkan data-theme langsung ke <html> agar responsif tanpa refresh
-      const docTheme =
-        selectedTema === "GELAP"
-          ? "dark"
-          : selectedTema === "SISTEM"
-          ? "system"
-          : "light";
-      document.documentElement.setAttribute("data-theme", docTheme);
+      document.documentElement.setAttribute(
+        "data-theme",
+        selectedTema === "GELAP" ? "dark" : "light"
+      );
     } finally {
       setIsUpdatingTema(false);
     }
@@ -58,7 +55,6 @@ export function PengaturanView({ user }: { user: SessionUser }) {
           </Button>
         </div>
 
-        {/* Baris 2: Mode Tampilan */}
         <div className="py-5 flex flex-col sm:flex-row sm:items-start justify-between gap-4">
           <div>
             <h2 className="text-[16px] font-semibold text-text">Mode Tampilan</h2>
@@ -67,7 +63,7 @@ export function PengaturanView({ user }: { user: SessionUser }) {
             </p>
           </div>
           <div className="flex flex-col sm:flex-row gap-4 pt-1">
-            {(["TERANG", "GELAP", "SISTEM"] as const).map((t) => (
+            {(["TERANG", "GELAP"] as const).map((t) => (
               <label
                 key={t}
                 className="flex items-center gap-2 text-[14px] text-text cursor-pointer select-none"
@@ -82,7 +78,7 @@ export function PengaturanView({ user }: { user: SessionUser }) {
                   className="accent-accent w-4 h-4"
                 />
                 <span>
-                  {t === "TERANG" ? "Terang" : t === "GELAP" ? "Gelap" : "Sistem"}
+                  {t === "TERANG" ? "Terang" : "Gelap"}
                 </span>
               </label>
             ))}

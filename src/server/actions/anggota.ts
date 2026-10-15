@@ -4,6 +4,8 @@ import { z } from "zod";
 import { db } from "@/lib/db";
 import { requirePetugas } from "@/server/auth/guards";
 
+import { generateUID } from "@/lib/uid";
+
 export interface ActionState {
   error?: string;
   success?: boolean;
@@ -14,11 +16,7 @@ export interface ActionState {
 
 const anggotaSchema = z.object({
   nama: z.string().min(1, "Nama harus diisi.").max(200),
-  uid: z
-    .string()
-    .min(1, "Kode UID harus diisi.")
-    .max(50)
-    .regex(/^[A-Za-z0-9\-_]+$/, "Kode UID hanya boleh berisi huruf, angka, dan tanda hubung."),
+  uid: z.string().min(1).max(50),
   tipe: z.enum(["SISWA", "GURU"], { message: "Tipe harus SISWA atau GURU." }),
   tahunAjaranId: z.string().optional(),
   kelasId: z.string().optional(),
@@ -37,10 +35,16 @@ export async function tambahAnggotaAction(
   const user = await requirePetugas().catch(() => null);
   if (!user) return { error: "Sesi tidak valid. Silakan masuk kembali." };
 
+  const rawTipe = (formData.get("tipe") || "SISWA") as "SISWA" | "GURU";
+  let rawUid = String(formData.get("uid") || "").trim();
+  if (!rawUid) {
+    rawUid = generateUID(rawTipe);
+  }
+
   const raw = {
     nama: formData.get("nama"),
-    uid: formData.get("uid"),
-    tipe: formData.get("tipe"),
+    uid: rawUid,
+    tipe: rawTipe,
     tahunAjaranId: formData.get("tahunAjaranId") || undefined,
     kelasId: formData.get("kelasId") || undefined,
   };
@@ -163,3 +167,148 @@ export async function tambahTahunAjaranAction(params: {
 
   return { success: true, tahunAjaranId: ta.id };
 }
+
+// ─── Batch Simpan Anggota (Mode Edit Grid) ─────────────────────────
+
+export interface BatchAnggotaInput {
+  id?: string;
+  nama: string;
+  uid?: string;
+  tipe: "SISWA" | "GURU";
+  kelasId?: string;
+  tahunAjaranId?: string;
+}
+
+const batchItemSchema = z.object({
+  id: z.string().optional(),
+  nama: z.string().trim().min(1, "Nama tidak boleh kosong.").max(200),
+  uid: z.string().trim().max(50).optional(),
+  tipe: z.enum(["SISWA", "GURU"]),
+  kelasId: z.string().optional(),
+  tahunAjaranId: z.string().optional(),
+});
+
+export async function simpanBatchAnggotaAction(
+  items: BatchAnggotaInput[]
+): Promise<ActionState> {
+  const user = await requirePetugas().catch(() => null);
+  if (!user) return { error: "Sesi tidak valid. Silakan masuk kembali." };
+
+  if (!items || items.length === 0) {
+    return { error: "Tidak ada data untuk disimpan." };
+  }
+
+  // 1. Validasi setiap baris dengan Zod & isi UID otomatis jika kosong
+  const validatedItems: Array<Required<Pick<BatchAnggotaInput, "nama" | "tipe">> & { id?: string; uid: string; kelasId?: string; tahunAjaranId?: string }> = [];
+  const uidsInBatch = new Set<string>();
+
+  for (let i = 0; i < items.length; i++) {
+    const item = items[i];
+    const parsed = batchItemSchema.safeParse(item);
+    if (!parsed.success) {
+      return {
+        error: `Baris ${i + 1}: ${parsed.error.issues[0]?.message ?? "Data tidak valid."}`,
+      };
+    }
+
+    let finalUid = parsed.data.uid;
+    if (!finalUid) {
+      let candidate = generateUID(parsed.data.tipe);
+      while (uidsInBatch.has(candidate.toLowerCase())) {
+        candidate = generateUID(parsed.data.tipe);
+      }
+      finalUid = candidate;
+    }
+
+    const uidLower = finalUid.toLowerCase();
+    if (uidsInBatch.has(uidLower)) {
+      return { error: `Kode UID ganda dalam batch: "${finalUid}".` };
+    }
+    uidsInBatch.add(uidLower);
+    validatedItems.push({
+      ...parsed.data,
+      uid: finalUid,
+    });
+  }
+
+  // 2. Jalankan semua penyimpanan dalam satu transaksi DB
+  try {
+    await db.$transaction(async (tx) => {
+      for (const row of validatedItems) {
+        // Cek apakah UID sudah dipakai oleh anggota lain
+        const existingUid = await tx.anggota.findUnique({
+          where: { uid: row.uid },
+        });
+
+        if (row.id) {
+          // Update anggota yang ada
+          if (existingUid && existingUid.id !== row.id) {
+            throw new Error(`Kode UID "${row.uid}" sudah digunakan anggota lain.`);
+          }
+
+          await tx.anggota.update({
+            where: { id: row.id },
+            data: {
+              nama: row.nama,
+              uid: row.uid,
+              tipe: row.tipe,
+              aktif: true,
+            },
+          });
+
+          // Jika siswa, perbarui penempatan kelas jika ada tahunAjaranId & kelasId
+          if (row.tipe === "SISWA" && row.tahunAjaranId && row.kelasId && row.kelasId !== "guru") {
+            const existingPenempatan = await tx.penempatanKelas.findFirst({
+              where: { anggotaId: row.id, tahunAjaranId: row.tahunAjaranId },
+            });
+
+            if (existingPenempatan) {
+              await tx.penempatanKelas.update({
+                where: { id: existingPenempatan.id },
+                data: { kelasId: row.kelasId },
+              });
+            } else {
+              await tx.penempatanKelas.create({
+                data: {
+                  anggotaId: row.id,
+                  tahunAjaranId: row.tahunAjaranId,
+                  kelasId: row.kelasId,
+                },
+              });
+            }
+          }
+        } else {
+          // Baris baru
+          if (existingUid) {
+            throw new Error(`Kode UID "${row.uid}" sudah digunakan anggota lain.`);
+          }
+
+          const created = await tx.anggota.create({
+            data: {
+              nama: row.nama,
+              uid: row.uid,
+              tipe: row.tipe,
+              aktif: true,
+            },
+          });
+
+          if (row.tipe === "SISWA" && row.tahunAjaranId && row.kelasId && row.kelasId !== "guru") {
+            await tx.penempatanKelas.create({
+              data: {
+                anggotaId: created.id,
+                tahunAjaranId: row.tahunAjaranId,
+                kelasId: row.kelasId,
+              },
+            });
+          }
+        }
+      }
+    });
+
+    return { success: true };
+  } catch (err: unknown) {
+    const msg = err instanceof Error ? err.message : "Gagal menyimpan data.";
+    return { error: msg };
+  }
+}
+

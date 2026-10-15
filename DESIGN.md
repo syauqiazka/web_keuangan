@@ -47,6 +47,7 @@ Hero 71px, carousel, newsletter, dan footer hijau dari situs sumber **tidak dipa
 | Nama | Hex | Peran |
 |---|---|---|
 | Alert Red | `#b42318` | Nominal "belum lunas" dan pesan galat. Kontras 6,6:1 di atas putih. |
+| Ledger Blue | `#4f86c0` | **Hanya** seri Pengeluaran di grafik dan kotak legendanya. Kontras 3,8:1 di atas putih (cukup untuk elemen grafis). Pemilik meminta pengeluaran berwarna biru. |
 
 Alert Red dipakai **hanya** untuk dua hal: nominal kurang bayar dan galat validasi. Selalu disertai teks ("Belum lunas", pesan galat), tidak mengandalkan warna saja.
 
@@ -54,7 +55,7 @@ Alert Red dipakai **hanya** untuk dua hal: nominal kurang bayar dan galat valida
 
 - Dilarang: teks isi berwarna hijau atau cokelat. Hijau/cokelat bukan warna paragraf.
 - Dilarang: gradien dalam bentuk apa pun, warna di luar tabel ini, atau kelas warna bawaan Tailwind (palet bawaan dimatikan di `@theme`, lihat bagian 9).
-- Grafik batang: **Pemasukan = Network Green**, **Pengeluaran = Ink**. Dua warna ini dibedakan oleh kecerahan, jadi tetap terbaca untuk buta warna merah-hijau.
+- Grafik batang: **Pemasukan = Network Green (hijau)**, **Pengeluaran = Ledger Blue (biru)**, sesuai permintaan pemilik. Hijau dan biru dibedakan terutama oleh warna, bukan kecerahan, sehingga grafik **wajib** punya cadangan non-warna: legenda berteks, nilai tertulis atau tooltip, dan tabel alternatif (bagian 8). Jangan menambah warna lain di grafik.
 
 ## 3. Tipografi
 
@@ -147,8 +148,11 @@ Ini komponen terpenting. Spreadsheet meminta perilaku seperti lembar kerja: Tamb
 - Tinggi baris 40px. Sel teks rata kiri, **sel angka rata kanan**, `tabular-nums`. Format uang: `Rp 1.250.000` (locale `id-ID`, tanpa `,-`, tanpa titik setelah Rp).
 - Kolom pertama (No, Nama, Kode UID) menempel (`sticky left-0`) saat tabel digeser; latar Paper agar baris tidak tembus.
 - Kode UID: `label-mono`.
-- Hover baris: Ice Panel. Sel sedang diedit: latar Paper, outline 1px Ink inset. Baris yang diubah tetapi belum disimpan: sel Ice Panel + teks mono "Belum disimpan" (Ledger Brown) di ujung baris.
-- **Enter** menyimpan baris yang sedang diedit. **Tambah Baris** menambahkan baris kosong di bawah dan memindahkan fokus ke sel pertamanya. Tab/Shift+Tab berpindah sel. Esc membatalkan perubahan sel.
+- Hover baris: Ice Panel. Sel sedang diedit: latar Paper, outline 1px Ink inset. Baris yang diubah tetapi belum disimpan: sel Ice Panel + teks mono "Belum disimpan" (Ledger Brown) di ujung baris. Sel yang gagal validasi: border 1px Alert Red + pesan galat di bawah sel.
+- **Dua mode.** Setelah Tarik Data/Enter, tabel hanya-baca (teks biasa, tanpa kotak input). Klik **Input**: sel berubah menjadi kolom isian (input tanpa border sampai difokus), tombol **Tambah Baris** (dan **Tambah Kolom** di Dari Siswa) muncul, tombol Input berganti menjadi **Batal**, tombol **Simpan** (utama) aktif. Simpan menyimpan semua perubahan sekaligus.
+- Di dalam sel: **Enter** pindah ke sel di bawah (tidak menyimpan). **Tab/Shift+Tab** pindah sel. **Esc** membatalkan perubahan sel. **Tambah Baris** menambah baris kosong di bawah dan memindahkan fokus ke sel pertamanya.
+- **Copy-paste:** gunakan `<table>` asli supaya salin bawaan browser bekerja. Di mode edit, tempel dari Excel mengisi ke bawah dan ke kanan mulai dari sel yang terfokus; baris baru dibuat bila kurang. Tidak ada animasi atau dialog khusus; sel hasil tempel langsung tampil sebagai "Belum disimpan".
+- Meninggalkan halaman dengan perubahan yang belum disimpan memunculkan dialog konfirmasi biasa (judul "Perubahan belum disimpan", tombol Tinggalkan dan Tetap di sini).
 - **Belum lunas:** nominal ditulis Alert Red 600, dan di bawahnya teks 14px Alert Red `kurang Rp 50.000`. Nominal lunas tetap Ink.
 - Total di kaki tabel: baris dengan border atas 1px Ink, label "Total", angka 600.
 - Di bawah 640px, tabel tetap tabel (bergulir horizontal di dalam wadahnya). Jangan diubah menjadi tumpukan kartu.
@@ -160,19 +164,20 @@ Ini komponen terpenting. Spreadsheet meminta perilaku seperti lembar kerja: Tamb
 **Dashboard** — header: judul "Dashboard", pilihan **Tahun** di kanan. Baris 1: tiga blok ringkasan (Total Saldo Dana Sekolah dengan angka 47px dan latar Ice Panel; Pemasukan; Pengeluaran). Baris 2: grafik batang 12 bulan (Jan–Des) dengan dua seri berdampingan. Spesifikasi grafik:
 - Digambar sebagai **SVG dari server component**, tanpa library grafik, tanpa animasi.
 - Garis kisi horizontal 1px Rule Gray, sumbu Y berlabel "Juta Rp", sumbu X singkatan bulan. Tanpa kisi vertikal.
+- Dua batang per bulan berdampingan dengan celah 2px di antaranya: **hijau (Pemasukan) di kiri, biru (Pengeluaran) di kanan**.
 - Batang radius 0, lebar sama, celah antar-bulan jelas. Nilai tertulis di atas batang hanya bila muat; selain itu lewat tooltip sederhana (kotak Paper, border Edge Gray, teks 14px).
-- Legenda teks "Pemasukan" / "Pengeluaran" dengan kotak warna 12px di atas grafik.
+- Legenda teks "Pemasukan" (kotak hijau) / "Pengeluaran" (kotak biru), kotak 12px, di atas grafik. Pilihan **Tahun** di header berupa daftar klik (2024, 2025, 2026, ...) sesuai AGENTS.md 4.2.
 - Alternatif teks: `<details>` "Lihat sebagai tabel" berisi tabel 12 baris yang sama.
 
-**Data Siswa & Guru** — header: judul dan filter **Tahun Ajaran**, **Kelas** (atau "Guru"). Tabel: No, Nama, Kelas, Kode UID. Tombol: Input (membuka dialog tambah: Tahun Ajaran, Kelas/Guru, Nama, Kode UID), Simpan, Tambah Baris.
+**Data Siswa & Guru** — header: judul, filter **Tahun Ajaran** dan **Kelas** (atau "Guru"), tombol **Enter**. Tabel: No, Nama, Kelas/Guru, Kode UID; tampil sampai sekitar 50 baris, tinggi awal sekitar 20 baris, sisanya bergulir. Alur edit: Input, Tambah Baris, Simpan (bagian 7). Paste dari Excel aktif.
 
 **Pemasukan** — header: judul, filter **Tahun Ajaran**, **Kelas**, **Bulan**, tombol **Tarik Data**. Di bawahnya: "Jumlah Pemasukan Bulan Ini" dan "Total Pemasukan Per Tahun" sebagai blok ringkasan, lalu baris rincian per jenis (SPP, Daftar Ulang, Uang Gedung, ... , Bantuan, Donatur) berupa daftar label-angka, bukan kartu berwarna. Lalu tab **Dari Siswa / Bantuan / Donatur**.
-- Tab Dari Siswa: grid lebar bergrup kolom per jenis pemasukan. Tombol **Input** membuka dialog pengelolaan jenis; **Tambah Kolom** menambah jenis pemasukan baru.
-- Tab Bantuan dan Donatur: tabel No, Jenis Bantuan (atau Nama Donatur), Tanggal, Nominal, Petugas, plus Tambah Baris.
+- Tab Dari Siswa: grid lebar bergrup kolom. **SPP selalu grup pertama dengan empat sub-kolom** (Tanggal Transaksi, Bulan Terbayar, Metode, Petugas); grup lain tiga sub-kolom (Tanggal Transaksi, Metode, Petugas). Di mode edit (tombol **Input**), **Tambah Kolom** menambah grup jenis baru di kanan lewat dialog kecil (Nama, nominal standar opsional); **Tambah Baris** menambah pembayaran. Paste tidak aktif di tab ini.
+- Tab Bantuan dan Donatur: tabel No, Jenis Bantuan (atau Jenis/Nama Donatur), Tanggal, Nominal, Petugas. Alur edit sama, paste aktif.
 
-**Pengeluaran** — header: judul, filter **Tahun Ajaran**, **Bulan**, tombol **Tarik Data**. Blok ringkasan "Jumlah Pengeluaran Bulan Ini" dan "Total Pengeluaran Per Tahun". Tabel: No, Tanggal, Jenis Pengeluaran, Nominal, Petugas. Tombol Input, Simpan, Tambah Baris.
+**Pengeluaran** — header: judul, filter **Tahun Ajaran**, **Bulan**, tombol **Tarik Data**. Blok ringkasan "Jumlah Pengeluaran Bulan Ini" dan "Total Pengeluaran Per Tahun". Tabel: No, Tanggal, Jenis Pengeluaran, Nominal, Petugas. Alur edit: Input, Tambah Baris, Simpan (bagian 7). Paste dari Excel aktif.
 
-**Pengaturan** — daftar vertikal tiga baris dengan garis pemisah: **Ganti Kata Sandi** (dialog), **Mode** (pilihan Terang / Gelap / Sistem, radio biasa), **Keluar**. Untuk ADMIN ditambah baris **Kelola Akun** (lihat AGENTS.md, bagian "Tambahan di luar spreadsheet").
+**Pengaturan** — daftar vertikal tiga baris dengan garis pemisah: **Ganti Kata Sandi** (dialog), **Mode** (dua pilihan: Terang / Gelap, radio biasa), **Keluar**. Untuk ADMIN ditambah baris **Kelola Akun** (lihat AGENTS.md, bagian "Tambahan di luar spreadsheet").
 
 ## 9. Tailwind v4 (`src/app/globals.css`) [Sumber + Tambahan]
 
@@ -197,6 +202,7 @@ Palet bawaan Tailwind **dimatikan** supaya tidak ada yang bisa memakai `bg-indig
   --color-network-green: #29735c;
   --color-ledger-brown: #7b5953;
   --color-alert: #b42318;      /* [Tambahan] */
+  --color-ledger-blue: #4f86c0; /* [Tambahan] hanya seri Pengeluaran */
 
   --radius-button: 2px;
   --radius-control: 4px;
@@ -222,7 +228,7 @@ Palet bawaan Tailwind **dimatikan** supaya tidak ada yang bisa memakai `bg-indig
   --accent: #29735c;
   --accent-text: #29735c;
   --series-in: #29735c;
-  --series-out: #151515;
+  --series-out: #4f86c0;
   --danger: #b42318;
   --label: #7b5953;
 }
@@ -240,17 +246,9 @@ Palet bawaan Tailwind **dimatikan** supaya tidak ada yang bisa memakai `bg-indig
   --accent: #29735c;
   --accent-text: #6fc3a5;
   --series-in: #6fc3a5;
-  --series-out: #e6e8e7;
+  --series-out: #5b8fd0;
   --danger: #f2877d;
   --label: #c9a79f;
-}
-@media (prefers-color-scheme: dark) {
-  :root[data-theme="system"] {
-    --canvas: #0e1411; --panel: #16201c; --text: #f1f3f2; --text-2: #c3c9c6;
-    --text-3: #8f9a95; --line: #25302b; --line-strong: #34413b; --on-ink: #0e1411;
-    --accent: #29735c; --accent-text: #6fc3a5; --series-in: #6fc3a5;
-    --series-out: #e6e8e7; --danger: #f2877d; --label: #c9a79f;
-  }
 }
 
 /* Utilitas semantik: bg-canvas, bg-panel, text-text, border-line, ... */
@@ -282,7 +280,7 @@ Nilai tema gelap adalah turunan saya dari palet sumber (hijau diterangkan agar t
 ## 10. Gambar dan ikon
 
 - Satu-satunya gambar: logo Bank Saku Digital.
-- **Gambar grafik di spreadsheet (latar kartun, koin, kalkulator, daun, batang 3D hijau-biru) hanya contoh data, bukan arahan visual.** Jangan ditiru. Grafik asli dibuat sesuai bagian 8.
+- **Gambar grafik di spreadsheet (latar kartun, koin, kalkulator, daun, batang 3D mengilap) hanya contoh data, bukan arahan visual.** Yang dipertahankan dari gambar itu hanya pembagian warna hijau (pemasukan) dan biru (pengeluaran), karena diminta pemilik. Jangan meniru dekorasi atau efek 3D-nya. Grafik asli dibuat sesuai bagian 8.
 - Ikon: lucide-react 16px, garis 1,5, warna `currentColor`. Hanya untuk aksi (menu, tutup, panah dropdown, kalender). Tidak ada ikon di lingkaran/kotak berwarna, tidak ada ikon hiasan di samping judul.
 
 ## 11. Nada tulisan (Bahasa Indonesia)

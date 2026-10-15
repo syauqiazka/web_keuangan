@@ -10,6 +10,7 @@ export interface ToastMessage {
 
 interface ToastContextType {
   toast: (message: string, type?: "default" | "error") => void;
+  showToast: (message: string, type?: "default" | "error" | "success") => void;
 }
 
 const ToastContext = React.createContext<ToastContextType | null>(null);
@@ -29,8 +30,15 @@ export function ToastProvider({ children }: { children: React.ReactNode }) {
     []
   );
 
+  const showToast = React.useCallback(
+    (message: string, type: "default" | "error" | "success" = "default") => {
+      toast(message, type === "error" ? "error" : "default");
+    },
+    [toast]
+  );
+
   return (
-    <ToastContext.Provider value={{ toast }}>
+    <ToastContext.Provider value={{ toast, showToast }}>
       {children}
       <div className="fixed bottom-4 right-4 z-50 flex flex-col gap-2 max-w-sm w-full pointer-events-none">
         {toasts.map((t) => (

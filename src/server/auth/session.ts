@@ -63,7 +63,9 @@ export async function deleteSession(): Promise<void> {
   cookieStore.delete(SESSION_COOKIE_NAME);
 }
 
-export async function getSessionUser(): Promise<SessionUser | null> {
+import { cache } from "react";
+
+export const getSessionUser = cache(async (): Promise<SessionUser | null> => {
   const cookieStore = await cookies();
   const token = cookieStore.get(SESSION_COOKIE_NAME)?.value;
 
@@ -110,4 +112,4 @@ export async function getSessionUser(): Promise<SessionUser | null> {
     console.error("Gagal membaca sesi pengguna:", err);
     return null;
   }
-}
+});

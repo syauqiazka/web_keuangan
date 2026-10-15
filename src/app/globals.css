@@ -92,3 +92,37 @@
 
 body { background: var(--canvas); color: var(--text); font-family: var(--font-sans); font-weight: 360; }
 .num { font-variant-numeric: tabular-nums; }
+
+/* Animasi transisi halaman */
+@keyframes pageFadeIn {
+  from {
+    opacity: 0.6;
+    transform: translateY(3px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.page-transition {
+  animation: pageFadeIn 0.22s cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+/* Animasi top progress bar saat navigasi */
+@keyframes indeterminateProgress {
+  0% {
+    transform: translateX(-100%);
+  }
+  50% {
+    transform: translateX(0%);
+  }
+  100% {
+    transform: translateX(100%);
+  }
+}
+
+.animate-indeterminate-progress {
+  animation: indeterminateProgress 1.2s infinite ease-in-out;
+}
+

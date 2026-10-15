@@ -80,6 +80,7 @@ export function Sidebar({ user }: { user?: SessionUser | null }) {
               <Link
                 key={item.href}
                 href={item.href}
+                prefetch={false}
                 onClick={() => setMobileMenuOpen(false)}
                 className={`flex items-center gap-3 px-3 py-2 h-9 text-[14px] rounded-[4px] transition-colors ${
                   isActive
@@ -127,6 +128,7 @@ export function Sidebar({ user }: { user?: SessionUser | null }) {
               <Link
                 key={item.href}
                 href={item.href}
+                prefetch={false}
                 className={`flex items-center gap-3 px-3 py-2 h-9 text-[14px] rounded-[4px] transition-colors ${
                   isActive
                     ? "font-semibold text-text outline outline-1 outline-text -outline-offset-1 bg-canvas"
