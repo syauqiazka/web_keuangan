@@ -337,13 +337,6 @@ export function VtuberGuide() {
           <div className="mt-1 flex w-full items-center justify-center gap-1.5 rounded-full border border-line bg-canvas/95 px-2 py-1.5 text-[10px] text-text-2 shadow-sm backdrop-blur-sm sm:text-xs">
             <Bot className="h-3.5 w-3.5 shrink-0 text-accent" strokeWidth={1.5} />
             <span className="truncate">Turguide Digital</span>
-            <button
-              type="button"
-              onClick={() => setActiveTab(activeTab === "tutorial" ? "chat" : "tutorial")}
-              className="shrink-0 rounded-full border border-line px-2 py-0.5 font-medium hover:bg-panel"
-            >
-              {activeTab === "tutorial" ? "Tanya AI" : "Panduan"}
-            </button>
           </div>
         )}
       </div>
