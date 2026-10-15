@@ -20,6 +20,9 @@ type Frame =
   | "blink";
 
 const BASE = "/vtuber/alya";
+// Ganti versi ketika aset WebP resolusi tinggi dipasang agar cache lama tidak dipakai.
+const ASSET_VERSION = "2";
+const frameSrc = (frame: Frame) => `${BASE}/${frame}.webp?v=${ASSET_VERSION}`;
 const FRAMES: Frame[] = [
   "neutral",
   "smile",
@@ -65,7 +68,7 @@ export function AlyaAvatar({ state, isSpeaking }: AlyaAvatarProps) {
     for (const frame of FRAMES) {
       const image = new Image();
       image.decoding = "async";
-      image.src = `${BASE}/${frame}.webp`;
+      image.src = frameSrc(frame);
     }
   }, []);
 
@@ -100,8 +103,11 @@ export function AlyaAvatar({ state, isSpeaking }: AlyaAvatarProps) {
     const start = performance.now();
 
     const animate = (now: number) => {
-      const offset = Math.sin(((now - start) / 1900) * Math.PI * 2) * 1.7;
-      node.style.transform = `translate3d(0, ${offset.toFixed(2)}px, 0)`;
+      const phase = ((now - start) / 2100) * Math.PI * 2;
+      const offset = Math.sin(phase) * 2.2;
+      const sway = Math.sin(phase * 0.5) * 0.35;
+      const breathe = 1 + Math.sin(phase) * 0.002;
+      node.style.transform = `translate3d(0, ${offset.toFixed(2)}px, 0) rotate(${sway.toFixed(3)}deg) scale(${breathe.toFixed(4)})`;
       animationFrame = requestAnimationFrame(animate);
     };
 
@@ -138,18 +144,18 @@ export function AlyaAvatar({ state, isSpeaking }: AlyaAvatarProps) {
     >
       <div
         ref={avatarRef}
-        className="relative aspect-[432/579] h-full max-w-full flex-none"
+        className="relative h-full w-full flex-none"
         style={{ willChange: reduceMotion.current ? "auto" : "transform" }}
       >
         {FRAMES.map((candidate) => (
           // eslint-disable-next-line @next/next/no-img-element
           <img
             key={candidate}
-            src={`${BASE}/${candidate}.webp`}
+            src={frameSrc(candidate)}
             alt=""
             draggable={false}
             decoding="async"
-            className="absolute inset-0 h-full w-full object-contain object-bottom transition-opacity duration-100 ease-out"
+            className="absolute inset-0 h-full w-full object-contain object-bottom transition-opacity duration-100 ease-linear"
             style={{
               opacity: candidate === frame ? 1 : 0,
               pointerEvents: "none",
