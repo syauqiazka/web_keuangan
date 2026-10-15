@@ -181,15 +181,16 @@ export function VtuberCanvas({
           return;
         }
 
-        // Atur skala dan posisi agar fokus pada bagian atas karakter (bust-up portrait)
+        // Fit seluruh model ke area transparan agar kepala/badan tidak terpotong.
+        // Sisakan ruang kecil di sekeliling karakter untuk efek mengambang.
         const scale = Math.min(
-          (width * 1.35) / model.width,
-          (height * 1.35) / model.height
+          (width * 0.92) / model.width,
+          (height * 0.92) / model.height
         );
         model.scale.set(scale);
-        model.anchor.set(0.5, 0.28);
+        model.anchor.set(0.5, 0.04);
         model.x = width / 2;
-        model.y = height * 0.15;
+        model.y = height * 0.04;
 
         app.stage.addChild(model);
         live2dModelRef.current = model as unknown as Live2DLipSyncControls;
@@ -247,10 +248,10 @@ export function VtuberCanvas({
             if (newW > 0 && newH > 0 && appInstance && !cancelled) {
               appInstance.renderer.resize(newW, newH);
               model.x = newW / 2;
-              model.y = newH * 0.15;
+              model.y = newH * 0.04;
               const s = Math.min(
-                (newW * 1.35) / model.width,
-                (newH * 1.35) / model.height
+                (newW * 0.92) / model.width,
+                (newH * 0.92) / model.height
               );
               model.scale.set(s);
             }
