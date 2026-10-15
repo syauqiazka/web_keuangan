@@ -8,7 +8,7 @@
 import React, { useReducer, useState, useEffect, useRef, useCallback } from "react";
 import { usePathname } from "next/navigation";
 import { X } from "lucide-react";
-import { VtuberCanvas } from "./VtuberCanvas";
+import { AlyaAvatar } from "./AlyaAvatar";
 import { GuideControls } from "./GuideControls";
 import { GuideTutorial } from "./GuideTutorial";
 import { GuideChat } from "./GuideChat";
@@ -360,7 +360,7 @@ export function VtuberGuide() {
           title={isPanelOpen ? "Tutup panduan" : "Buka panduan dan Tanya AI"}
         >
           <div className="relative h-[220px] w-full overflow-visible bg-transparent sm:h-[340px] lg:h-[415px]">
-            <VtuberCanvas state={state.current} isSpeaking={isSpeaking} />
+            <AlyaAvatar state={state.current} isSpeaking={isSpeaking} />
           </div>
         </button>
       </div>
