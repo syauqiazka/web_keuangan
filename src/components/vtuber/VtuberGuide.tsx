@@ -23,7 +23,7 @@ export function VtuberGuide() {
   // Tab aktif di panel bawah: "tutorial" atau "chat"
   const [activeTab, setActiveTab] = useState<"tutorial" | "chat">("tutorial");
   // Avatar selalu mengambang; panel panduan dibuka terpisah saat avatar ditekan.
-  const [isPanelOpen, setIsPanelOpen] = useState(false);
+  const [isPanelOpen, setIsPanelOpen] = useState(true);
 
   // TTS State
   const [voiceEnabled, setVoiceEnabled] = useState(false);
@@ -254,34 +254,53 @@ export function VtuberGuide() {
     }
   };
 
-  // Karakter tetap mengambang di luar panel. Panel hanya berisi panduan / chat.
+  // Pola tourguide: kartu percakapan berada di kiri bawah, karakter berdiri
+  // sendiri di kanan bawah dengan canvas transparan dan tanpa bingkai/widget.
   return (
-    <div className="pointer-events-none fixed bottom-0 right-0 z-40 flex max-w-[calc(100vw-8px)] items-end justify-end gap-1.5 pr-1 font-sans sm:gap-3 sm:pr-2">
+    <>
       {isPanelOpen && (
         <aside
           aria-label="Panduan Interaktif VTuber"
-          className="pointer-events-auto flex max-h-[min(76vh,680px)] w-[calc(100vw-126px)] max-w-[320px] flex-col overflow-hidden rounded-[8px] border border-line bg-canvas shadow-xl sm:w-[320px]"
+          className="pointer-events-auto fixed bottom-3 left-3 z-40 flex max-h-[min(68vh,560px)] w-[min(390px,calc(100vw-24px))] flex-col overflow-hidden rounded-[18px] border border-line bg-canvas shadow-[0_12px_36px_rgba(0,0,0,0.2)] sm:bottom-5 sm:left-5"
         >
-          <div className="flex items-center justify-between border-b border-line bg-panel px-3 py-2 text-xs">
+          <div className="flex items-center justify-between px-4 pt-3 pb-2 text-xs">
             <div className="flex items-center gap-2">
-              <span className="h-2 w-2 rounded-full bg-accent" />
-              <span className="font-medium text-text">Turguide Digital</span>
-              <span className="rounded border border-line px-1 py-0.5 font-mono text-[10px] text-text-3">
-                v1.0
+              <span className="rounded-full bg-accent/10 px-2 py-1 text-[10px] font-semibold uppercase tracking-wide text-accent">
+                Panduan
+              </span>
+              <span className="font-mono text-[11px] text-text-3">
+                {activeTab === "tutorial"
+                  ? `${Math.min(state.tutorialStepIndex + 1, currentTutorial.steps.length)}/${currentTutorial.steps.length}`
+                  : "Tanya AI"}
               </span>
             </div>
-            <button
-              type="button"
-              onClick={handleClosePanel}
-              className="rounded-[2px] p-1 text-text-3 transition-colors hover:bg-canvas hover:text-text"
-              title="Tutup panel panduan"
-              aria-label="Tutup panel panduan"
-            >
-              <X className="h-3.5 w-3.5" strokeWidth={1.5} />
-            </button>
+            <div className="flex items-center gap-2">
+              <button
+                type="button"
+                onClick={handleToggleVoice}
+                className="rounded-full p-1.5 text-text-3 transition-colors hover:bg-panel hover:text-text"
+                title={voiceEnabled ? "Matikan suara" : "Nyalakan suara"}
+                aria-label={voiceEnabled ? "Matikan suara" : "Nyalakan suara"}
+              >
+                {voiceEnabled ? (
+                  <span className="text-sm">♫</span>
+                ) : (
+                  <span className="text-sm">♩</span>
+                )}
+              </button>
+              <button
+                type="button"
+                onClick={handleClosePanel}
+                className="rounded-full p-1.5 text-text-3 transition-colors hover:bg-panel hover:text-text"
+                title="Tutup panduan"
+                aria-label="Tutup panduan"
+              >
+                <X className="h-4 w-4" strokeWidth={1.5} />
+              </button>
+            </div>
           </div>
 
-          <div className="min-h-0 flex-1 overflow-y-auto bg-canvas">
+          <div className="min-h-0 flex-1 overflow-y-auto px-4 pb-1">
             {activeTab === "tutorial" ? (
               <GuideTutorial
                 tutorial={currentTutorial}
@@ -301,37 +320,50 @@ export function VtuberGuide() {
             )}
           </div>
 
-          <GuideControls
-            activeTab={activeTab}
-            voiceEnabled={voiceEnabled}
-            onSelectTab={setActiveTab}
-            onToggleVoice={handleToggleVoice}
-            onMinimize={handleClosePanel}
-          />
+          <div className="flex items-center justify-between border-t border-line px-3 py-2">
+            <button
+              type="button"
+              onClick={() => setIsPanelOpen(false)}
+              className="px-2 py-1 text-[11px] font-medium text-text-3 transition-colors hover:text-text"
+            >
+              Lewati tur
+            </button>
+            <div className="flex items-center gap-1 rounded-full border border-line p-1">
+              <button
+                type="button"
+                onClick={() => setActiveTab("tutorial")}
+                aria-pressed={activeTab === "tutorial"}
+                className={`rounded-full px-3 py-1 text-[11px] transition-colors ${activeTab === "tutorial" ? "bg-text text-on-ink" : "text-text-2 hover:bg-panel"}`}
+              >
+                Panduan
+              </button>
+              <button
+                type="button"
+                onClick={() => setActiveTab("chat")}
+                aria-pressed={activeTab === "chat"}
+                className={`rounded-full px-3 py-1 text-[11px] transition-colors ${activeTab === "chat" ? "bg-text text-on-ink" : "text-text-2 hover:bg-panel"}`}
+              >
+                Tanya AI
+              </button>
+            </div>
+          </div>
         </aside>
       )}
 
-      <div className={`pointer-events-auto relative flex shrink-0 flex-col items-center justify-end ${isPanelOpen ? "w-[88px] sm:w-[156px]" : "w-[142px] sm:w-[210px] lg:w-[238px]"}`}>
+      <div className="pointer-events-none fixed right-0 bottom-0 z-40 flex items-end justify-end">
         <button
           type="button"
           onClick={isPanelOpen ? handleClosePanel : handleOpenPanel}
           aria-label={isPanelOpen ? "Tutup panduan VTuber" : "Buka panduan dan Tanya AI"}
           aria-expanded={isPanelOpen}
-          className="group relative block w-full cursor-pointer appearance-none border-0 bg-transparent p-0 shadow-none outline-none focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent"
-          title={isPanelOpen ? "Tutup panduan" : "Klik karakter untuk membuka panduan"}
+          className="pointer-events-auto relative block w-[132px] cursor-pointer appearance-none border-0 bg-transparent p-0 shadow-none outline-none focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent sm:w-[208px] lg:w-[252px]"
+          title={isPanelOpen ? "Tutup panduan" : "Buka panduan dan Tanya AI"}
         >
-          {!isPanelOpen && (
-            <span className="pointer-events-none absolute left-1/2 top-1 z-10 -translate-x-1/2 -translate-y-full whitespace-nowrap text-[11px] font-medium text-text-2 opacity-0 drop-shadow-[0_1px_3px_rgba(0,0,0,0.65)] transition-opacity group-hover:opacity-100 group-focus-visible:opacity-100">
-              Klik untuk membuka panduan
-            </span>
-          )}
-          <div
-            className={`relative w-full overflow-visible bg-transparent ${isPanelOpen ? "h-[190px] sm:h-[260px]" : "h-[245px] sm:h-[330px] lg:h-[385px]"}`}
-          >
+          <div className="relative h-[220px] w-full overflow-visible bg-transparent sm:h-[340px] lg:h-[415px]">
             <VtuberCanvas state={state.current} isSpeaking={isSpeaking} />
           </div>
         </button>
       </div>
-    </div>
+    </>
   );
 }
