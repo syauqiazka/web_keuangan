@@ -93,8 +93,11 @@ export function GuideChat({
             <button
               key={prompt}
               type="button"
-              onClick={() => onSendMessage(prompt)}
-              className="px-2 py-0.5 rounded-[2px] bg-panel border border-line text-[10px] text-text-3 hover:text-text hover:border-line-strong transition-colors"
+              disabled={isThinking}
+              onClick={() => {
+                if (!isThinking) onSendMessage(prompt);
+              }}
+              className="px-2 py-0.5 rounded-[2px] bg-panel border border-line text-[10px] text-text-3 hover:text-text hover:border-line-strong transition-colors disabled:opacity-40 disabled:pointer-events-none"
             >
               {prompt}
             </button>
