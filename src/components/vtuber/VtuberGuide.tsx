@@ -139,6 +139,9 @@ export function VtuberGuide() {
     if (state.current !== "minimized") return;
     synthRef.current?.cancel();
     setIsSpeaking(false);
+    dispatch({ type: "FINISH_SPEAKING" });
+    dispatch({ type: "FINISH_THINKING" });
+    dispatch({ type: "FINISH_GREET" });
   }, [state.current]);
 
   // Toggle Suara
