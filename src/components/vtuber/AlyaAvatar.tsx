@@ -1,9 +1,9 @@
 "use client";
 
 /**
- * AlyaAvatar.tsx — Avatar Turguide "Alya" berbasis gambar ekspresi (PNGtuber).
- * Ekspresi diganti sesuai state guide; kedip dan napas otomatis; mulut berganti saat bicara.
- * Tanpa Live2D Cubism Core, jadi tidak ada ketergantungan lisensi runtime.
+ * AlyaAvatar.tsx — PNGtuber Alya.
+ * Ekspresi diambil dari aset WebP transparan beresolusi asli.
+ * Animasi idle berjalan langsung di DOM agar tidak memaksa React render 60x/detik.
  */
 
 import { useEffect, useRef, useState } from "react";
@@ -31,7 +31,6 @@ const FRAMES: Frame[] = [
   "blink",
 ];
 
-/** Ekspresi dasar per state guide (saat mulut tertutup). */
 const EXPRESSION: Record<GuideState, Frame> = {
   idle: "neutral",
   greeting: "happy",
@@ -43,7 +42,6 @@ const EXPRESSION: Record<GuideState, Frame> = {
   minimized: "neutral",
 };
 
-/** Ekspresi yang boleh diganti frame kedip / bicara tanpa terlihat janggal. */
 const CAN_BLINK: Frame[] = ["neutral", "smile", "talking", "blushing"];
 const CAN_TALK: Frame[] = ["neutral", "smile"];
 
@@ -55,55 +53,77 @@ interface AlyaAvatarProps {
 export function AlyaAvatar({ state, isSpeaking }: AlyaAvatarProps) {
   const [blink, setBlink] = useState(false);
   const [mouthOpen, setMouthOpen] = useState(false);
-  const [breathe, setBreathe] = useState(0);
+  const avatarRef = useRef<HTMLDivElement>(null);
   const reduceMotion = useRef(false);
 
-  // Pramuat semua frame supaya tidak berkedip saat pertama berganti.
+  // Muat dan cache seluruh ekspresi sebelum dibutuhkan.
   useEffect(() => {
-    for (const f of FRAMES) {
-      const img = new Image();
-      img.src = `${BASE}/${f}.webp`;
+    reduceMotion.current = window.matchMedia(
+      "(prefers-reduced-motion: reduce)"
+    ).matches;
+
+    for (const frame of FRAMES) {
+      const image = new Image();
+      image.decoding = "async";
+      image.src = `${BASE}/${frame}.webp`;
     }
-    reduceMotion.current = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
   }, []);
 
-  // Kedip acak tiap 2,5–5 detik.
+  // Kedip acak. Timer dibersihkan saat komponen dilepas.
   useEffect(() => {
     let timer: ReturnType<typeof setTimeout>;
-    let inner: ReturnType<typeof setTimeout>;
-    const schedule = () => {
+    let closeTimer: ReturnType<typeof setTimeout>;
+
+    const scheduleBlink = () => {
       timer = setTimeout(() => {
         setBlink(true);
-        inner = setTimeout(() => {
+        closeTimer = setTimeout(() => {
           setBlink(false);
-          schedule();
-        }, 130);
-      }, 2500 + Math.random() * 2500);
+          scheduleBlink();
+        }, 115);
+      }, 2600 + Math.random() * 2400);
     };
-    schedule();
+
+    scheduleBlink();
     return () => {
       clearTimeout(timer);
-      clearTimeout(inner);
+      clearTimeout(closeTimer);
     };
   }, []);
 
-  // Napas halus.
+  // Napas ringan via transform compositor; tidak membuat React render per frame.
   useEffect(() => {
-    let raf = 0;
-    const t0 = performance.now();
-    const loop = (now: number) => {
-      if (!reduceMotion.current) setBreathe(Math.sin((now - t0) / 800) * 2);
-      raf = requestAnimationFrame(loop);
+    const node = avatarRef.current;
+    if (!node || reduceMotion.current) return;
+
+    let animationFrame = 0;
+    const start = performance.now();
+
+    const animate = (now: number) => {
+      const offset = Math.sin(((now - start) / 1900) * Math.PI * 2) * 1.7;
+      node.style.transform = `translate3d(0, ${offset.toFixed(2)}px, 0)`;
+      animationFrame = requestAnimationFrame(animate);
     };
-    raf = requestAnimationFrame(loop);
-    return () => cancelAnimationFrame(raf);
+
+    animationFrame = requestAnimationFrame(animate);
+    return () => {
+      cancelAnimationFrame(animationFrame);
+      node.style.transform = "";
+    };
   }, []);
 
-  // Mulut bergantian terbuka/tertutup selama bicara.
+  // Irama mulut lebih natural dan interval berhenti ketika TTS selesai.
   useEffect(() => {
-    if (!isSpeaking) return;
-    const id = setInterval(() => setMouthOpen((v) => !v), 140);
-    return () => clearInterval(id);
+    if (!isSpeaking) {
+      setMouthOpen(false);
+      return;
+    }
+
+    const interval = setInterval(() => {
+      setMouthOpen((open) => !open);
+    }, 115);
+
+    return () => clearInterval(interval);
   }, [isSpeaking]);
 
   const base = EXPRESSION[state];
@@ -117,18 +137,23 @@ export function AlyaAvatar({ state, isSpeaking }: AlyaAvatarProps) {
       aria-hidden="true"
     >
       <div
-        className="relative aspect-[144/193] h-full max-w-full"
-        style={{ transform: `translateY(${breathe}px)` }}
+        ref={avatarRef}
+        className="relative aspect-[432/579] h-full max-w-full flex-none"
+        style={{ willChange: reduceMotion.current ? "auto" : "transform" }}
       >
-        {FRAMES.map((f) => (
+        {FRAMES.map((candidate) => (
           // eslint-disable-next-line @next/next/no-img-element
           <img
-            key={f}
-            src={`${BASE}/${f}.webp`}
+            key={candidate}
+            src={`${BASE}/${candidate}.webp`}
             alt=""
             draggable={false}
-            className="absolute inset-0 h-full w-full object-contain object-bottom"
-            style={{ opacity: f === frame ? 1 : 0 }}
+            decoding="async"
+            className="absolute inset-0 h-full w-full object-contain object-bottom transition-opacity duration-100 ease-out"
+            style={{
+              opacity: candidate === frame ? 1 : 0,
+              pointerEvents: "none",
+            }}
           />
         ))}
       </div>
