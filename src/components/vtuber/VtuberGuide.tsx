@@ -56,6 +56,7 @@ export function VtuberGuide() {
       if (
         !voiceEnabled ||
         !synth ||
+        state.current === "minimized" ||
         typeof window === "undefined" ||
         typeof SpeechSynthesisUtterance === "undefined"
       ) {
@@ -92,7 +93,7 @@ export function VtuberGuide() {
 
       synth.speak(utterance);
     },
-    [voiceEnabled]
+    [voiceEnabled, state.current]
   );
 
   // Referensi terbaru mencegah perubahan toggle suara mengulang greeting otomatis.
