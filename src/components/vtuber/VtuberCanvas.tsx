@@ -16,6 +16,70 @@ interface VtuberCanvasProps {
   onModelLoaded?: (success: boolean) => void;
 }
 
+interface Live2DLipSyncControls {
+  startLipSync?: () => void;
+  setLipSyncValue?: (value: number) => void;
+  stopLipSync?: () => void;
+}
+
+type CubismWindow = Window & { Live2DCubismCore?: unknown };
+
+let cubismCoreLoadPromise: Promise<void> | null = null;
+
+function ensureCubismCoreLoaded(): Promise<void> {
+  if (typeof window === "undefined") {
+    return Promise.reject(new Error("Live2D hanya dapat dimuat di browser."));
+  }
+
+  const browserWindow = window as CubismWindow;
+  if (browserWindow.Live2DCubismCore) return Promise.resolve();
+  if (cubismCoreLoadPromise) return cubismCoreLoadPromise;
+
+  cubismCoreLoadPromise = new Promise<void>((resolve, reject) => {
+    let script = document.querySelector<HTMLScriptElement>(
+      'script[data-live2d-cubism-core="true"]'
+    );
+
+    const handleLoad = () => {
+      if (browserWindow.Live2DCubismCore) {
+        resolve();
+      } else {
+        reject(new Error("Live2DCubismCore termuat, tetapi tidak terinisialisasi."));
+      }
+    };
+    const handleError = () => reject(new Error("Gagal memuat Live2DCubismCore."));
+
+    if (script?.dataset.loaded === "true") {
+      handleLoad();
+      return;
+    }
+
+    if (!script) {
+      script = document.createElement("script");
+      script.src = "/live2d/live2dcubismcore.min.js";
+      script.async = true;
+      script.dataset.live2dCubismCore = "true";
+    }
+
+    script.addEventListener(
+      "load",
+      () => {
+        script!.dataset.loaded = "true";
+        handleLoad();
+      },
+      { once: true }
+    );
+    script.addEventListener("error", handleError, { once: true });
+
+    if (!script.isConnected) document.head.appendChild(script);
+  }).catch((error: unknown) => {
+    cubismCoreLoadPromise = null;
+    throw error;
+  });
+
+  return cubismCoreLoadPromise;
+}
+
 export function VtuberCanvas({
   state,
   isSpeaking,
@@ -29,7 +93,7 @@ export function VtuberCanvas({
   // Fallback animation frame reference
   const animRef = useRef<number | null>(null);
   const isBlinkingRef = useRef<boolean>(false);
-  const live2dModelRef = useRef<unknown>(null);
+  const live2dModelRef = useRef<Live2DLipSyncControls | null>(null);
 
   useEffect(() => {
     let cancelled = false;
@@ -41,21 +105,13 @@ export function VtuberCanvas({
 
     async function initLive2D() {
       setIsLoading(true);
+      setUseFallback(false);
 
-      // 1. Cek apakah model manifest ada di server
+      // Muat Core sekali saja agar React Strict Mode tidak menyisipkan script ganda.
       try {
-        const checkRes = await fetch("/live2d/guide/guide.model3.json", {
-          method: "HEAD",
-        });
-        if (!checkRes.ok) {
-          if (!cancelled) {
-            setUseFallback(true);
-            setIsLoading(false);
-            onModelLoaded?.(false);
-          }
-          return;
-        }
-      } catch {
+        await ensureCubismCoreLoaded();
+      } catch (error) {
+        console.error("[VtuberCanvas] Runtime Live2D gagal dimuat:", error);
         if (!cancelled) {
           setUseFallback(true);
           setIsLoading(false);
@@ -64,35 +120,10 @@ export function VtuberCanvas({
         return;
       }
 
-      // 2. Muat Live2D Cubism Core v4 script jika belum ada di window
-      const win =
-        typeof window !== "undefined"
-          ? (window as unknown as { Live2DCubismCore?: unknown })
-          : null;
-      if (win && !win.Live2DCubismCore) {
-        try {
-          await new Promise<void>((resolve, reject) => {
-            const script = document.createElement("script");
-            script.src = "/live2d/live2dcubismcore.min.js";
-            script.async = true;
-            script.onload = () => resolve();
-            script.onerror = () =>
-              reject(new Error("Gagal memuat Live2DCubismCore"));
-            document.head.appendChild(script);
-          });
-        } catch {
-          if (!cancelled) {
-            setUseFallback(true);
-            setIsLoading(false);
-            onModelLoaded?.(false);
-          }
-          return;
-        }
-      }
-
       if (cancelled || !containerRef.current) return;
 
-      // 3. Inisialisasi PixiJS v8 & Live2D Model
+      // Inisialisasi PixiJS v8 & model Live2D. Jika aset atau WebGL gagal,
+      // tangani melalui catch dan tampilkan avatar fallback.
       try {
         const PIXI = await import("pixi.js");
         const { Live2DModel } = await import(
@@ -135,6 +166,9 @@ export function VtuberCanvas({
           {
             autoHitTest: false,
             autoFocus: false,
+            // Gunakan ticker milik aplikasi yang sama agar pembaruan model
+            // tersinkron dengan siklus render PixiJS v8.
+            ticker: app.ticker,
           }
         );
 
@@ -155,75 +189,53 @@ export function VtuberCanvas({
         model.y = height * 0.15;
 
         app.stage.addChild(model);
-        live2dModelRef.current = model;
+        live2dModelRef.current = model as unknown as Live2DLipSyncControls;
 
-        // Tangkap error render callback dari ticker Live2D
-        // Error "Cannot read properties of undefined (reading '0')" terjadi di
-        // dalam ticker Cubism4 saat shader/buffer tidak kompatibel.
-        const originalTick = app.ticker.add.bind(app.ticker);
+        // Tangkap error WebGL/Live2D yang lolos dari lifecycle inisialisasi.
+        let removeRenderErrorListener = () => {};
         const safeErrorHandler = () => {
           renderErrorCount++;
-          if (renderErrorCount >= RENDER_ERROR_THRESHOLD && !cancelled) {
-            console.warn(
-              `[VtuberCanvas] Live2D render gagal ${renderErrorCount}x, beralih ke avatar vektor.`
-            );
-            cancelled = true;
-            try {
-              model.destroy();
-            } catch {
-              // abaikan
-            }
-            try {
-              app.destroy({ removeView: true }, { children: true });
-            } catch {
-              // abaikan
-            }
-            appInstance = null;
-            if (mount) mount.innerHTML = "";
-            setUseFallback(true);
-            setIsLoading(false);
-            onModelLoaded?.(false);
+          if (renderErrorCount < RENDER_ERROR_THRESHOLD || cancelled) return;
+
+          console.error(
+            `[VtuberCanvas] Render Live2D gagal ${renderErrorCount} kali. Avatar fallback diaktifkan.`
+          );
+          cancelled = true;
+          removeRenderErrorListener();
+          live2dModelRef.current?.stopLipSync?.();
+          live2dModelRef.current?.setLipSyncValue?.(0);
+          live2dModelRef.current = null;
+
+          try {
+            model.destroy();
+          } catch {
+            // Model mungkin sudah dihancurkan oleh renderer.
           }
+          try {
+            app.destroy({ removeView: true }, { children: true });
+          } catch {
+            // Renderer mungkin sudah dihancurkan.
+          }
+          appInstance = null;
+          if (mount) mount.innerHTML = "";
+          setUseFallback(true);
+          setIsLoading(false);
+          onModelLoaded?.(false);
         };
 
-        // Patch global error handler untuk menangkap error ticker
-        const origError = window.onerror;
-        const origUnhandledRejection = window.onunhandledrejection;
-        void origError;
-        void origUnhandledRejection;
-
-        // Metode lebih andal: intercept via error event yang terjadi di ticker
-        // PixiJS v8 menangani error di ticker via try/catch internal, lalu
-        // melempar ulang ke "error" event pada Ticker.
-        const tickerErrorListener = (err: unknown) => {
-          const msg = err instanceof Error ? err.message : String(err);
-          if (msg.includes("undefined") || msg.includes("reading '0'")) {
-            safeErrorHandler();
-          }
-        };
-
-        // PixiJS v8 Ticker: subscribe ke event "error" jika tersedia
-        // Jika tidak ada event 'error', wrap requestAnimationFrame via listener
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        const ticker = app.ticker as any;
-        if (typeof ticker.on === "function") {
-          ticker.on("error", tickerErrorListener);
-        }
-
-        // Fallback: patch window error untuk catch render callback error
         const windowErrorListener = (event: ErrorEvent) => {
+          const message = event.message || "";
           if (
-            event.message &&
-            (event.message.includes("reading '0'") ||
-              event.message.includes("render callback"))
+            message.includes("reading '0'") ||
+            message.includes("render callback") ||
+            message.toLowerCase().includes("webgl context")
           ) {
             safeErrorHandler();
           }
         };
         window.addEventListener("error", windowErrorListener);
-
-        // Ticker sudah berjalan via Live2D; error ditangkap oleh windowErrorListener
-        void originalTick;
+        removeRenderErrorListener = () =>
+          window.removeEventListener("error", windowErrorListener);
 
         // ResizeObserver
         resizeObserver = new ResizeObserver((entries) => {
@@ -249,19 +261,29 @@ export function VtuberCanvas({
           onModelLoaded?.(true);
         }
 
-        // Simpan cleanup untuk windowErrorListener di closure
-        const prevCleanup = () => {
-          window.removeEventListener("error", windowErrorListener);
-          if (typeof ticker.off === "function") {
-            ticker.off("error", tickerErrorListener);
-          }
-        };
-
-        // Simpan untuk diakses di cleanup effect
+        // Simpan cleanup listener agar tidak bocor ketika halaman dilepas.
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        (appInstance as any).__vtuberCleanup = prevCleanup;
+        (appInstance as any).__vtuberCleanup = removeRenderErrorListener;
       } catch (err) {
-        console.warn("[VtuberCanvas] Live2D gagal dimuat, fallback ke avatar vektor:", err);
+        console.error("[VtuberCanvas] Live2D gagal dimuat, avatar fallback diaktifkan:", err);
+        live2dModelRef.current?.stopLipSync?.();
+        live2dModelRef.current?.setLipSyncValue?.(0);
+        live2dModelRef.current = null;
+
+        // Bersihkan renderer jika model gagal dimuat setelah Application dibuat.
+        if (appInstance) {
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
+          const cleanup = (appInstance as any).__vtuberCleanup;
+          if (typeof cleanup === "function") cleanup();
+          try {
+            appInstance.destroy({ removeView: true }, { children: true });
+          } catch {
+            // Renderer mungkin sudah dihancurkan saat cleanup.
+          }
+          appInstance = null;
+        }
+        if (canvasMountRef.current) canvasMountRef.current.innerHTML = "";
+
         if (!cancelled) {
           setUseFallback(true);
           setIsLoading(false);
@@ -279,6 +301,9 @@ export function VtuberCanvas({
       if (resizeObserver) {
         resizeObserver.disconnect();
       }
+      live2dModelRef.current?.stopLipSync?.();
+      live2dModelRef.current?.setLipSyncValue?.(0);
+      live2dModelRef.current = null;
       // Jalankan cleanup listener jika ada
       if (
         appInstance &&
@@ -301,6 +326,35 @@ export function VtuberCanvas({
       }
     };
   }, [onModelLoaded]);
+
+  // Lip-sync model Live2D: parameter mulut bergerak hanya ketika TTS aktif.
+  useEffect(() => {
+    const model = live2dModelRef.current;
+    if (!model || useFallback || isLoading) return;
+
+    if (!isSpeaking) {
+      model.stopLipSync?.();
+      model.setLipSyncValue?.(0);
+      return;
+    }
+
+    model.startLipSync?.();
+    let frameId = 0;
+    const startedAt = performance.now();
+
+    const animateMouth = (now: number) => {
+      const wave = (Math.sin((now - startedAt) / 95) + 1) / 2;
+      model.setLipSyncValue?.(0.08 + wave * 0.78);
+      frameId = requestAnimationFrame(animateMouth);
+    };
+
+    frameId = requestAnimationFrame(animateMouth);
+    return () => {
+      cancelAnimationFrame(frameId);
+      model.stopLipSync?.();
+      model.setLipSyncValue?.(0);
+    };
+  }, [isSpeaking, isLoading, useFallback]);
 
   // Animasi untuk Fallback Vector Avatar
   const [mouthOpen, setMouthOpen] = useState(0);
