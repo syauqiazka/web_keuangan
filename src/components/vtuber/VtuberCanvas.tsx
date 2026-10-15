@@ -146,11 +146,26 @@ export function VtuberCanvas({
           width,
           height,
           backgroundAlpha: 0,
+          backgroundColor: 0x000000,
+          clearBeforeRender: true,
           antialias: true,
           resolution: window.devicePixelRatio || 1,
           autoDensity: true,
           preference: "webgl",
         });
+
+        // Background Pixi dan elemen canvas wajib transparan. Tanpa ini,
+        // browser dapat menampilkan bidang putih di belakang karakter.
+        app.renderer.background.alpha = 0;
+        app.renderer.background.clearBeforeRender = true;
+        app.canvas.style.background = "transparent";
+        app.canvas.style.backgroundColor = "transparent";
+        app.canvas.style.display = "block";
+        app.canvas.style.position = "absolute";
+        app.canvas.style.inset = "0";
+        app.canvas.style.width = "100%";
+        app.canvas.style.height = "100%";
+        app.canvas.style.pointerEvents = "none";
         appInstance = app;
 
         if (cancelled) {
@@ -160,11 +175,15 @@ export function VtuberCanvas({
 
         const mount = canvasMountRef.current;
         if (!mount) return;
+        mount.style.background = "transparent";
         mount.innerHTML = "";
         mount.appendChild(app.canvas as HTMLCanvasElement);
 
-        // Muat model Cubism 4
-        const model = await Live2DModel.from(
+        // Hindari spinner/canvas putih yang menggantung tanpa batas bila model
+        // atau salah satu aset Live2D gagal dijawab oleh server.
+        let modelLoadAbandoned = false;
+        let modelLoadTimer: ReturnType<typeof setTimeout> | undefined;
+        const modelPromise = Live2DModel.from(
           "/live2d/guide/guide.model3.json",
           {
             autoHitTest: false,
@@ -174,6 +193,31 @@ export function VtuberCanvas({
             ticker: app.ticker,
           }
         );
+
+        // Jika model baru selesai setelah timeout/unmount, jangan biarkan
+        // resource terlantar atau canvas lama menutupi avatar fallback.
+        void modelPromise.then((lateModel) => {
+          if (modelLoadAbandoned || cancelled) {
+            try {
+              lateModel.destroy();
+            } catch {
+              // Model tidak lagi dipakai.
+            }
+          }
+        }).catch(() => {
+          // Ditangani oleh Promise.race di bawah.
+        });
+
+        const model = await Promise.race([
+          modelPromise,
+          new Promise<never>((_, reject) => {
+            modelLoadTimer = setTimeout(() => {
+              modelLoadAbandoned = true;
+              reject(new Error("Model Live2D tidak selesai dimuat dalam 12 detik."));
+            }, 12000);
+          }),
+        ]);
+        if (modelLoadTimer) clearTimeout(modelLoadTimer);
 
         if (cancelled) {
           // Cleanup effect sudah menghancurkan Application bila komponen dilepas.
@@ -269,7 +313,7 @@ export function VtuberCanvas({
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
         (appInstance as any).__vtuberCleanup = removeRenderErrorListener;
       } catch (err) {
-        console.error("[VtuberCanvas] Live2D gagal dimuat, avatar fallback diaktifkan:", err);
+        console.error("[VtuberCanvas] Live2D gagal dimuat, avatar transparan fallback diaktifkan:", err);
         live2dModelRef.current?.stopLipSync?.();
         live2dModelRef.current?.setLipSyncValue?.(0);
         live2dModelRef.current = null;
@@ -412,12 +456,12 @@ export function VtuberCanvas({
   return (
     <div
       ref={containerRef}
-      className="w-full h-full relative flex items-center justify-center overflow-hidden select-none pointer-events-none"
+      className="w-full h-full relative flex items-end justify-center overflow-visible select-none pointer-events-none bg-transparent"
     >
       {/* Container murni untuk canvas PixiJS agar terisolasi dari React virtual DOM */}
       <div
         ref={canvasMountRef}
-        className="absolute inset-0 w-full h-full pointer-events-none flex items-center justify-center"
+        className="absolute inset-0 w-full h-full pointer-events-none flex items-end justify-center bg-transparent"
       />
 
       {isLoading && (
@@ -569,31 +613,11 @@ export function VtuberCanvas({
             <circle cx="76" cy="94" r="2.8" fill="var(--color-accent, #29735c)" />
           </svg>
 
-          {/* Badge Indikator Status */}
-          <div className="mt-1 flex items-center gap-1.5 px-2 py-0.5 rounded border border-line bg-panel text-[11px] font-mono text-text-2 tracking-tight">
-            <span
-              className={`w-1.5 h-1.5 rounded-full ${
-                state === "speaking"
-                  ? "bg-accent animate-pulse"
-                  : state === "thinking"
-                  ? "bg-series-out animate-ping"
-                  : state === "error"
-                  ? "bg-danger"
-                  : "bg-accent"
-              }`}
-            />
-            <span>
-              {state === "speaking"
-                ? "Bicara"
-                : state === "thinking"
-                ? "Menjawab..."
-                : state === "tutorial"
-                ? "Turguide"
-                : state === "greeting"
-                ? "Halo!"
-                : "Standby"}
+          {state === "speaking" && (
+            <span className="mt-0.5 text-[10px] font-medium text-text-2 drop-shadow-[0_1px_3px_rgba(0,0,0,0.18)]">
+              Sedang berbicara
             </span>
-          </div>
+          )}
         </div>
       )}
     </div>
