@@ -17,8 +17,18 @@ interface VtuberCanvasProps {
 }
 
 interface Live2DLipSyncControls {
-  startLipSync?: () => void;
-  setLipSyncValue?: (value: number) => void;
+  internalModel?: {
+    lipSync?: boolean;
+    lipSyncValue?: number;
+    originalWidth?: number;
+    originalHeight?: number;
+    coreModel?: {
+      getModel?: () => {
+        parts?: { ids?: string[] | readonly string[] };
+      };
+      setPartOpacityByIndex?: (partIndex: number, opacity: number) => void;
+    };
+  };
   stopLipSync?: () => void;
 }
 
@@ -27,8 +37,9 @@ interface Live2DModelDisplay {
     originalWidth?: number;
     originalHeight?: number;
     coreModel?: {
-      setPartOpacityById?: (partId: string, opacity: number) => void;
-      getPartIndex?: (partId: string) => number;
+      getModel?: () => {
+        parts?: { ids?: string[] | readonly string[] };
+      };
       setPartOpacityByIndex?: (partIndex: number, opacity: number) => void;
     };
   };
@@ -257,19 +268,22 @@ export function VtuberCanvas({
         // dan latar dashboard terlihat melalui area transparan.
         try {
           const coreModel = live2dDisplay.internalModel?.coreModel;
-          if (typeof coreModel?.setPartOpacityById === "function") {
-            coreModel.setPartOpacityById("PartBackground", 0);
-          } else if (
-            typeof coreModel?.getPartIndex === "function" &&
+          const partIds = coreModel?.getModel?.().parts?.ids;
+          const backgroundPartIndex = partIds
+            ? Array.from(partIds).indexOf("PartBackground")
+            : -1;
+
+          // Pada Cubism4, setPartOpacityById menerima CubismIdHandle, bukan string.
+          // Karena itu cari indeks dari ID mentah model lalu ubah opacity dengan API index.
+          if (
+            backgroundPartIndex >= 0 &&
             typeof coreModel?.setPartOpacityByIndex === "function"
           ) {
-            const backgroundPartIndex = coreModel.getPartIndex("PartBackground");
-            if (backgroundPartIndex >= 0) {
-              coreModel.setPartOpacityByIndex(backgroundPartIndex, 0);
-            }
+            coreModel.setPartOpacityByIndex(backgroundPartIndex, 0);
+          } else {
+            console.info("[VtuberCanvas] Model tidak memiliki part PartBackground; memakai alpha canvas.");
           }
         } catch (error) {
-          // Alpha pada canvas tetap aktif meskipun model tidak menyediakan API parts.
           console.warn("[VtuberCanvas] Tidak dapat menyembunyikan PartBackground:", error);
         }
 
@@ -308,8 +322,9 @@ export function VtuberCanvas({
           );
           cancelled = true;
           removeRenderErrorListener();
-          live2dModelRef.current?.stopLipSync?.();
-          live2dModelRef.current?.setLipSyncValue?.(0);
+          if (live2dModelRef.current?.internalModel) {
+            live2dModelRef.current.internalModel.lipSyncValue = 0;
+          }
           live2dModelRef.current = null;
 
           try {
@@ -383,8 +398,9 @@ export function VtuberCanvas({
         (appInstance as any).__vtuberCleanup = removeRenderErrorListener;
       } catch (err) {
         console.error("[VtuberCanvas] Live2D gagal dimuat, avatar transparan fallback diaktifkan:", err);
-        live2dModelRef.current?.stopLipSync?.();
-        live2dModelRef.current?.setLipSyncValue?.(0);
+        if (live2dModelRef.current?.internalModel) {
+          live2dModelRef.current.internalModel.lipSyncValue = 0;
+        }
         live2dModelRef.current = null;
 
         // Bersihkan renderer jika model gagal dimuat setelah Application dibuat.
@@ -427,8 +443,9 @@ export function VtuberCanvas({
       if (resizeObserver) {
         resizeObserver.disconnect();
       }
-      live2dModelRef.current?.stopLipSync?.();
-      live2dModelRef.current?.setLipSyncValue?.(0);
+      if (live2dModelRef.current?.internalModel) {
+        live2dModelRef.current.internalModel.lipSyncValue = 0;
+      }
       live2dModelRef.current = null;
       // Jalankan cleanup listener jika ada
       if (
@@ -458,27 +475,29 @@ export function VtuberCanvas({
     const model = live2dModelRef.current;
     if (!model || useFallback || isLoading) return;
 
+    const internalModel = model.internalModel;
+    if (!internalModel) return;
+
     if (!isSpeaking) {
-      model.stopLipSync?.();
-      model.setLipSyncValue?.(0);
+      internalModel.lipSync = true;
+      internalModel.lipSyncValue = 0;
       return;
     }
 
-    model.startLipSync?.();
+    internalModel.lipSync = true;
     let frameId = 0;
     const startedAt = performance.now();
 
     const animateMouth = (now: number) => {
       const wave = (Math.sin((now - startedAt) / 95) + 1) / 2;
-      model.setLipSyncValue?.(0.08 + wave * 0.78);
+      internalModel.lipSyncValue = 0.08 + wave * 0.78;
       frameId = requestAnimationFrame(animateMouth);
     };
 
     frameId = requestAnimationFrame(animateMouth);
     return () => {
       cancelAnimationFrame(frameId);
-      model.stopLipSync?.();
-      model.setLipSyncValue?.(0);
+      internalModel.lipSyncValue = 0;
     };
   }, [isSpeaking, isLoading, useFallback]);
 
