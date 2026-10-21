@@ -10,6 +10,7 @@ import { AnimatedNumber } from "@/components/motion/AnimatedNumber";
 import { formatRupiah } from "@/lib/money";
 import { TabDariSiswa } from "@/app/(app)/pemasukan/TabDariSiswa";
 import { TabDana } from "@/app/(app)/pemasukan/TabDana";
+import { CheckCircle2 } from "lucide-react";
 import type {
   JenisPemasukanOption,
   SiswaSel,
@@ -107,6 +108,8 @@ export function PemasukanClient({
     ? `Jumlah Pemasukan Bulan ${namaBulanTerpilih}`
     : "Jumlah Pemasukan Bulan Ini";
 
+  const activeTa = tahunAjaranList.find((t) => t.aktif);
+
   return (
     <div className="space-y-6">
       {/* Header dengan Atmos blur-to-sharp reveal */}
@@ -115,9 +118,17 @@ export function PemasukanClient({
           <h1 className="text-[22px] lg:text-[26px] font-semibold text-text tracking-tight">
             Pencatatan Pemasukan Sekolah
           </h1>
-          <p className="text-[13px] text-text-3 mt-1">
-            Pantau dan kelola penerimaan dana sekolah dari pembayaran siswa (SPP & non-SPP), bantuan pemerintah, dan donatur.
-          </p>
+          <div className="flex flex-wrap items-center gap-2 mt-1">
+            <span className="text-[13px] text-text-3">
+              Pantau dan kelola penerimaan dana sekolah dari pembayaran siswa (SPP & non-SPP), bantuan pemerintah, dan donatur.
+            </span>
+            {activeTa && (
+              <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[11px] font-semibold bg-surface-soft border border-brand/30 text-brand">
+                <CheckCircle2 className="w-3.5 h-3.5" />
+                Tahun Ajaran Aktif: {activeTa.nama}
+              </span>
+            )}
+          </div>
         </div>
       </BlurReveal>
 
@@ -198,7 +209,10 @@ export function PemasukanClient({
                 defaultValue={tahunAjaranId}
                 options={[
                   { value: "", label: "— Semua Tahun Ajaran —" },
-                  ...tahunAjaranList.map((ta) => ({ value: ta.id, label: ta.nama })),
+                  ...tahunAjaranList.map((ta) => ({
+                    value: ta.id,
+                    label: ta.aktif ? `${ta.nama} (Aktif)` : ta.nama,
+                  })),
                 ]}
               />
             </div>

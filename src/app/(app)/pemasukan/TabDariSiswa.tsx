@@ -348,7 +348,7 @@ export function TabDariSiswa({
             size="sm"
             onClick={() => setIsEditing((prev) => !prev)}
           >
-            {isEditing ? "Selesai / Batal Edit" : "+ Ubah / Catat Pembayaran"}
+            {isEditing ? "Selesai Edit" : "Edit Pembayaran Siswa"}
           </Button>
 
           {isEditing && (

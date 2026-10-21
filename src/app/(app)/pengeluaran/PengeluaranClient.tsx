@@ -70,7 +70,10 @@ export function PengeluaranClient({
 
   const tahunOptions = [
     { value: "", label: "— Semua Tahun Ajaran —" },
-    ...tahunAjaranList.map((t) => ({ value: t.id, label: t.nama })),
+    ...tahunAjaranList.map((t) => ({
+      value: t.id,
+      label: t.aktif ? `${t.nama} (Aktif)` : t.nama,
+    })),
   ];
 
   const totalPages = Math.max(1, Math.ceil(total / 50));
@@ -228,35 +231,32 @@ export function PengeluaranClient({
             </p>
           </div>
           <div className="flex items-center gap-2">
-            <Button
-              type="button"
-              variant={isEditing ? "secondary" : "primary"}
-              size="md"
-              onClick={() => setIsEditing((prev) => !prev)}
-            >
-              {isEditing ? "Selesai / Batal Edit" : "+ Ubah / Catat Pengeluaran"}
-            </Button>
+            {!isEditing ? (
+              <Button
+                type="button"
+                variant="primary"
+                size="md"
+                onClick={() => setIsEditing(true)}
+              >
+                Edit Data Pengeluaran
+              </Button>
+            ) : (
+              <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-[8px] bg-surface-soft border border-brand/30 text-brand text-[13px] font-medium">
+                <span className="w-2 h-2 rounded-full bg-brand animate-pulse" />
+                Mode Edit Aktif
+              </span>
+            )}
           </div>
         </div>
       </BlurReveal>
 
       {/* Mode Edit Banner Edukatif */}
       {isEditing && (
-        <div className="p-4 rounded-[8px] bg-surface-soft border border-brand/30 text-text text-[13px] flex items-center justify-between gap-3">
-          <div className="flex items-center gap-2">
-            <span className="w-2 h-2 rounded-full bg-brand animate-pulse" />
-            <span>
-              <strong>Mode Edit Aktif:</strong> Anda dapat mengubah data sel secara langsung, klik <strong>&ldquo;+ Tambah Baris Baru&rdquo;</strong>, atau menempel (paste) data dari Excel. Klik <strong>&ldquo;Simpan semua perubahan&rdquo;</strong> untuk menyimpan ke database.
-            </span>
-          </div>
-          <Button
-            type="button"
-            variant="secondary"
-            size="sm"
-            onClick={() => setIsEditing(false)}
-          >
-            Tutup Mode Edit
-          </Button>
+        <div className="p-3.5 rounded-[8px] bg-surface-soft border border-brand/30 text-text text-[13px] flex items-center gap-2.5">
+          <span className="w-2 h-2 rounded-full bg-brand shrink-0 animate-pulse" />
+          <span>
+            <strong>Mode Edit Aktif:</strong> Anda dapat mengubah data sel secara langsung, klik <strong>&ldquo;+ Tambah Baris Baru&rdquo;</strong>, atau menempel (paste) data dari Excel. Klik <strong>&ldquo;Simpan Perubahan&rdquo;</strong> di toolbar tabel untuk menyimpan ke database.
+          </span>
         </div>
       )}
 
@@ -346,7 +346,8 @@ export function PengeluaranClient({
         data={gridRows}
         keyField={(row, idx) => row.id || `temp-${idx}`}
         isEditing={isEditing}
-        onToggleEdit={() => setIsEditing((prev) => !prev)}
+        onToggleEdit={() => setIsEditing(true)}
+        onCancelEdit={() => setIsEditing(false)}
         onSave={handleSaveAll}
         isSaving={isSaving}
         showToolbar={isEditing}
@@ -364,8 +365,8 @@ export function PengeluaranClient({
         })}
         emptyMessage={
           bulanNomor
-            ? `Belum ada transaksi pengeluaran untuk periode ${BULAN_OPTIONS.find(b => b.value === bulanNomor)?.label ?? ""}. Klik "+ Ubah / Catat Pengeluaran" di atas untuk mulai mencatat transaksi.`
-            : 'Belum ada catatan pengeluaran untuk tahun ajaran ini. Klik "+ Ubah / Catat Pengeluaran" di atas untuk mulai mencatat transaksi.'
+            ? `Belum ada transaksi pengeluaran untuk periode ${BULAN_OPTIONS.find(b => b.value === bulanNomor)?.label ?? ""}. Klik tombol "Edit Data Pengeluaran" di atas untuk mulai mencatat transaksi.`
+            : 'Belum ada catatan pengeluaran untuk tahun ajaran ini. Klik tombol "Edit Data Pengeluaran" di atas untuk mulai mencatat transaksi.'
         }
       />
       </BlurReveal>

@@ -6,14 +6,17 @@ import type { AnggotaRow, TahunAjaranOption, KelasOption } from "@/server/querie
 import type { SelectOption } from "@/components/ui/Select";
 import { Button } from "@/components/ui/Button";
 import { Select } from "@/components/ui/Select";
+import { Dialog } from "@/components/ui/Dialog";
 import { DataGrid, type ColumnDef } from "@/components/ui/DataGrid";
 import { useToast } from "@/components/ui/Toast";
 import { BlurReveal } from "@/components/motion/BlurReveal";
 import { generateUID } from "@/lib/uid";
 import {
   simpanBatchAnggotaAction,
+  prosesKenaikanKelasAction,
   type BatchAnggotaInput,
 } from "@/server/actions/anggota";
+import { GraduationCap, CheckCircle2, AlertCircle } from "lucide-react";
 
 interface DataSiswaGuruClientProps {
   rows: AnggotaRow[];
@@ -48,10 +51,21 @@ export function DataSiswaGuruClient({
   const [isEditing, setIsEditing] = useState(false);
   const [isSaving, startSaving] = useTransition();
 
+  // Kenaikan Kelas modal state
+  const [modalNaikKelasOpen, setModalNaikKelasOpen] = useState(false);
+  const [targetTaId, setTargetTaId] = useState("");
+  const [targetKelasId, setTargetKelasId] = useState("");
+  const [isPromoting, startPromoting] = useTransition();
+
+  const activeTa = tahunAjaranList.find((t) => t.aktif);
+
   // Opsi filter
   const tahunOptions: SelectOption[] = [
     { value: "", label: "— Semua Tahun Ajaran —" },
-    ...tahunAjaranList.map((ta) => ({ value: ta.id, label: ta.nama })),
+    ...tahunAjaranList.map((ta) => ({
+      value: ta.id,
+      label: ta.aktif ? `${ta.nama} (Aktif)` : ta.nama,
+    })),
   ];
   const kelasOptions: SelectOption[] = [
     { value: "", label: "— Semua Kelas —" },
@@ -182,6 +196,45 @@ export function DataSiswaGuruClient({
     },
   ];
 
+  const siswaList = rows.filter((r) => r.tipe === "SISWA");
+
+  const handleProsesKenaikanKelas = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!targetTaId) {
+      showToast("Pilih tahun ajaran tujuan.", "error");
+      return;
+    }
+    if (!targetKelasId) {
+      showToast("Pilih kelas tujuan.", "error");
+      return;
+    }
+    if (siswaList.length === 0) {
+      showToast("Tidak ada siswa pada filter saat ini untuk dinaikkan kelas.", "error");
+      return;
+    }
+
+    startPromoting(async () => {
+      const res = await prosesKenaikanKelasAction({
+        tahunAjaranTujuanId: targetTaId,
+        kelasTujuanId: targetKelasId,
+        anggotaIds: siswaList.map((s) => s.id),
+      });
+
+      if (!res.success) {
+        showToast(res.error ?? "Gagal memproses penempatan kelas.", "error");
+      } else {
+        const targetTaName = tahunAjaranList.find((t) => t.id === targetTaId)?.nama ?? "";
+        const targetKelasName = kelasList.find((k) => k.id === targetKelasId)?.nama ?? "";
+        showToast(
+          `${res.count} siswa berhasil ditempatkan ke ${targetKelasName} pada Tahun Ajaran ${targetTaName}. Riwayat kelas lama tersimpan aman.`,
+          "success"
+        );
+        setModalNaikKelasOpen(false);
+        router.refresh();
+      }
+    });
+  };
+
   return (
     <div className="space-y-6">
       {/* Header Halaman dengan Atmos blur-to-sharp reveal */}
@@ -191,40 +244,62 @@ export function DataSiswaGuruClient({
             <h1 className="text-[22px] lg:text-[26px] font-semibold text-text tracking-tight">
               Data Siswa & Guru
             </h1>
-            <p className="text-[13px] text-text-3 mt-1">
-              Direktori penempatan siswa per kelas dan tenaga pendidik dengan kode UID untuk rekap pembayaran.
-            </p>
+            <div className="flex flex-wrap items-center gap-2 mt-1">
+              <span className="text-[13px] text-text-3">
+                Direktori penempatan siswa per kelas dan tenaga pendidik dengan kode UID untuk rekap pembayaran.
+              </span>
+              {activeTa && (
+                <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[11px] font-semibold bg-surface-soft border border-brand/30 text-brand">
+                  <CheckCircle2 className="w-3.5 h-3.5" />
+                  Tahun Ajaran Aktif: {activeTa.nama}
+                </span>
+              )}
+            </div>
           </div>
-          <div className="flex items-center gap-2">
-            <Button
-              type="button"
-              variant={isEditing ? "secondary" : "primary"}
-              size="md"
-              onClick={() => setIsEditing((prev) => !prev)}
-            >
-              {isEditing ? "Selesai / Batal Edit" : "+ Ubah / Tambah Data Siswa"}
-            </Button>
+          <div className="flex flex-wrap items-center gap-2">
+            {!isEditing ? (
+              <>
+                {siswaList.length > 0 && (
+                  <Button
+                    type="button"
+                    variant="secondary"
+                    size="md"
+                    onClick={() => {
+                      setTargetTaId(tahunAjaranList.find((t) => t.id !== tahunAjaranId)?.id ?? activeTa?.id ?? "");
+                      setTargetKelasId(kelasList[0]?.id ?? "");
+                      setModalNaikKelasOpen(true);
+                    }}
+                  >
+                    <GraduationCap className="w-4 h-4 mr-1.5" />
+                    Naik Kelas / Penempatan Baru
+                  </Button>
+                )}
+                <Button
+                  type="button"
+                  variant="primary"
+                  size="md"
+                  onClick={() => setIsEditing(true)}
+                >
+                  Edit Data Siswa
+                </Button>
+              </>
+            ) : (
+              <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-[8px] bg-surface-soft border border-brand/30 text-brand text-[13px] font-medium">
+                <span className="w-2 h-2 rounded-full bg-brand animate-pulse" />
+                Mode Edit Aktif
+              </span>
+            )}
           </div>
         </div>
       </BlurReveal>
 
       {/* Mode Edit Banner Edukatif */}
       {isEditing && (
-        <div className="p-4 rounded-[8px] bg-surface-soft border border-brand/30 text-text text-[13px] flex items-center justify-between gap-3">
-          <div className="flex items-center gap-2">
-            <span className="w-2 h-2 rounded-full bg-brand animate-pulse" />
-            <span>
-              <strong>Mode Edit Data Aktif:</strong> Anda dapat mengedit sel langsung, klik <strong>&ldquo;+ Tambah Baris Baru&rdquo;</strong>, atau menempel (paste) data daftar nama dari Microsoft Excel. Klik <strong>&ldquo;Simpan semua perubahan&rdquo;</strong> untuk menyimpan ke database.
-            </span>
-          </div>
-          <Button
-            type="button"
-            variant="secondary"
-            size="sm"
-            onClick={() => setIsEditing(false)}
-          >
-            Tutup Mode Edit
-          </Button>
+        <div className="p-3.5 rounded-[8px] bg-surface-soft border border-brand/30 text-text text-[13px] flex items-center gap-2.5">
+          <span className="w-2 h-2 rounded-full bg-brand shrink-0 animate-pulse" />
+          <span>
+            <strong>Mode Edit Data Aktif:</strong> Anda dapat mengedit sel langsung, klik <strong>&ldquo;+ Tambah Baris Baru&rdquo;</strong>, atau menempel (paste) data daftar nama dari Microsoft Excel. Klik <strong>&ldquo;Simpan Perubahan&rdquo;</strong> di toolbar tabel untuk menyimpan ke database.
+          </span>
         </div>
       )}
 
@@ -270,7 +345,8 @@ export function DataSiswaGuruClient({
         data={gridRows}
         keyField={(row, idx) => row.id || `temp-${idx}`}
         isEditing={isEditing}
-        onToggleEdit={() => setIsEditing((prev) => !prev)}
+        onToggleEdit={() => setIsEditing(true)}
+        onCancelEdit={() => setIsEditing(false)}
         onSave={handleSaveAll}
         isSaving={isSaving}
         showToolbar={isEditing}
@@ -287,7 +363,7 @@ export function DataSiswaGuruClient({
         }}
         emptyMessage={
           tahunAjaranId || kelasId
-            ? 'Belum ada data siswa atau guru untuk filter ini. Klik "+ Ubah / Tambah Data Siswa" di atas untuk menambah baris atau tempel daftar nama dari Excel.'
+            ? 'Belum ada data siswa atau guru untuk filter ini. Klik tombol "Edit Data Siswa" di atas untuk menambah baris atau tempel daftar nama dari Excel.'
             : "Silakan pilih Tahun Ajaran & Kelas pada filter di atas lalu klik 'Tampilkan Data Siswa'."
         }
       />
@@ -322,6 +398,79 @@ export function DataSiswaGuruClient({
           </div>
         </div>
       )}
+
+      {/* Dialog Kenaikan Kelas / Penempatan Siswa ke Periode Baru */}
+      <Dialog
+        open={modalNaikKelasOpen}
+        title="Kenaikan Kelas / Penempatan ke Periode Baru"
+        onClose={() => setModalNaikKelasOpen(false)}
+      >
+        <form onSubmit={handleProsesKenaikanKelas} className="space-y-4">
+          <div className="p-3 bg-panel border border-line rounded-[8px] text-[13px] text-text">
+            <span>
+              Jumlah siswa yang akan ditempatkan: <strong>{siswaList.length} siswa</strong> (berdasarkan filter saat ini).
+            </span>
+          </div>
+
+          <div className="space-y-1.5">
+            <label className="text-[13px] font-medium text-text">
+              Pilih Tahun Ajaran Tujuan <span className="text-danger">*</span>
+            </label>
+            <select
+              value={targetTaId}
+              onChange={(e) => setTargetTaId(e.target.value)}
+              className="w-full bg-surface border border-line rounded-[8px] px-3 py-2 text-[13px] text-text focus:outline-none focus:ring-2 focus:ring-brand/20 focus:border-brand"
+              required
+            >
+              <option value="">— Pilih Tahun Ajaran Tujuan —</option>
+              {tahunAjaranList.map((ta) => (
+                <option key={ta.id} value={ta.id}>
+                  {ta.nama} {ta.aktif ? "(Aktif)" : ""}
+                </option>
+              ))}
+            </select>
+          </div>
+
+          <div className="space-y-1.5">
+            <label className="text-[13px] font-medium text-text">
+              Pilih Kelas Tingkatan Tujuan <span className="text-danger">*</span>
+            </label>
+            <select
+              value={targetKelasId}
+              onChange={(e) => setTargetKelasId(e.target.value)}
+              className="w-full bg-surface border border-line rounded-[8px] px-3 py-2 text-[13px] text-text focus:outline-none focus:ring-2 focus:ring-brand/20 focus:border-brand"
+              required
+            >
+              <option value="">— Pilih Kelas Tujuan —</option>
+              {kelasList.map((k) => (
+                <option key={k.id} value={k.id}>
+                  {k.nama}
+                </option>
+              ))}
+            </select>
+          </div>
+
+          <div className="p-3 bg-surface-soft border border-brand/20 rounded-[8px] text-[12px] text-text flex items-start gap-2">
+            <AlertCircle className="w-4 h-4 text-brand shrink-0 mt-0.5" />
+            <span>
+              <strong>Riwayat historis aman:</strong> Kenaikan kelas ini akan membuat penempatan baru pada tahun ajaran tujuan. Data kelas dan riwayat pembayaran siswa pada tahun ajaran sebelumnya tidak akan berubah atau terhapus.
+            </span>
+          </div>
+
+          <div className="flex justify-end gap-2 pt-2 border-t border-line">
+            <Button
+              type="button"
+              variant="secondary"
+              onClick={() => setModalNaikKelasOpen(false)}
+            >
+              Batal
+            </Button>
+            <Button type="submit" variant="primary" disabled={isPromoting}>
+              {isPromoting ? "Memproses…" : "Proses Penempatan Siswa"}
+            </Button>
+          </div>
+        </form>
+      </Dialog>
     </div>
   );
 }

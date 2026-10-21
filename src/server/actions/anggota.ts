@@ -312,3 +312,77 @@ export async function simpanBatchAnggotaAction(
   }
 }
 
+// ─── Proses Kenaikan Kelas / Penempatan Siswa ke Tahun Ajaran Baru ───
+
+export async function prosesKenaikanKelasAction(params: {
+  tahunAjaranTujuanId: string;
+  kelasTujuanId: string;
+  anggotaIds: string[];
+}): Promise<ActionState & { count?: number }> {
+  const user = await requirePetugas().catch(() => null);
+  if (!user) return { error: "Sesi tidak valid. Silakan masuk kembali." };
+
+  const { tahunAjaranTujuanId, kelasTujuanId, anggotaIds } = params;
+
+  if (!tahunAjaranTujuanId) return { error: "Tahun ajaran tujuan wajib dipilih." };
+  if (!kelasTujuanId) return { error: "Kelas tujuan wajib dipilih." };
+  if (!anggotaIds || anggotaIds.length === 0) {
+    return { error: "Pilih setidaknya satu siswa untuk dinaikkan/ditempatkan kelas." };
+  }
+
+  // Validasi tahun ajaran dan kelas tujuan ada di database
+  const [taTujuan, kltujuan] = await Promise.all([
+    db.tahunAjaran.findUnique({ where: { id: tahunAjaranTujuanId } }),
+    db.kelas.findUnique({ where: { id: kelasTujuanId } }),
+  ]);
+
+  if (!taTujuan) return { error: "Tahun ajaran tujuan tidak ditemukan." };
+  if (!kltujuan) return { error: "Kelas tujuan tidak ditemukan." };
+
+  try {
+    let count = 0;
+    await db.$transaction(async (tx) => {
+      for (const anggotaId of anggotaIds) {
+        // Pastikan anggota adalah SISWA
+        const anggota = await tx.anggota.findUnique({ where: { id: anggotaId } });
+        if (!anggota || anggota.tipe !== "SISWA") continue;
+
+        // Cek apakah penempatan di tahun ajaran tujuan sudah ada
+        const existing = await tx.penempatanKelas.findUnique({
+          where: {
+            anggotaId_tahunAjaranId: {
+              anggotaId,
+              tahunAjaranId: tahunAjaranTujuanId,
+            },
+          },
+        });
+
+        if (existing) {
+          // Update ke kelas tujuan jika sudah ada penempatan di tahun ajaran tersebut
+          await tx.penempatanKelas.update({
+            where: { id: existing.id },
+            data: { kelasId: kelasTujuanId },
+          });
+        } else {
+          // Buat penempatan baru di tahun ajaran tujuan.
+          // Penempatan tahun ajaran sebelumnya tidak diubah atau dihapus, menjaga riwayat historis!
+          await tx.penempatanKelas.create({
+            data: {
+              anggotaId,
+              tahunAjaranId: tahunAjaranTujuanId,
+              kelasId: kelasTujuanId,
+            },
+          });
+        }
+        count++;
+      }
+    });
+
+    return { success: true, count };
+  } catch (err: unknown) {
+    const msg = err instanceof Error ? err.message : "Gagal memproses penempatan kelas.";
+    return { error: msg };
+  }
+}
+
+

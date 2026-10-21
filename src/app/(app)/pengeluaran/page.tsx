@@ -12,11 +12,13 @@ export default async function PengeluaranPage({ searchParams }: PageProps) {
   await requireAuth();
 
   const sp = await searchParams;
-  const tahunAjaranId = sp.tahunAjaran ?? "";
   const bulanNomor = sp.bulan ?? ""; // "01"–"12"
   const page = Math.max(1, parseInt(sp.halaman ?? "1", 10) || 1);
 
   const tahunAjaranList = await getTahunAjaranList();
+  const activeTa = tahunAjaranList.find((t) => t.aktif) ?? tahunAjaranList[0];
+  const tahunAjaranId = sp.tahunAjaran ?? activeTa?.id ?? "";
+
   const ta = tahunAjaranList.find((t) => t.id === tahunAjaranId);
   const bulanFilter = buildBulanFilter(ta, bulanNomor);
 

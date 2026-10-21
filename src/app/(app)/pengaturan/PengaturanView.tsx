@@ -10,7 +10,7 @@ import type { SessionUser } from "@/server/auth/session";
 import type { TemaTampilan } from "@/generated/prisma/client";
 
 import { useToast } from "@/components/ui/Toast";
-import { Sun, Moon, Key, Users, LogOut } from "lucide-react";
+import { Sun, Moon, Key, Users, Calendar, LogOut } from "lucide-react";
 import { BlurReveal } from "@/components/motion/BlurReveal";
 import { StaggerGroup, StaggerItem } from "@/components/motion/StaggerGroup";
 
@@ -163,6 +163,35 @@ export function PengaturanView({ user }: { user: SessionUser }) {
               <Link href="/pengaturan/akun">
                 <Button type="button" variant="secondary" size="sm">
                   Buka Kelola Akun
+                </Button>
+              </Link>
+            </div>
+          </StaggerItem>
+        )}
+
+        {/* Baris Kelola Tahun Ajaran & Kelas (Hanya Admin) */}
+        {user.peran === "ADMIN" && (
+          <StaggerItem>
+            <div className="p-5 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+              <div className="flex items-start gap-3.5">
+                <div className="w-9 h-9 rounded-[8px] bg-brand/10 border border-brand/20 flex items-center justify-center shrink-0 mt-0.5 text-brand">
+                  <Calendar className="w-4 h-4" />
+                </div>
+                <div>
+                  <div className="flex items-center gap-2">
+                    <h2 className="text-[14px] font-semibold text-text">Tahun Ajaran & Master Kelas</h2>
+                    <span className="text-[10px] font-mono font-medium px-1.5 py-0.5 rounded-[4px] bg-brand/10 text-brand uppercase">
+                      Admin
+                    </span>
+                  </div>
+                  <p className="text-[13px] text-text-3 mt-0.5">
+                    Atur tahun ajaran aktif, tambah periode baru (mis. 2026/2027), dan pantau daftar tingkatan kelas.
+                  </p>
+                </div>
+              </div>
+              <Link href="/pengaturan/tahun-ajaran">
+                <Button type="button" variant="secondary" size="sm">
+                  Kelola Periode & Kelas
                 </Button>
               </Link>
             </div>

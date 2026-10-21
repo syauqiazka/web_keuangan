@@ -25,80 +25,46 @@ Hero 71px, carousel, newsletter, dan footer hijau dari situs sumber **tidak dipa
 
 ## 2. Warna
 
-### Token sumber [Sumber]
+### Token Utama Bank Saku Digital
 
 | Nama | Hex | Peran di aplikasi |
 |---|---|---|
-| Paper | `#ffffff` | Kanvas halaman, sidebar, input, kartu terang |
-| Ink | `#151515` | Teks utama, judul, tombol utama, garis tegas |
-| Graphite | `#424242` | Teks isi sekunder |
-| Steel | `#706f6f` | Metadata, teks bantu, placeholder |
-| Rule Gray | `#dcdcdc` | Garis tipis: pemisah baris, grid, border kartu |
-| Edge Gray | `#cbcac8` | Border input dan kontainer yang perlu lebih tegas |
-| Ice Panel | `#f0f8f9` | Blok ringkasan (Total Saldo), baris hover, sel sedang diedit |
-| Network Green | `#29735c` | Seri Pemasukan di grafik, cincin fokus, tanda kecil |
-| Ledger Brown | `#7b5953` | Label mono kecil dan status "Belum disimpan" |
-| Forest Ledger | `#0c221d` | Cadangan. Tidak dipakai di layar aplikasi. |
-| Plum Ledger | `#543b4e` | Tidak dipakai. |
-| Mint Subscription | `#bae0cf` | Tidak dipakai. |
-
-### Token tambahan [Tambahan]
-
-| Nama | Hex | Peran |
-|---|---|---|
-| Alert Red | `#b42318` | Nominal "belum lunas" dan pesan galat. Kontras 6,6:1 di atas putih. |
-| Ledger Blue | `#4f86c0` | **Hanya** seri Pengeluaran di grafik dan kotak legendanya. Kontras 3,8:1 di atas putih (cukup untuk elemen grafis). Pemilik meminta pengeluaran berwarna biru. |
+| Canvas | `#f7f8fa` | Kanvas latar belakang utama aplikasi |
+| Surface / Paper | `#ffffff` | Latar kartu, modal dialog, formulir, dan tabel |
+| Surface Soft | `#eaf1ed` | Latar baris aktif, banner edukatif, dan badge mode edit |
+| Ink (Teks Utama) | `#151515` | Teks judul, label penting, dan angka nominal |
+| Steel (Teks Sekunder) | `#595959` | Teks pendukung, metadata, subtitle, dan header sekunder |
+| Rule Gray | `#dcdcdc` | Garis batas tipis (border kartu, divider, garis tabel) |
+| Brand Green | `#29735c` | Aksi utama (tombol primary), ringkasan saldo, seri Pemasukan di grafik |
+| Brand Hover | `#215e4b` | State hover aksi utama |
+| Ledger Blue | `#4f86c0` | Seri Pengeluaran pada grafik bulanan |
+| Alert Red | `#b42318` | Status tunggakan/belum lunas dan pesan galat validasi |
 
 Alert Red dipakai **hanya** untuk dua hal: nominal kurang bayar dan galat validasi. Selalu disertai teks ("Belum lunas", pesan galat), tidak mengandalkan warna saja.
 
 ### Aturan warna
 
 - Dilarang: teks isi berwarna hijau atau cokelat. Hijau/cokelat bukan warna paragraf.
-- Dilarang: gradien dalam bentuk apa pun, warna di luar tabel ini, atau kelas warna bawaan Tailwind (palet bawaan dimatikan di `@theme`, lihat bagian 9).
-- Grafik batang: **Pemasukan = Network Green (hijau)**, **Pengeluaran = Ledger Blue (biru)**, sesuai permintaan pemilik. Hijau dan biru dibedakan terutama oleh warna, bukan kecerahan, sehingga grafik **wajib** punya cadangan non-warna: legenda berteks, nilai tertulis atau tooltip, dan tabel alternatif (bagian 8). Jangan menambah warna lain di grafik.
+- Dilarang: gradien berlebihan atau dekorasi neon tanpa fungsi.
+- Grafik batang: **Pemasukan = Brand Green (hijau)**, **Pengeluaran = Ledger Blue (biru)**, sesuai permintaan pemilik.
 
 ## 3. Tipografi
 
-Font sumber (mt-neue-*, mt-sans, mt-mono) berbayar. Pengganti gratis yang disarankan oleh sumber, dimuat dengan `next/font/google`:
-
 | Peran | Font | Bobot | Catatan |
 |---|---|---|---|
-| Display / judul | Manrope | **450** | Variabel, jadi bobot 450 valid. Jangan 600/700. |
-| Judul fitur | Manrope | 400 | |
-| Isi, tabel, tombol, navigasi | Inter | 360 isi, 500 navigasi, 600 kontrol | Variabel. |
-| Label teknis, Kode UID | IBM Plex Mono | 500 | Tidak variabel, bobot 500 saja. |
+| Display / judul | Manrope | **600 / 700** | Judul halaman dan angka ringkasan |
+| Isi, tabel, tombol, navigasi | Inter | 400 isi, 500 navigasi, 600 kontrol | Teks antarmuka |
+| Label teknis, Kode UID | IBM Plex Mono | 500 | Format kode UID dan nilai tabular |
 
-```ts
-// src/app/fonts.ts
-import { Manrope, Inter, IBM_Plex_Mono } from "next/font/google";
+Semua angka uang memakai `font-variant-numeric: tabular-nums`.
 
-export const manrope = Manrope({ subsets: ["latin"], variable: "--font-manrope", display: "swap" });
-export const inter = Inter({ subsets: ["latin"], variable: "--font-inter", display: "swap" });
-export const plexMono = IBM_Plex_Mono({
-  subsets: ["latin"], weight: ["500"], variable: "--font-plex-mono", display: "swap",
-});
-```
+## 4. Ruang dan bentuk
 
-### Skala untuk aplikasi [Turunan dari skala 1,2 sumber]
-
-| Peran | Font | Ukuran / tinggi baris | Bobot |
-|---|---|---|---|
-| `stat-primary` (Total Saldo) | Manrope | 47px / 1,25 | 450 |
-| `page-title`, `stat` (Pemasukan, Pengeluaran) | Manrope | 32px / 1,25 | 400 |
-| `section-title` | Manrope | 21px / 1,3 | 400 |
-| `body` | Inter | 16px / 1,5 | 360 |
-| `table`, `nav`, `control` | Inter | 14px / 1,5 | 400 / 500 / 600 |
-| `label-mono`, `uid` | IBM Plex Mono | 14px / 1,2 | 500 |
-
-Aturan: semua angka uang memakai `font-variant-numeric: tabular-nums`. Letter-spacing selalu normal. Tidak ada huruf kapital semua kecuali singkatan (TF, ST, SPP).
-
-## 4. Ruang dan bentuk [Sumber]
-
-- Satuan dasar 4px (sama dengan skala spacing bawaan Tailwind).
-- Lebar konten maksimum **1200px** untuk Dashboard dan formulir. Tabel data boleh selebar area konten dan bergulir horizontal.
-- Jarak antar-bagian 48px, padding kartu 24px, jarak antar-elemen kecil 8px.
-- Radius: kartu **8px**, tombol **2px**, kontrol navigasi **4px**, input **0px**. Tidak ada radius lain. Tidak ada `rounded-full`.
-- Bayangan: **tidak ada** pada kartu, sidebar, dan tabel. Pemisah memakai garis 1px. Bayangan satu-satunya (sumber) hanya untuk dialog dan popover: `0 20px 25px -5px rgb(0 0 0 / .04), 0 8px 10px -6px rgb(0 0 0 / .04)`, selalu dengan border 1px Edge Gray.
+- Satuan dasar 4px (skala spacing Tailwind).
+- Lebar konten maksimum **1280px** untuk Dashboard dan formulir. Tabel data boleh selebar area konten dan bergulir horizontal.
+- Jarak antar-bagian 24px–48px, padding kartu 20px–24px.
+- Radius: kartu **12px**, tombol **8px**, kontrol navigasi **8px**, input **8px**.
+- Bayangan: bayangan lembut `shadow-xs` dan `shadow-card` pada kartu kerja untuk kedalaman visual yang tenang.
 
 ## 5. Kerangka aplikasi [Turunan]
 
@@ -107,7 +73,7 @@ Aturan: semua angka uang memakai `font-variant-numeric: tabular-nums`. Letter-sp
 │ [logo]       │  Judul halaman                 Tahun / Filter │
 │ Pencatatan   │───────────────────────────────────────────────│
 │ Keuangan     │                                               │
-│ Sekolah      │   isi halaman (maks 1200px, kecuali tabel)    │
+│ Sekolah      │   isi halaman (maks 1280px, kecuali tabel)    │
 │ Bank Saku    │                                               │
 │ Digital      │                                               │
 │──────────────│                                               │
@@ -120,24 +86,20 @@ Aturan: semua angka uang memakai `font-variant-numeric: tabular-nums`. Letter-sp
 └──────────────┴───────────────────────────────────────────────┘
 ```
 
-- Sidebar 240px, latar Paper, garis kanan 1px Rule Gray. Urutan menu mengikuti spreadsheet: **Dashboard, Data Siswa & Guru, Pemasukan, Pengeluaran, Pengaturan**.
-- Blok atas sidebar: logo 40×40px (`assets/logo-bank-saku-digital.jpeg`, jangan diwarnai ulang atau diberi bingkai tambahan) di samping teks "Pencatatan Keuangan Sekolah" (14px/600) dan "Bank Saku Digital" (14px/360, Steel).
-- Item menu: 14px/500, tinggi 36px, padding 8px 12px, radius 4px. Aktif = outline 1px Ink (inset) dan bobot 600. Hover = latar Ice Panel. Tanpa ikon dekoratif; ikon 16px garis 1,5 boleh dipakai bila membantu, monokrom Ink.
-- Di bawah 1024px: sidebar menjadi bar atas dengan tombol menu. Isi halaman satu kolom.
+- Sidebar 256px, latar Surface, garis kanan 1px Rule Gray. Urutan menu: **Dashboard, Data Siswa & Guru, Pemasukan, Pengeluaran, Pengaturan**.
+- Blok atas sidebar: logo Bank Saku Digital dengan judul aplikasi dan institusi.
 
-## 6. Komponen [Turunan]
+## 6. Komponen
 
-**Tombol utama** — latar Ink, teks Paper 14px/600, padding 6px 12px (kecil) atau 8px 16px (standar), radius 2px, border 1px Ink. Dipakai untuk Simpan dan Tarik Data.
-**Tombol sekunder** — transparan, teks Ink, outline 1px Ink inset, radius 4px. Dipakai untuk Input, Tambah Baris, Tambah Kolom, Batal.
-**Tombol bahaya** — sama dengan sekunder, teks dan outline Alert Red. Hanya untuk hapus dan nonaktifkan; selalu lewat dialog konfirmasi berisi nama data yang dihapus.
-**Input / select** — latar Paper, border 1px Edge Gray, radius 0, padding 8px 12px, teks 16px (14px di dalam sel tabel). Label di atas input, 14px/500 Ink. Fokus: outline 2px Network Green offset 2px. Galat: border Alert Red + pesan 14px Alert Red di bawah input.
-**Tab** (Dari Siswa / Bantuan / Donatur) — baris teks 14px/500 di atas garis 1px Rule Gray. Aktif: teks Ink 600 + garis bawah 2px Ink. Tidak aktif: Steel.
-**Blok ringkasan** — Total Saldo: latar Ice Panel, radius 8px, padding 24px, tanpa border dan tanpa bayangan. Pemasukan/Pengeluaran: latar Paper, border 1px Rule Gray, radius 8px, padding 24px. Isi: label mono 14px Ledger Brown di atas, angka di bawahnya, jarak 8px.
+**Tombol utama (primary)** — latar Brand Green `#29735c`, teks putih, hover `#215e4b`, radius 8px, border `#29735c`. Dipakai untuk Simpan Perubahan dan Aksi Utama.
+**Tombol sekunder (secondary)** — latar Surface `#ffffff`, teks Ink `#151515`, border 1px Rule Gray `#dcdcdc`, radius 8px, hover `#eaf1ed`. Dipakai untuk Batal Edit, Tambah Baris Baru, dan Aksi filter.
+**Tombol bahaya (danger)** — latar Surface, teks dan outline Alert Red `#b42318`, radius 8px, hover latar merah transparan. Hanya untuk aksi penghapusan dan penonaktifan akun dengan dialog konfirmasi.
+**Input / select** — latar Surface, border 1px Rule Gray `#dcdcdc`, radius 8px, padding 8px 12px. Fokus: ring 2px Brand Green. Galat: border Alert Red + pesan di bawah input.
+**Tab** — baris tombol tab dengan indikator aktif yang kontras dan jelas.
+**Blok ringkasan** — kartu Surface putih bergaris border tipis `#dcdcdc`, radius 12px, aksen garis warna di sisi atas (Brand Green untuk saldo/pemasukan, Ledger Blue untuk pengeluaran).
 **Tabel data** — lihat bagian 7.
-**Dialog** — Paper, border 1px Edge Gray, radius 8px, padding 24px, bayangan sumber. Judul 21px. Tombol di kanan bawah, utama paling kanan. Overlay `rgb(21 21 21 / .4)` tanpa blur.
-**Toast** — kotak Paper, border 1px Edge Gray, radius 4px, teks 14px, hilang sendiri setelah 5 detik, tanpa ikon berwarna.
-**Keadaan kosong** — satu kalimat biasa dan satu tombol bila ada aksi. Contoh: "Belum ada pengeluaran pada Oktober 2026." Tanpa ilustrasi.
-**Memuat** — teks "Memuat…" atau kotak abu Rule Gray statis. Tanpa shimmer, tanpa spinner dekoratif.
+**Dialog** — Surface putih, border 1px Rule Gray, radius 12px, shadow modal overlay, tombol aksi di kanan bawah.
+**Toast** — notifikasi di sudut layar dengan status sukses (hijau) atau gagal (merah) yang jelas.
 
 ## 7. Tabel data dan grid entri [Turunan]
 
@@ -186,29 +148,33 @@ Palet bawaan Tailwind **dimatikan** supaya tidak ada yang bisa memakai `bg-indig
 ```css
 @import "tailwindcss";
 
-/* Token statis [Sumber] */
+/* Token statis [Bank Saku Digital Official Design Tokens] */
 @theme {
   --color-*: initial;
   --shadow-*: initial;
   --radius-*: initial;
 
   --color-paper: #ffffff;
+  --color-surface: #ffffff;
+  --color-canvas: #f7f8fa;
+  --color-brand: #29735c;
+  --color-brand-secondary: #215e4b;
+  --color-surface-soft: #eaf1ed;
   --color-ink: #151515;
-  --color-graphite: #424242;
-  --color-steel: #706f6f;
+  --color-steel: #595959;
   --color-rule: #dcdcdc;
-  --color-edge: #cbcac8;
-  --color-ice: #f0f8f9;
+  --color-warning: #a96d19;
+  --color-alert: #b42318;
   --color-network-green: #29735c;
-  --color-ledger-brown: #7b5953;
-  --color-alert: #b42318;      /* [Tambahan] */
-  --color-ledger-blue: #4f86c0; /* [Tambahan] hanya seri Pengeluaran */
+  --color-ledger-blue: #4f86c0;
 
-  --radius-button: 2px;
-  --radius-control: 4px;
-  --radius-card: 8px;
-  --radius-input: 0px;
-  --shadow-overlay: 0 20px 25px -5px rgb(0 0 0 / .04), 0 8px 10px -6px rgb(0 0 0 / .04);
+  --radius-button: 8px;
+  --radius-control: 8px;
+  --radius-card: 12px;
+  --radius-input: 8px;
+  --shadow-xs: 0 1px 2px 0 rgb(21 21 21 / 0.04);
+  --shadow-card: 0 1px 3px 0 rgb(21 21 21 / 0.05), 0 1px 2px -1px rgb(21 21 21 / 0.03);
+  --shadow-overlay: 0 16px 24px -4px rgb(21 21 21 / 0.08), 0 6px 10px -4px rgb(21 21 21 / 0.03);
 
   --font-display: var(--font-manrope), ui-sans-serif, system-ui, sans-serif;
   --font-sans: var(--font-inter), ui-sans-serif, system-ui, sans-serif;
@@ -217,44 +183,63 @@ Palet bawaan Tailwind **dimatikan** supaya tidak ada yang bisa memakai `bg-indig
 
 /* Token semantik yang berganti saat tema berubah */
 :root {
-  --canvas: #ffffff;
-  --panel: #f0f8f9;
+  --canvas: #f7f8fa;
+  --surface: #ffffff;
+  --panel: #f0f2f5;
+  --surface-soft: #eaf1ed;
+  --brand: #29735c;
+  --brand-secondary: #215e4b;
+  --brand-hover: #215e4b;
   --text: #151515;
-  --text-2: #424242;
-  --text-3: #706f6f;
+  --text-2: #383838;
+  --text-3: #595959;
   --line: #dcdcdc;
   --line-strong: #cbcac8;
   --on-ink: #ffffff;
   --accent: #29735c;
+  --accent-hover: #215e4b;
   --accent-text: #29735c;
   --series-in: #29735c;
   --series-out: #4f86c0;
+  --warning: #a96d19;
   --danger: #b42318;
-  --label: #7b5953;
+  --label: #595959;
 }
 
-/* [Tambahan] Tema gelap: turunan, tidak ada di situs sumber */
+/* Tema gelap yang tenang dan tidak menyilaukan */
 :root[data-theme="dark"] {
-  --canvas: #0e1411;
-  --panel: #16201c;
-  --text: #f1f3f2;
-  --text-2: #c3c9c6;
-  --text-3: #8f9a95;
-  --line: #25302b;
-  --line-strong: #34413b;
-  --on-ink: #0e1411;
-  --accent: #29735c;
-  --accent-text: #6fc3a5;
-  --series-in: #6fc3a5;
-  --series-out: #5b8fd0;
-  --danger: #f2877d;
-  --label: #c9a79f;
+  --canvas: #111413;
+  --surface: #181d1a;
+  --panel: #202723;
+  --surface-soft: #243029;
+  --brand: #368a70;
+  --brand-secondary: #429f82;
+  --brand-hover: #429f82;
+  --text: #f5f5f5;
+  --text-2: #cccccc;
+  --text-3: #999999;
+  --line: #2b3530;
+  --line-strong: #38453f;
+  --on-ink: #ffffff;
+  --accent: #368a70;
+  --accent-hover: #429f82;
+  --accent-text: #5ec2a3;
+  --series-in: #368a70;
+  --series-out: #6ba1db;
+  --warning: #d48e24;
+  --danger: #d9453b;
+  --label: #999999;
 }
 
-/* Utilitas semantik: bg-canvas, bg-panel, text-text, border-line, ... */
+/* Utilitas semantik: bg-canvas, bg-surface, bg-panel, text-text, border-line, ... */
 @theme inline {
   --color-canvas: var(--canvas);
+  --color-surface: var(--surface);
   --color-panel: var(--panel);
+  --color-surface-soft: var(--surface-soft);
+  --color-brand: var(--brand);
+  --color-brand-secondary: var(--brand-secondary);
+  --color-brand-hover: var(--brand-hover);
   --color-text: var(--text);
   --color-text-2: var(--text-2);
   --color-text-3: var(--text-3);
@@ -262,14 +247,16 @@ Palet bawaan Tailwind **dimatikan** supaya tidak ada yang bisa memakai `bg-indig
   --color-line-strong: var(--line-strong);
   --color-on-ink: var(--on-ink);
   --color-accent: var(--accent);
+  --color-accent-hover: var(--accent-hover);
   --color-accent-text: var(--accent-text);
   --color-series-in: var(--series-in);
   --color-series-out: var(--series-out);
+  --color-warning: var(--warning);
   --color-danger: var(--danger);
   --color-label: var(--label);
 }
 
-body { background: var(--canvas); color: var(--text); font-family: var(--font-sans); font-weight: 360; }
+body { background: var(--canvas); color: var(--text); font-family: var(--font-sans); }
 .num { font-variant-numeric: tabular-nums; }
 ```
 

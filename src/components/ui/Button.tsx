@@ -46,13 +46,13 @@ export const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
     let variantClasses = "";
     if (variant === "primary") {
       variantClasses =
-        "bg-brand text-white font-medium rounded-[10px] border border-brand hover:bg-brand-secondary active:scale-[0.98] shadow-xs focus:outline-none focus:ring-2 focus:ring-brand/30";
+        "bg-brand text-white font-medium rounded-[8px] border border-brand hover:bg-brand-secondary active:scale-[0.98] shadow-xs focus:outline-none focus:ring-2 focus:ring-brand/30";
     } else if (variant === "secondary") {
       variantClasses =
-        "bg-surface text-text font-medium border border-line rounded-[10px] hover:bg-panel active:scale-[0.98] shadow-xs focus:outline-none focus:ring-2 focus:ring-brand/20";
+        "bg-surface text-text font-medium border border-line rounded-[8px] hover:bg-surface-soft active:scale-[0.98] shadow-xs focus:outline-none focus:ring-2 focus:ring-brand/20";
     } else if (variant === "danger") {
       variantClasses =
-        "bg-surface text-danger font-medium border border-danger/40 rounded-[10px] hover:bg-danger/10 active:scale-[0.98] focus:outline-none focus:ring-2 focus:ring-danger/20";
+        "bg-surface text-danger font-medium border border-danger/40 rounded-[8px] hover:bg-danger/10 active:scale-[0.98] focus:outline-none focus:ring-2 focus:ring-danger/20";
     }
 
     // Explicit data-* pass-through from rest
@@ -73,7 +73,7 @@ export const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
         aria-label={ariaLabel}
         aria-disabled={ariaDisabled}
         disabled={disabled}
-        className={`inline-flex items-center justify-center transition-colors disabled:opacity-40 disabled:cursor-not-allowed ${sizeClasses} ${variantClasses} ${className}`}
+        className={`inline-flex items-center justify-center whitespace-nowrap shrink-0 select-none transition-colors disabled:opacity-40 disabled:cursor-not-allowed ${sizeClasses} ${variantClasses} ${className}`}
         whileTap={disabled ? undefined : buttonTap}
         whileHover={disabled ? undefined : buttonHover}
         transition={buttonTransition}

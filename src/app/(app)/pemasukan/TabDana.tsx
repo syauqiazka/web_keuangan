@@ -223,24 +223,20 @@ export function TabDana({
     <div className="space-y-4">
       <div className="flex items-center justify-between pb-3 border-b border-line">
         <div className="flex items-center gap-2">
-          <Button
-            type="button"
-            variant={isEditing ? "secondary" : "primary"}
-            size="sm"
-            onClick={() => setIsEditing((prev) => !prev)}
-          >
-            {isEditing ? "Selesai / Batal Edit" : `+ Ubah / Catat Data ${labelKolom}`}
-          </Button>
-
-          {isEditing && (
+          {!isEditing ? (
             <Button
               type="button"
-              variant="secondary"
+              variant="primary"
               size="sm"
-              onClick={() => setShowTambahSumber(true)}
+              onClick={() => setIsEditing(true)}
             >
-              + Tambah {labelKolom} Baru
+              Edit Data {labelKolom}
             </Button>
+          ) : (
+            <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-[8px] bg-surface-soft border border-brand/30 text-brand text-[13px] font-medium">
+              <span className="w-2 h-2 rounded-full bg-brand animate-pulse" />
+              Mode Edit Aktif
+            </span>
           )}
         </div>
       </div>
@@ -250,10 +246,21 @@ export function TabDana({
         data={gridRows}
         keyField={(row, idx) => row.id || `temp-${idx}`}
         isEditing={isEditing}
-        onToggleEdit={() => setIsEditing((prev) => !prev)}
+        onToggleEdit={() => setIsEditing(true)}
+        onCancelEdit={() => setIsEditing(false)}
         onSave={handleSaveAll}
         isSaving={isSaving}
         showToolbar={isEditing}
+        toolbarExtra={
+          <Button
+            type="button"
+            variant="secondary"
+            size="sm"
+            onClick={() => setShowTambahSumber(true)}
+          >
+            + Tambah {labelKolom} Baru
+          </Button>
+        }
         enablePaste={true}
         totals={{
           nominal: totalNominal,
@@ -267,7 +274,7 @@ export function TabDana({
           petugasNama: "Anda (saat simpan)",
           catatan: "",
         })}
-        emptyMessage={`Belum ada data ${labelKolom.toLowerCase()} untuk tahun ajaran ini. Klik "+ Ubah / Catat Data ${labelKolom}" di atas untuk mulai mencatat.`}
+        emptyMessage={`Belum ada data ${labelKolom.toLowerCase()} untuk tahun ajaran ini. Klik tombol "Edit Data ${labelKolom}" di atas untuk mulai mencatat.`}
       />
 
       {/* Dialog Tambah Sumber Baru */}

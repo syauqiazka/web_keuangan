@@ -10,15 +10,22 @@ export default async function DataSiswaGuruPage({ searchParams }: PageProps) {
   await requireAuth();
 
   const sp = await searchParams;
-  const tahunAjaranId = sp.tahunAjaran ?? "";
-  const kelasId = sp.kelas ?? "";
   const page = Math.max(1, parseInt(sp.halaman ?? "1", 10) || 1);
 
-  const [tahunAjaranList, kelasList, { rows, total }] = await Promise.all([
+  const [tahunAjaranList, kelasList] = await Promise.all([
     getTahunAjaranList(),
     getKelasList(),
-    getAnggotaList({ tahunAjaranId: tahunAjaranId || undefined, kelasId: kelasId || undefined, page }),
   ]);
+
+  const activeTa = tahunAjaranList.find((t) => t.aktif) ?? tahunAjaranList[0];
+  const tahunAjaranId = sp.tahunAjaran ?? activeTa?.id ?? "";
+  const kelasId = sp.kelas ?? "";
+
+  const { rows, total } = await getAnggotaList({
+    tahunAjaranId: tahunAjaranId || undefined,
+    kelasId: kelasId || undefined,
+    page,
+  });
 
   return (
     <DataSiswaGuruClient

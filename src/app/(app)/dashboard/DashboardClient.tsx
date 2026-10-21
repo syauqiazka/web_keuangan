@@ -1,6 +1,7 @@
 "use client";
 
 import * as React from "react";
+import { useRouter } from "next/navigation";
 import { AnimatedNumber } from "@/components/motion/AnimatedNumber";
 import { StaggerGroup, StaggerItem } from "@/components/motion/StaggerGroup";
 import { BlurReveal } from "@/components/motion/BlurReveal";
@@ -23,6 +24,8 @@ export function DashboardClient({
   ringkasan,
   GrafikComponent,
 }: DashboardClientProps) {
+  const router = useRouter();
+
   return (
     <div className="space-y-6">
       {/* Header + filter tahun */}
@@ -36,16 +39,19 @@ export function DashboardClient({
               Pantau total saldo, arus kas masuk dan keluar, serta akses transaksi sekolah tahun kalender {tahun}.
             </p>
           </div>
-          <form method="GET" action="/dashboard" className="flex items-center gap-2">
+          <div className="flex items-center gap-2.5">
+            <label htmlFor="filter-tahun-dashboard" className="text-[13px] font-medium text-text-3 whitespace-nowrap">
+              Tahun Kalender:
+            </label>
             <div className="relative flex items-center">
               <Calendar className="w-4 h-4 text-text-3 absolute left-3 pointer-events-none" />
               <select
-                name="tahun"
-                defaultValue={String(tahun)}
+                id="filter-tahun-dashboard"
+                value={String(tahun)}
                 aria-label="Pilih tahun kalender untuk ringkasan keuangan"
                 className="bg-surface border border-line text-text text-[13px] font-medium pl-9 pr-8 py-2 rounded-[8px] focus:outline-none focus:ring-2 focus:ring-brand/20 focus:border-brand transition-colors cursor-pointer shadow-xs"
                 onChange={(e) => {
-                  (e.target.form as HTMLFormElement)?.submit();
+                  router.push(`/dashboard?tahun=${e.target.value}`);
                 }}
               >
                 {tahunOptions.map((y) => (
@@ -55,13 +61,7 @@ export function DashboardClient({
                 ))}
               </select>
             </div>
-            <button
-              type="submit"
-              className="h-9 px-4 text-[13px] font-medium text-brand bg-surface border border-line rounded-[8px] hover:bg-surface-soft active:scale-[0.98] transition-all shadow-xs focus:outline-none focus:ring-2 focus:ring-brand/20"
-            >
-              Terapkan Filter Tahun
-            </button>
-          </form>
+          </div>
         </div>
       </BlurReveal>
 

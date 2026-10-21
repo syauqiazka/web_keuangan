@@ -17,15 +17,16 @@ export default async function PemasukanPage({ searchParams }: PageProps) {
   await requireAuth();
 
   const sp = await searchParams;
-  const tahunAjaranId = sp.tahunAjaran ?? "";
-  const kelasId = sp.kelas ?? "";
-  const bulanNomor = sp.bulan ?? "";
-  const tab = (sp.tab ?? "dari-siswa") as "dari-siswa" | "bantuan" | "donatur";
-
   const [tahunAjaranList, kelasList] = await Promise.all([
     getTahunAjaranList(),
     getKelasList(),
   ]);
+
+  const activeTa = tahunAjaranList.find((t) => t.aktif) ?? tahunAjaranList[0];
+  const tahunAjaranId = sp.tahunAjaran ?? activeTa?.id ?? "";
+  const kelasId = sp.kelas ?? "";
+  const bulanNomor = sp.bulan ?? "";
+  const tab = (sp.tab ?? "dari-siswa") as "dari-siswa" | "bantuan" | "donatur";
 
   const ta = tahunAjaranList.find((t) => t.id === tahunAjaranId);
   const bulanFilter = buildBulanFilter(ta, bulanNomor);

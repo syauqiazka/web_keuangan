@@ -46,6 +46,7 @@ export interface DataGridProps<T> {
   totals?: Record<string, number | string>;
   isEditing?: boolean;
   onToggleEdit?: () => void;
+  onCancelEdit?: () => void;
   onSave?: (data: T[]) => Promise<void> | void;
   onAddRow?: () => void;
   createNewRow?: () => T;
@@ -65,6 +66,7 @@ export function DataGrid<T>({
   totals,
   isEditing = false,
   onToggleEdit,
+  onCancelEdit,
   onSave,
   onAddRow,
   createNewRow,
@@ -256,6 +258,23 @@ export function DataGrid<T>({
     setCellErrors(newErrors);
   };
 
+  const handleCancel = () => {
+    if (unsavedRowIndices.size > 0) {
+      const confirmDiscard = window.confirm(
+        `Terdapat ${unsavedRowIndices.size} baris perubahan yang belum disimpan. Batalkan dan buang semua perubahan?`
+      );
+      if (!confirmDiscard) return;
+    }
+    setGridData(initialData);
+    setUnsavedRowIndices(new Set());
+    setCellErrors({});
+    if (onCancelEdit) {
+      onCancelEdit();
+    } else if (onToggleEdit) {
+      onToggleEdit();
+    }
+  };
+
   const handleSave = async () => {
     if (Object.keys(cellErrors).length > 0) {
       alert("Terdapat data yang belum valid. Silakan periksa sel yang bermasalah sebelum menyimpan.");
@@ -272,37 +291,38 @@ export function DataGrid<T>({
 
   return (
     <div id={containerId} className={`w-full space-y-3 ${className}`}>
-      {/* Toolbar Grid (Input / Batal, Tambah Baris, Simpan) */}
+      {/* Toolbar Grid (Aksi Tambah Baris, Status Perubahan, Batal, Simpan) */}
       {showToolbar && (
         <div className="flex flex-wrap items-center justify-between gap-3 pb-2">
-          <div className="flex items-center gap-2">
-            {onToggleEdit && (
-              <Button
-                type="button"
-                variant="secondary"
-                size="sm"
-                onClick={onToggleEdit}
-              >
-                {isEditing ? "Batal" : "Input"}
-              </Button>
+          <div className="flex flex-wrap items-center gap-2">
+            {isEditing ? (
+              <>
+                <Button
+                  type="button"
+                  variant="secondary"
+                  size="sm"
+                  onClick={() => handleTambahBaris(0)}
+                >
+                  + Tambah Baris Baru
+                </Button>
+                {toolbarExtra}
+              </>
+            ) : (
+              onToggleEdit && (
+                <Button
+                  type="button"
+                  variant="primary"
+                  size="sm"
+                  onClick={onToggleEdit}
+                >
+                  Mulai Edit Data
+                </Button>
+              )
             )}
-
-            {isEditing && (
-              <Button
-                type="button"
-                variant="secondary"
-                size="sm"
-                onClick={() => handleTambahBaris(0)}
-              >
-                + Tambah Baris Baru
-              </Button>
-            )}
-
-            {toolbarExtra}
           </div>
 
-          {isEditing && onSave && (
-            <div className="flex flex-wrap items-center gap-3">
+          {isEditing && (
+            <div className="flex flex-wrap items-center gap-2.5">
               {unsavedRowIndices.size > 0 && (
                 <span className="text-[12px] text-text-3 font-medium">
                   <span className="text-warning font-semibold">{unsavedRowIndices.size} baris</span> belum disimpan
@@ -315,13 +335,24 @@ export function DataGrid<T>({
               )}
               <Button
                 type="button"
-                variant="primary"
+                variant="secondary"
                 size="sm"
-                disabled={isSaving || hasErrors}
-                onClick={handleSave}
+                disabled={isSaving}
+                onClick={handleCancel}
               >
-                {isSaving ? "Menyimpan perubahan…" : "Simpan semua perubahan"}
+                Batal Edit
               </Button>
+              {onSave && (
+                <Button
+                  type="button"
+                  variant="primary"
+                  size="sm"
+                  disabled={isSaving || hasErrors}
+                  onClick={handleSave}
+                >
+                  {isSaving ? "Menyimpan perubahan…" : "Simpan Perubahan"}
+                </Button>
+              )}
             </div>
           )}
         </div>
