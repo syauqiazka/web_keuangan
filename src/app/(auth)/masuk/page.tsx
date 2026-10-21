@@ -23,14 +23,15 @@ export default function MasukPage() {
 
       gsap.fromTo(
         cardRef.current,
-        { opacity: 0, y: 16, scale: 0.98 },
+        { opacity: 0, y: 16, scale: 0.98, filter: "blur(10px)" },
         {
           opacity: 1,
           y: 0,
           scale: 1,
-          duration: GSAP_DURATION.enter,
+          filter: "blur(0px)",
+          duration: GSAP_DURATION.blurReveal,
           ease: GSAP_EASE.atmos,
-          clearProps: "transform",
+          clearProps: "filter,opacity,transform",
         }
       );
     },

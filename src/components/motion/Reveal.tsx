@@ -16,6 +16,8 @@ interface RevealProps {
   delay?: number;
   threshold?: number;
   duration?: number;
+  /** Nilai blur awal dalam pixel (misal 8px untuk efek blur-to-sharp Atmos) */
+  blur?: number;
 }
 
 export function Reveal({
@@ -24,6 +26,7 @@ export function Reveal({
   delay = 0,
   threshold = 0.1,
   duration = GSAP_DURATION.enter,
+  blur,
 }: RevealProps) {
   const containerRef = React.useRef<HTMLDivElement>(null);
   const [hasTriggered, setHasTriggered] = React.useState(false);
@@ -52,24 +55,29 @@ export function Reveal({
     () => {
       if (!containerRef.current || !hasTriggered) return;
       if (checkReducedMotion()) {
-        gsap.set(containerRef.current, { opacity: 1, y: 0 });
+        gsap.set(containerRef.current, { opacity: 1, filter: "none", y: 0 });
         return;
       }
 
       gsap.fromTo(
         containerRef.current,
-        { opacity: 0, y: 16 },
+        {
+          opacity: 0,
+          y: 16,
+          ...(blur ? { filter: `blur(${blur}px)` } : {}),
+        },
         {
           opacity: 1,
           y: 0,
+          ...(blur ? { filter: "blur(0px)" } : {}),
           duration,
           delay,
           ease: GSAP_EASE.atmos,
-          clearProps: "transform",
+          clearProps: blur ? "filter,opacity,transform" : "transform",
         }
       );
     },
-    { dependencies: [hasTriggered, delay, duration], scope: containerRef }
+    { dependencies: [hasTriggered, delay, duration, blur], scope: containerRef }
   );
 
   return (

@@ -11,7 +11,7 @@ import type { TemaTampilan } from "@/generated/prisma/client";
 
 import { useToast } from "@/components/ui/Toast";
 import { Sun, Moon, Key, Users, LogOut } from "lucide-react";
-import { FadeIn } from "@/components/motion/FadeIn";
+import { BlurReveal } from "@/components/motion/BlurReveal";
 import { StaggerGroup, StaggerItem } from "@/components/motion/StaggerGroup";
 
 export function PengaturanView({ user }: { user: SessionUser }) {
@@ -58,7 +58,7 @@ export function PengaturanView({ user }: { user: SessionUser }) {
 
   return (
     <div className="space-y-6">
-      <FadeIn>
+      <BlurReveal blur={10} duration={0.75}>
         <div className="pb-5 border-b border-line">
           <h1 className="text-[24px] lg:text-[28px] font-semibold text-text tracking-tight">
             Pengaturan
@@ -67,9 +67,9 @@ export function PengaturanView({ user }: { user: SessionUser }) {
             Kelola preferensi akun, tampilan tema, dan manajemen hak akses
           </p>
         </div>
-      </FadeIn>
+      </BlurReveal>
 
-      <StaggerGroup className="bg-surface border border-line rounded-[8px] divide-y divide-line shadow-xs overflow-hidden" staggerDelay={0.06}>
+      <StaggerGroup blur={6} duration={0.6} className="bg-surface border border-line rounded-[8px] divide-y divide-line shadow-xs overflow-hidden" staggerDelay={0.06}>
         {/* Baris 1: Ganti Kata Sandi */}
         <StaggerItem>
           <div className="p-5 flex flex-col sm:flex-row sm:items-center justify-between gap-4">

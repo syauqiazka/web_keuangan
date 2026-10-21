@@ -7,7 +7,7 @@ import { Button } from "@/components/ui/Button";
 import { Input } from "@/components/ui/Input";
 import { Select } from "@/components/ui/Select";
 import { Dialog } from "@/components/ui/Dialog";
-import { FadeIn } from "@/components/motion/FadeIn";
+import { BlurReveal } from "@/components/motion/BlurReveal";
 import {
   buatAkunAction,
   resetPasswordAction,
@@ -272,8 +272,8 @@ export function KelolaAkunClient({
 
   return (
     <div className="space-y-6">
-      {/* Header */}
-      <FadeIn>
+      {/* Header dengan Atmos blur-to-sharp reveal */}
+      <BlurReveal blur={10} duration={0.75}>
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-5 border-b border-line">
           <div>
             <div className="flex items-center gap-2 text-[12px] text-text-3 mb-1">
@@ -296,48 +296,50 @@ export function KelolaAkunClient({
             + Buat Akun Baru
           </Button>
         </div>
-      </FadeIn>
+      </BlurReveal>
 
-      {/* Tabel akun */}
-      <div className="bg-surface border border-line rounded-[8px] overflow-hidden shadow-xs">
-        <div className="overflow-x-auto">
-          <table className="w-full border-collapse text-[13px]">
-            <colgroup>
-              <col className="w-[120px]" />
-              <col />
-              <col className="w-[120px]" />
-              <col className="w-[180px]" />
-              <col className="w-[200px]" />
-            </colgroup>
-            <thead>
-              <tr className="border-b border-line bg-panel/60 text-text-2">
-                <th className="px-4 py-2.5 font-semibold text-left">Kode Akun</th>
-                <th className="px-4 py-2.5 font-semibold text-left">Nama Petugas</th>
-                <th className="px-4 py-2.5 font-semibold text-left">Peran</th>
-                <th className="px-4 py-2.5 font-semibold text-left">Status</th>
-                <th className="px-4 py-2.5 font-semibold text-left">Aksi</th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-line">
-              {akunList.length === 0 && (
-                <tr>
-                  <td colSpan={5} className="px-4 py-10 text-center text-text-3">
-                    Belum ada akun terdaftar.
-                  </td>
+      {/* Tabel akun dengan blur reveal */}
+      <BlurReveal blur={6} delay={0.12} duration={0.65}>
+        <div className="bg-surface border border-line rounded-[8px] overflow-hidden shadow-xs">
+          <div className="overflow-x-auto">
+            <table className="w-full border-collapse text-[13px]">
+              <colgroup>
+                <col className="w-[120px]" />
+                <col />
+                <col className="w-[120px]" />
+                <col className="w-[180px]" />
+                <col className="w-[200px]" />
+              </colgroup>
+              <thead>
+                <tr className="border-b border-line bg-panel/60 text-text-2">
+                  <th className="px-4 py-2.5 font-semibold text-left">Kode Akun</th>
+                  <th className="px-4 py-2.5 font-semibold text-left">Nama Petugas</th>
+                  <th className="px-4 py-2.5 font-semibold text-left">Peran</th>
+                  <th className="px-4 py-2.5 font-semibold text-left">Status</th>
+                  <th className="px-4 py-2.5 font-semibold text-left">Aksi</th>
                 </tr>
-              )}
-              {akunList.map((akun) => (
-                <BahanAkun
-                  key={akun.id}
-                  akun={akun}
-                  isCurrentUser={akun.id === currentUserId}
-                  onMutate={refresh}
-                />
-              ))}
-            </tbody>
-          </table>
+              </thead>
+              <tbody className="divide-y divide-line">
+                {akunList.length === 0 && (
+                  <tr>
+                    <td colSpan={5} className="px-4 py-10 text-center text-text-3">
+                      Belum ada akun terdaftar.
+                    </td>
+                  </tr>
+                )}
+                {akunList.map((akun) => (
+                  <BahanAkun
+                    key={akun.id}
+                    akun={akun}
+                    isCurrentUser={akun.id === currentUserId}
+                    onMutate={refresh}
+                  />
+                ))}
+              </tbody>
+            </table>
+          </div>
         </div>
-      </div>
+      </BlurReveal>
 
       <p className="text-[12px] text-text-3">
         Akun tidak dapat dihapus permanen untuk integritas audit transaksi. Gunakan aksi &quot;Nonaktifkan&quot; untuk mencabut akses login.

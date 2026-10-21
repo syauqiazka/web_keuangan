@@ -9,7 +9,7 @@ import { Button } from "@/components/ui/Button";
 import { Select } from "@/components/ui/Select";
 import { DataGrid, type ColumnDef } from "@/components/ui/DataGrid";
 import { useToast } from "@/components/ui/Toast";
-import { FadeIn } from "@/components/motion/FadeIn";
+import { BlurReveal } from "@/components/motion/BlurReveal";
 import { StaggerGroup, StaggerItem } from "@/components/motion/StaggerGroup";
 import { AnimatedNumber } from "@/components/motion/AnimatedNumber";
 import {
@@ -216,8 +216,8 @@ export function PengeluaranClient({
 
   return (
     <div className="space-y-6">
-      {/* Header Halaman */}
-      <FadeIn>
+      {/* Header Halaman dengan Atmos blur-to-sharp reveal */}
+      <BlurReveal blur={10} duration={0.75}>
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-5 border-b border-line">
           <div>
             <h1 className="text-[24px] lg:text-[28px] font-semibold text-text tracking-tight">
@@ -238,10 +238,10 @@ export function PengeluaranClient({
             </Button>
           </div>
         </div>
-      </FadeIn>
+      </BlurReveal>
 
-      {/* Ringkasan Pengeluaran: Bulan Ini & Total Per Tahun */}
-      <StaggerGroup className="grid grid-cols-1 sm:grid-cols-2 gap-4" staggerDelay={0.08}>
+      {/* Ringkasan Pengeluaran: Bulan Ini & Total Per Tahun dengan blur-to-sharp stagger */}
+      <StaggerGroup blur={8} duration={0.75} className="grid grid-cols-1 sm:grid-cols-2 gap-4" staggerDelay={0.08}>
         <StaggerItem>
           <div className="bg-surface p-5 lg:p-6 border border-line rounded-[8px] shadow-xs relative overflow-hidden flex flex-col justify-between">
             <div className="absolute top-0 left-0 right-0 h-1 bg-ledger-blue" />
@@ -286,39 +286,42 @@ export function PengeluaranClient({
 
       {/* Filter Toolbar (GET) – Tarik Data */}
       {!isEditing && (
-        <div className="bg-surface border border-line rounded-[8px] p-4 shadow-xs">
-          <form
-            method="GET"
-            action="/pengeluaran"
-            className="flex flex-wrap items-end gap-3"
-          >
-            <div className="flex-1 min-w-[200px]">
-              <Select
-                name="tahunAjaran"
-                label="Tahun Ajaran"
-                defaultValue={tahunAjaranId}
-                options={tahunOptions}
-              />
-            </div>
-            <div className="min-w-[160px]">
-              <Select
-                name="bulan"
-                label="Bulan"
-                defaultValue={bulanNomor}
-                options={BULAN_OPTIONS}
-              />
-            </div>
-            <div className="pb-0.5">
-              <Button type="submit" variant="primary" size="md">
-                Tarik Data
-              </Button>
-            </div>
-          </form>
-        </div>
+        <BlurReveal blur={6} delay={0.12} duration={0.65}>
+          <div className="bg-surface border border-line rounded-[8px] p-4 shadow-xs">
+            <form
+              method="GET"
+              action="/pengeluaran"
+              className="flex flex-wrap items-end gap-3"
+            >
+              <div className="flex-1 min-w-[200px]">
+                <Select
+                  name="tahunAjaran"
+                  label="Tahun Ajaran"
+                  defaultValue={tahunAjaranId}
+                  options={tahunOptions}
+                />
+              </div>
+              <div className="min-w-[160px]">
+                <Select
+                  name="bulan"
+                  label="Bulan"
+                  defaultValue={bulanNomor}
+                  options={BULAN_OPTIONS}
+                />
+              </div>
+              <div className="pb-0.5">
+                <Button type="submit" variant="primary" size="md">
+                  Tarik Data
+                </Button>
+              </div>
+            </form>
+          </div>
+        </BlurReveal>
       )}
 
       {/* DataGrid dengan mode baca / edit dan paste Excel */}
-      <DataGrid<EditablePengeluaranRow>
+      <BlurReveal blur={6} delay={0.18} duration={0.7}>
+        <DataGrid<EditablePengeluaranRow>
         columns={columns}
         data={gridRows}
         keyField={(row, idx) => row.id || `temp-${idx}`}
@@ -345,6 +348,7 @@ export function PengeluaranClient({
             : "Belum ada catatan pengeluaran."
         }
       />
+      </BlurReveal>
 
       {/* Paginasi hanya jika tidak sedang edit */}
       {!isEditing && total > 50 && (

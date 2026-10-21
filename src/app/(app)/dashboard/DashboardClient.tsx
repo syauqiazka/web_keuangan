@@ -3,7 +3,7 @@
 import * as React from "react";
 import { AnimatedNumber } from "@/components/motion/AnimatedNumber";
 import { StaggerGroup, StaggerItem } from "@/components/motion/StaggerGroup";
-import { FadeIn } from "@/components/motion/FadeIn";
+import { BlurReveal } from "@/components/motion/BlurReveal";
 import { Reveal } from "@/components/motion/Reveal";
 import { formatRupiah } from "@/lib/money";
 import type { DashboardRingkasan } from "@/server/queries/dashboard";
@@ -25,8 +25,8 @@ export function DashboardClient({
 }: DashboardClientProps) {
   return (
     <div className="space-y-6">
-      {/* Header + filter tahun */}
-      <FadeIn>
+      {/* Header + filter tahun dengan Atmos blur-to-sharp entrance */}
+      <BlurReveal blur={10} duration={0.75}>
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-5 border-b border-line">
           <div>
             <h1 className="text-[24px] lg:text-[28px] font-semibold text-text tracking-tight">
@@ -63,10 +63,10 @@ export function DashboardClient({
             </button>
           </form>
         </div>
-      </FadeIn>
+      </BlurReveal>
 
-      {/* Tiga kartu ringkasan keuangan */}
-      <StaggerGroup className="grid grid-cols-1 sm:grid-cols-3 gap-4" staggerDelay={0.08}>
+      {/* Tiga kartu ringkasan keuangan dengan blur-to-sharp stagger */}
+      <StaggerGroup blur={8} duration={0.75} className="grid grid-cols-1 sm:grid-cols-3 gap-4" staggerDelay={0.08}>
         {/* Total Saldo */}
         <StaggerItem>
           <div className="bg-surface p-5 lg:p-6 border border-line rounded-[8px] shadow-xs relative overflow-hidden flex flex-col justify-between h-full">
@@ -153,7 +153,7 @@ export function DashboardClient({
       </StaggerGroup>
 
       {/* Grafik bulanan */}
-      <Reveal threshold={0.1}>
+      <Reveal blur={8} threshold={0.1}>
         <div className="bg-surface border border-line rounded-[8px] p-5 lg:p-6 shadow-xs">
           <div className="mb-4">
             <h2 className="text-[16px] font-semibold text-text leading-tight">

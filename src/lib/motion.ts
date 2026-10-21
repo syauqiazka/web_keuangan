@@ -14,6 +14,7 @@ export const GSAP_DURATION = {
   fast: 0.28,
   base: 0.45,
   enter: 0.6,
+  blurReveal: 0.75,
   slow: 0.85,
   counter: 0.8,
 } as const;

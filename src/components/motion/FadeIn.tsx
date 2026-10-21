@@ -17,6 +17,8 @@ interface FadeInProps {
   direction?: "up" | "down" | "left" | "right" | "none";
   distance?: number;
   duration?: number;
+  /** Nilai blur awal dalam pixel (misal 8px untuk efek blur-to-sharp Atmos) */
+  blur?: number;
   as?: keyof React.JSX.IntrinsicElements;
 }
 
@@ -27,6 +29,7 @@ export function FadeIn({
   direction = "up",
   distance = 14,
   duration = GSAP_DURATION.base,
+  blur,
   as: Component = "div",
 }: FadeInProps) {
   const containerRef = React.useRef<HTMLDivElement>(null);
@@ -35,7 +38,7 @@ export function FadeIn({
     () => {
       if (!containerRef.current) return;
       if (checkReducedMotion()) {
-        gsap.set(containerRef.current, { opacity: 1, x: 0, y: 0 });
+        gsap.set(containerRef.current, { opacity: 1, filter: "none", x: 0, y: 0 });
         return;
       }
 
@@ -52,19 +55,21 @@ export function FadeIn({
           opacity: 0,
           x: xOffset,
           y: yOffset,
+          ...(blur ? { filter: `blur(${blur}px)` } : {}),
         },
         {
           opacity: 1,
           x: 0,
           y: 0,
+          ...(blur ? { filter: "blur(0px)" } : {}),
           duration,
           delay,
           ease: GSAP_EASE.atmos,
-          clearProps: "transform",
+          clearProps: blur ? "filter,opacity,transform" : "transform",
         }
       );
     },
-    { dependencies: [delay, direction, distance, duration], scope: containerRef }
+    { dependencies: [delay, direction, distance, duration, blur], scope: containerRef }
   );
 
   return React.createElement(

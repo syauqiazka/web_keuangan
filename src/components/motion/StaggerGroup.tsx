@@ -16,6 +16,8 @@ interface StaggerGroupProps {
   staggerDelay?: number;
   duration?: number;
   distance?: number;
+  /** Nilai blur awal dalam pixel (misal 6-8px untuk efek blur-to-sharp Atmos) */
+  blur?: number;
   as?: keyof React.JSX.IntrinsicElements;
 }
 
@@ -25,6 +27,7 @@ export function StaggerGroup({
   staggerDelay = 0.08,
   duration = GSAP_DURATION.base,
   distance = 16,
+  blur,
   as: Component = "div",
 }: StaggerGroupProps) {
   const containerRef = React.useRef<HTMLDivElement>(null);
@@ -34,7 +37,7 @@ export function StaggerGroup({
       if (!containerRef.current) return;
       if (checkReducedMotion()) {
         const items = containerRef.current.querySelectorAll("[data-stagger-item]");
-        gsap.set(items, { opacity: 1, y: 0 });
+        gsap.set(items, { opacity: 1, filter: "none", y: 0 });
         return;
       }
 
@@ -46,18 +49,20 @@ export function StaggerGroup({
         {
           opacity: 0,
           y: distance,
+          ...(blur ? { filter: `blur(${blur}px)` } : {}),
         },
         {
           opacity: 1,
           y: 0,
+          ...(blur ? { filter: "blur(0px)" } : {}),
           duration,
           stagger: staggerDelay,
           ease: GSAP_EASE.atmos,
-          clearProps: "transform",
+          clearProps: blur ? "filter,opacity,transform" : "transform",
         }
       );
     },
-    { dependencies: [staggerDelay, duration, distance], scope: containerRef }
+    { dependencies: [staggerDelay, duration, distance, blur], scope: containerRef }
   );
 
   return React.createElement(
