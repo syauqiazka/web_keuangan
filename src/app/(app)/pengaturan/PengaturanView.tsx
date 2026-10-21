@@ -9,29 +9,52 @@ import { GantiPasswordModal } from "@/components/GantiPasswordModal";
 import type { SessionUser } from "@/server/auth/session";
 import type { TemaTampilan } from "@/generated/prisma/client";
 
+import { useToast } from "@/components/ui/Toast";
 import { Sun, Moon, Key, Users, LogOut } from "lucide-react";
 import { FadeIn } from "@/components/motion/FadeIn";
 import { StaggerGroup, StaggerItem } from "@/components/motion/StaggerGroup";
 
 export function PengaturanView({ user }: { user: SessionUser }) {
+  const { showToast } = useToast();
   const [modalGantiPasswordOpen, setModalGantiPasswordOpen] = useState(false);
   const [tema, setTema] = useState<TemaTampilan>(user.tema === "GELAP" ? "GELAP" : "TERANG");
   const [isUpdatingTema, setIsUpdatingTema] = useState(false);
 
   const handleTemaChange = async (selectedTema: TemaTampilan) => {
+    if (selectedTema === tema || isUpdatingTema) return;
+    const prevTema = tema;
+    const prevAttr = typeof document !== "undefined" ? document.documentElement.getAttribute("data-theme") : null;
+
+    // Optimistic UI update
     setTema(selectedTema);
-    setIsUpdatingTema(true);
-    try {
-      await setTemaAction(selectedTema);
-      // Terapkan data-theme langsung ke <html> agar responsif tanpa refresh
+    if (typeof document !== "undefined") {
       document.documentElement.setAttribute(
         "data-theme",
         selectedTema === "GELAP" ? "dark" : "light"
       );
+    }
+    setIsUpdatingTema(true);
+
+    try {
+      await setTemaAction(selectedTema);
+      showToast(
+        selectedTema === "GELAP"
+          ? "Mode tampilan diubah ke Gelap."
+          : "Mode tampilan diubah ke Terang.",
+        "success"
+      );
+    } catch {
+      // Rollback ke state sebelumnya jika gagal disimpan ke server/cookie
+      setTema(prevTema);
+      if (typeof document !== "undefined" && prevAttr) {
+        document.documentElement.setAttribute("data-theme", prevAttr);
+      }
+      showToast("Gagal menyimpan preferensi tema. Perubahan dibatalkan.", "error");
     } finally {
       setIsUpdatingTema(false);
     }
   };
+
 
   return (
     <div className="space-y-6">

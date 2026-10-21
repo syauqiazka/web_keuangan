@@ -27,7 +27,8 @@ async function resolveDateRange(params: TotalQueryParams) {
     });
     if (ta) {
       startTahun = ta.mulai;
-      endTahun = ta.selesai;
+      const sel = new Date(ta.selesai);
+      endTahun = new Date(Date.UTC(sel.getUTCFullYear(), sel.getUTCMonth(), sel.getUTCDate(), 23, 59, 59, 999));
     }
   } else if (params.tahun) {
     startTahun = new Date(Date.UTC(params.tahun, 0, 1));

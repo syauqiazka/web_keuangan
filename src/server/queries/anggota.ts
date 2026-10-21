@@ -63,19 +63,20 @@ export async function getAnggotaList(params: {
 
   const { tahunAjaranId, kelasId, page = 1 } = params;
   const take = 50;
-  const skip = (page - 1) * take;
 
   // Filter "Guru": hanya tampilkan anggota dengan tipe GURU
   if (kelasId === "guru") {
-    const [rows, total] = await Promise.all([
-      db.anggota.findMany({
-        where: { tipe: "GURU", aktif: true },
-        orderBy: [{ nama: "asc" }],
-        skip,
-        take,
-      }),
-      db.anggota.count({ where: { tipe: "GURU", aktif: true } }),
-    ]);
+    const total = await db.anggota.count({ where: { tipe: "GURU", aktif: true } });
+    const totalPages = Math.max(1, Math.ceil(total / take));
+    const safePage = Math.min(Math.max(1, page), totalPages);
+    const skip = (safePage - 1) * take;
+
+    const rows = await db.anggota.findMany({
+      where: { tipe: "GURU", aktif: true },
+      orderBy: [{ nama: "asc" }],
+      skip,
+      take,
+    });
     return {
       rows: rows.map((r) => ({
         id: r.id,
@@ -93,16 +94,18 @@ export async function getAnggotaList(params: {
 
   // Filter berdasarkan tahun ajaran + kelas (siswa)
   if (tahunAjaranId && kelasId && kelasId !== "guru") {
-    const [penempatan, total] = await Promise.all([
-      db.penempatanKelas.findMany({
-        where: { tahunAjaranId, kelasId },
-        include: { anggota: true, kelas: true },
-        skip,
-        take,
-        orderBy: [{ anggota: { nama: "asc" } }],
-      }),
-      db.penempatanKelas.count({ where: { tahunAjaranId, kelasId } }),
-    ]);
+    const total = await db.penempatanKelas.count({ where: { tahunAjaranId, kelasId } });
+    const totalPages = Math.max(1, Math.ceil(total / take));
+    const safePage = Math.min(Math.max(1, page), totalPages);
+    const skip = (safePage - 1) * take;
+
+    const penempatan = await db.penempatanKelas.findMany({
+      where: { tahunAjaranId, kelasId },
+      include: { anggota: true, kelas: true },
+      skip,
+      take,
+      orderBy: [{ anggota: { nama: "asc" } }],
+    });
     return {
       rows: penempatan.map((p) => ({
         id: p.anggota.id,
@@ -120,16 +123,18 @@ export async function getAnggotaList(params: {
 
   // Filter hanya tahun ajaran (semua kelas)
   if (tahunAjaranId) {
-    const [penempatan, total] = await Promise.all([
-      db.penempatanKelas.findMany({
-        where: { tahunAjaranId },
-        include: { anggota: true, kelas: true },
-        skip,
-        take,
-        orderBy: [{ kelas: { urutan: "asc" } }, { anggota: { nama: "asc" } }],
-      }),
-      db.penempatanKelas.count({ where: { tahunAjaranId } }),
-    ]);
+    const total = await db.penempatanKelas.count({ where: { tahunAjaranId } });
+    const totalPages = Math.max(1, Math.ceil(total / take));
+    const safePage = Math.min(Math.max(1, page), totalPages);
+    const skip = (safePage - 1) * take;
+
+    const penempatan = await db.penempatanKelas.findMany({
+      where: { tahunAjaranId },
+      include: { anggota: true, kelas: true },
+      skip,
+      take,
+      orderBy: [{ kelas: { urutan: "asc" } }, { anggota: { nama: "asc" } }],
+    });
     return {
       rows: penempatan.map((p) => ({
         id: p.anggota.id,
@@ -146,15 +151,17 @@ export async function getAnggotaList(params: {
   }
 
   // Tanpa filter: tampilkan semua siswa aktif (default)
-  const [penempatan, total] = await Promise.all([
-    db.penempatanKelas.findMany({
-      include: { anggota: true, kelas: true, tahunAjaran: true },
-      skip,
-      take,
-      orderBy: [{ tahunAjaran: { mulai: "desc" } }, { kelas: { urutan: "asc" } }, { anggota: { nama: "asc" } }],
-    }),
-    db.penempatanKelas.count(),
-  ]);
+  const total = await db.penempatanKelas.count();
+  const totalPages = Math.max(1, Math.ceil(total / take));
+  const safePage = Math.min(Math.max(1, page), totalPages);
+  const skip = (safePage - 1) * take;
+
+  const penempatan = await db.penempatanKelas.findMany({
+    include: { anggota: true, kelas: true, tahunAjaran: true },
+    skip,
+    take,
+    orderBy: [{ tahunAjaran: { mulai: "desc" } }, { kelas: { urutan: "asc" } }, { anggota: { nama: "asc" } }],
+  });
   return {
     rows: penempatan.map((p) => ({
       id: p.anggota.id,

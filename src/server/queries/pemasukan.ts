@@ -167,14 +167,18 @@ export async function getPemasukanDanaList(params: {
 
   if (tahunAjaranId) {
     const ta = await db.tahunAjaran.findUnique({ where: { id: tahunAjaranId } });
-    if (ta) { startDate = ta.mulai; endDate = ta.selesai; }
+    if (ta) {
+      startDate = ta.mulai;
+      const sel = new Date(ta.selesai);
+      endDate = new Date(Date.UTC(sel.getUTCFullYear(), sel.getUTCMonth(), sel.getUTCDate(), 23, 59, 59, 999));
+    }
   }
 
   if (bulan) {
     const [y, m] = bulan.split("-").map(Number);
     if (!isNaN(y) && !isNaN(m)) {
       startDate = new Date(Date.UTC(y, m - 1, 1));
-      endDate = new Date(Date.UTC(y, m, 0));
+      endDate = new Date(Date.UTC(y, m, 0, 23, 59, 59, 999));
     }
   }
 
@@ -240,7 +244,11 @@ export async function getRingkasanPemasukan(params: {
 
   if (tahunAjaranId) {
     const ta = await db.tahunAjaran.findUnique({ where: { id: tahunAjaranId } });
-    if (ta) { startTahun = ta.mulai; endTahun = ta.selesai; }
+    if (ta) {
+      startTahun = ta.mulai;
+      const sel = new Date(ta.selesai);
+      endTahun = new Date(Date.UTC(sel.getUTCFullYear(), sel.getUTCMonth(), sel.getUTCDate(), 23, 59, 59, 999));
+    }
   }
 
   const filterTahun = {

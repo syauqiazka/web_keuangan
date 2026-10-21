@@ -6,6 +6,7 @@ import {
   getRingkasanPemasukan,
 } from "@/server/queries/pemasukan";
 import { getTahunAjaranList, getKelasList } from "@/server/queries/anggota";
+import { buildBulanFilter } from "@/lib/dates";
 import { PemasukanClient } from "@/app/(app)/pemasukan/PemasukanClient";
 
 interface PageProps {
@@ -21,30 +22,19 @@ export default async function PemasukanPage({ searchParams }: PageProps) {
   const bulanNomor = sp.bulan ?? "";
   const tab = (sp.tab ?? "dari-siswa") as "dari-siswa" | "bantuan" | "donatur";
 
-  // Hitung bulan filter (YYYY-MM) jika ada filter bulan + tahun ajaran
-  let bulanFilter = "";
-  if (bulanNomor) {
-    const tahunAjaranList = await getTahunAjaranList();
-    const ta = tahunAjaranList.find((t) => t.id === tahunAjaranId);
-    let tahun: number;
-    if (ta) {
-      tahun = new Date(ta.mulai).getFullYear();
-    } else {
-      tahun = new Date(
-        new Date().toLocaleString("en-US", { timeZone: "Asia/Jakarta" })
-      ).getFullYear();
-    }
-    bulanFilter = `${tahun}-${bulanNomor.padStart(2, "0")}`;
-  }
-
-  const [tahunAjaranList, kelasList, ringkasan] = await Promise.all([
+  const [tahunAjaranList, kelasList] = await Promise.all([
     getTahunAjaranList(),
     getKelasList(),
-    getRingkasanPemasukan({
-      tahunAjaranId: tahunAjaranId || undefined,
-      bulan: bulanFilter || undefined,
-    }),
   ]);
+
+  const ta = tahunAjaranList.find((t) => t.id === tahunAjaranId);
+  const bulanFilter = buildBulanFilter(ta, bulanNomor);
+
+  const ringkasan = await getRingkasanPemasukan({
+    tahunAjaranId: tahunAjaranId || undefined,
+    bulan: bulanFilter || undefined,
+  });
+
 
   // Data spesifik per tab
   const [siswaData, bantuanRows, donaturRows, bantuanSumber, donaturSumber] =

@@ -47,7 +47,6 @@ function NavLink({
   return (
     <Link
       href={item.href}
-      prefetch={false}
       onClick={onClick}
       className={`group flex items-center gap-3 px-3 py-2 text-[13px] rounded-[6px] transition-all duration-150 ${
         isActive

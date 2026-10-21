@@ -42,7 +42,6 @@ export async function getPengeluaranList(params: {
 
   const { tahunAjaranId, bulan, page = 1 } = params;
   const take = 50;
-  const skip = (page - 1) * take;
 
   // Bangun filter rentang tanggal
   let startDate: Date | undefined;
@@ -54,7 +53,8 @@ export async function getPengeluaranList(params: {
     const ta = await db.tahunAjaran.findUnique({ where: { id: tahunAjaranId } });
     if (ta) {
       startDate = ta.mulai;
-      endDate = ta.selesai;
+      const sel = new Date(ta.selesai);
+      endDate = new Date(Date.UTC(sel.getUTCFullYear(), sel.getUTCMonth(), sel.getUTCDate(), 23, 59, 59, 999));
     }
   }
 
@@ -63,7 +63,8 @@ export async function getPengeluaranList(params: {
     const [y, m] = bulan.split("-").map(Number);
     if (!isNaN(y) && !isNaN(m)) {
       startBulan = new Date(Date.UTC(y, m - 1, 1));
-      endBulan = new Date(Date.UTC(y, m, 0)); // hari terakhir bulan ini
+      // Akhir bulan sampai milidetik terakhir hari itu
+      endBulan = new Date(Date.UTC(y, m, 0, 23, 59, 59, 999));
     }
   }
 
@@ -76,7 +77,12 @@ export async function getPengeluaranList(params: {
       : {}),
   };
 
-  const [rows, total, totalsResult] = await Promise.all([
+  const total = await db.pengeluaran.count({ where: filterTanggal });
+  const totalPages = Math.max(1, Math.ceil(total / take));
+  const safePage = Math.min(Math.max(1, page), totalPages);
+  const skip = (safePage - 1) * take;
+
+  const [rows, totalsResult] = await Promise.all([
     db.pengeluaran.findMany({
       where: filterTanggal,
       include: { petugas: true },
@@ -84,9 +90,9 @@ export async function getPengeluaranList(params: {
       skip,
       take,
     }),
-    db.pengeluaran.count({ where: filterTanggal }),
     getTotalPengeluaran({ tahunAjaranId, bulan }),
   ]);
+
 
   const { totalBulanIni: jumlahBulanIni, totalPerTahun } = totalsResult;
 
