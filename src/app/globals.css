@@ -1,27 +1,31 @@
 @import "tailwindcss";
 
-/* Token statis [Sumber] */
+/* Token statis [Modern Financial Dashboard] */
 @theme {
   --color-*: initial;
   --shadow-*: initial;
   --radius-*: initial;
 
   --color-paper: #ffffff;
-  --color-ink: #151515;
-  --color-graphite: #424242;
-  --color-steel: #706f6f;
-  --color-rule: #dcdcdc;
-  --color-edge: #cbcac8;
-  --color-ice: #f0f8f9;
-  --color-network-green: #29735c;
+  --color-surface: #ffffff;
+  --color-canvas: #f7f8fa;
+  --color-ink: #1f2937;
+  --color-graphite: #4b5563;
+  --color-steel: #6b7280;
+  --color-rule: #e5e7eb;
+  --color-edge: #d1d5db;
+  --color-ice: #f0fdf4;
+  --color-network-green: #16835d;
   --color-ledger-brown: #7b5953;
-  --color-alert: #b42318;      /* [Tambahan] */
+  --color-alert: #dc4c4c;
+  --color-ledger-blue: #4f86c0;
 
-  --radius-button: 2px;
+  --radius-button: 4px;
   --radius-control: 4px;
   --radius-card: 8px;
-  --radius-input: 0px;
-  --shadow-overlay: 0 20px 25px -5px rgb(0 0 0 / .04), 0 8px 10px -6px rgb(0 0 0 / .04);
+  --radius-input: 4px;
+  --shadow-xs: 0 1px 2px 0 rgb(0 0 0 / 0.05);
+  --shadow-overlay: 0 20px 25px -5px rgb(0 0 0 / 0.07), 0 8px 10px -6px rgb(0 0 0 / 0.05);
 
   --font-display: var(--font-manrope), ui-sans-serif, system-ui, sans-serif;
   --font-sans: var(--font-inter), ui-sans-serif, system-ui, sans-serif;
@@ -30,51 +34,66 @@
 
 /* Token semantik yang berganti saat tema berubah */
 :root {
-  --canvas: #ffffff;
-  --panel: #f0f8f9;
-  --text: #151515;
-  --text-2: #424242;
-  --text-3: #706f6f;
-  --line: #dcdcdc;
-  --line-strong: #cbcac8;
+  --canvas: #f7f8fa;
+  --surface: #ffffff;
+  --panel: #f3f4f6;
+  --text: #1f2937;
+  --text-2: #4b5563;
+  --text-3: #6b7280;
+  --line: #e5e7eb;
+  --line-strong: #d1d5db;
   --on-ink: #ffffff;
-  --accent: #29735c;
-  --accent-text: #29735c;
-  --series-in: #29735c;
-  --series-out: #151515;
-  --danger: #b42318;
-  --label: #7b5953;
+  --accent: #315e4b;
+  --accent-text: #16835d;
+  --series-in: #16835d;
+  --series-out: #4f86c0;
+  --danger: #dc4c4c;
+  --label: #6b7280;
 }
 
-/* [Tambahan] Tema gelap: turunan, tidak ada di situs sumber */
+/* Tema gelap */
 :root[data-theme="dark"] {
-  --canvas: #0e1411;
-  --panel: #16201c;
-  --text: #f1f3f2;
-  --text-2: #c3c9c6;
-  --text-3: #8f9a95;
-  --line: #25302b;
-  --line-strong: #34413b;
-  --on-ink: #0e1411;
-  --accent: #29735c;
-  --accent-text: #6fc3a5;
-  --series-in: #6fc3a5;
-  --series-out: #e6e8e7;
-  --danger: #f2877d;
-  --label: #c9a79f;
+  --canvas: #111827;
+  --surface: #1f2937;
+  --panel: #374151;
+  --text: #f9fafb;
+  --text-2: #e5e7eb;
+  --text-3: #9ca3af;
+  --line: #374151;
+  --line-strong: #4b5563;
+  --on-ink: #ffffff;
+  --accent: #315e4b;
+  --accent-text: #34d399;
+  --series-in: #34d399;
+  --series-out: #60a5fa;
+  --danger: #f87171;
+  --label: #9ca3af;
 }
+
 @media (prefers-color-scheme: dark) {
   :root[data-theme="system"] {
-    --canvas: #0e1411; --panel: #16201c; --text: #f1f3f2; --text-2: #c3c9c6;
-    --text-3: #8f9a95; --line: #25302b; --line-strong: #34413b; --on-ink: #0e1411;
-    --accent: #29735c; --accent-text: #6fc3a5; --series-in: #6fc3a5;
-    --series-out: #e6e8e7; --danger: #f2877d; --label: #c9a79f;
+    --canvas: #111827;
+    --surface: #1f2937;
+    --panel: #374151;
+    --text: #f9fafb;
+    --text-2: #e5e7eb;
+    --text-3: #9ca3af;
+    --line: #374151;
+    --line-strong: #4b5563;
+    --on-ink: #ffffff;
+    --accent: #315e4b;
+    --accent-text: #34d399;
+    --series-in: #34d399;
+    --series-out: #60a5fa;
+    --danger: #f87171;
+    --label: #9ca3af;
   }
 }
 
-/* Utilitas semantik: bg-canvas, bg-panel, text-text, border-line, ... */
+/* Utilitas semantik */
 @theme inline {
   --color-canvas: var(--canvas);
+  --color-surface: var(--surface);
   --color-panel: var(--panel);
   --color-text: var(--text);
   --color-text-2: var(--text-2);
@@ -90,14 +109,23 @@
   --color-label: var(--label);
 }
 
-body { background: var(--canvas); color: var(--text); font-family: var(--font-sans); font-weight: 360; }
-.num { font-variant-numeric: tabular-nums; }
+body {
+  background: var(--canvas);
+  color: var(--text);
+  font-family: var(--font-sans);
+  font-weight: 400;
+  -webkit-font-smoothing: antialiased;
+}
 
-/* Animasi transisi halaman */
+.num {
+  font-variant-numeric: tabular-nums;
+}
+
+/* Animasi transisi halaman halus */
 @keyframes pageFadeIn {
   from {
-    opacity: 0.6;
-    transform: translateY(3px);
+    opacity: 0.85;
+    transform: translateY(2px);
   }
   to {
     opacity: 1;
@@ -106,10 +134,10 @@ body { background: var(--canvas); color: var(--text); font-family: var(--font-sa
 }
 
 .page-transition {
-  animation: pageFadeIn 0.22s cubic-bezier(0.16, 1, 0.3, 1) both;
+  animation: pageFadeIn 0.18s cubic-bezier(0.16, 1, 0.3, 1) both;
 }
 
-/* Animasi top progress bar saat navigasi */
+/* Progress bar navigasi atas */
 @keyframes indeterminateProgress {
   0% {
     transform: translateX(-100%);

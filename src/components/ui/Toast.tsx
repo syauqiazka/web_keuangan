@@ -45,7 +45,7 @@ export function ToastProvider({ children }: { children: React.ReactNode }) {
     <ToastContext.Provider value={{ toast, showToast }}>
       {children}
       <div
-        className="fixed bottom-4 right-4 z-50 flex flex-col gap-2 max-w-sm w-full pointer-events-none"
+        className="fixed bottom-5 right-5 z-50 flex flex-col gap-2 max-w-sm w-full pointer-events-none"
         aria-live="polite"
         aria-atomic="false"
       >
@@ -54,10 +54,10 @@ export function ToastProvider({ children }: { children: React.ReactNode }) {
             <motion.div
               key={t.id}
               role="status"
-              className={`pointer-events-auto bg-canvas border rounded-[4px] p-3 shadow-overlay text-[14px] leading-snug ${
+              className={`pointer-events-auto bg-surface border rounded-[6px] p-3.5 shadow-overlay text-[13px] font-medium leading-snug flex items-start gap-2.5 ${
                 t.type === "error"
-                  ? "border-danger text-danger"
-                  : "border-line-strong text-text"
+                  ? "border-danger/30 text-danger"
+                  : "border-line text-text"
               }`}
               initial="hidden"
               animate="visible"
@@ -65,7 +65,12 @@ export function ToastProvider({ children }: { children: React.ReactNode }) {
               variants={slideRight}
               layout
             >
-              {t.message}
+              <span
+                className={`w-1.5 h-1.5 rounded-full mt-1.5 shrink-0 ${
+                  t.type === "error" ? "bg-danger" : "bg-accent"
+                }`}
+              />
+              <span className="flex-1">{t.message}</span>
             </motion.div>
           ))}
         </AnimatePresence>

@@ -8,6 +8,7 @@ import { Button } from "@/components/ui/Button";
 import { Select } from "@/components/ui/Select";
 import { DataGrid, type ColumnDef } from "@/components/ui/DataGrid";
 import { useToast } from "@/components/ui/Toast";
+import { FadeIn } from "@/components/motion/FadeIn";
 import { generateUID } from "@/lib/uid";
 import {
   simpanBatchAnggotaAction,
@@ -184,51 +185,60 @@ export function DataSiswaGuruClient({
   return (
     <div className="space-y-6">
       {/* Header Halaman */}
-      <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-4 pb-4 border-b border-line">
-        <h1 className="text-[32px] font-[400] font-display text-text leading-[1.25]">
-          Data Siswa & Guru
-        </h1>
-        <div className="flex items-center gap-2">
-          <Button
-            type="button"
-            variant="secondary"
-            size="sm"
-            onClick={() => setIsEditing((prev) => !prev)}
-          >
-            {isEditing ? "Batal" : "Input"}
-          </Button>
+      <FadeIn>
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-5 border-b border-line">
+          <div>
+            <h1 className="text-[24px] lg:text-[28px] font-semibold text-text tracking-tight">
+              Data Siswa & Guru
+            </h1>
+            <p className="text-[13px] text-text-3 mt-0.5">
+              Direktori siswa per kelas dan tenaga pendidik dengan kode UID unik
+            </p>
+          </div>
+          <div className="flex items-center gap-2">
+            <Button
+              type="button"
+              variant={isEditing ? "secondary" : "primary"}
+              size="md"
+              onClick={() => setIsEditing((prev) => !prev)}
+            >
+              {isEditing ? "Batal Edit" : "Input Data"}
+            </Button>
+          </div>
         </div>
-      </div>
+      </FadeIn>
 
       {/* Form Filter (GET) – Enter */}
       {!isEditing && (
-        <form
-          method="GET"
-          action="/data-siswa-guru"
-          className="flex flex-wrap items-end gap-3"
-        >
-          <div className="flex-1 min-w-[180px]">
-            <Select
-              name="tahunAjaran"
-              label="Tahun Ajaran"
-              defaultValue={tahunAjaranId}
-              options={tahunOptions}
-            />
-          </div>
-          <div className="flex-1 min-w-[160px]">
-            <Select
-              name="kelas"
-              label="Kelas"
-              defaultValue={kelasId}
-              options={kelasOptions}
-            />
-          </div>
-          <div className="pb-0.5">
-            <Button type="submit" variant="primary" size="sm">
-              Enter
-            </Button>
-          </div>
-        </form>
+        <div className="bg-surface border border-line rounded-[8px] p-4 shadow-xs">
+          <form
+            method="GET"
+            action="/data-siswa-guru"
+            className="flex flex-wrap items-end gap-3"
+          >
+            <div className="flex-1 min-w-[200px]">
+              <Select
+                name="tahunAjaran"
+                label="Tahun Ajaran"
+                defaultValue={tahunAjaranId}
+                options={tahunOptions}
+              />
+            </div>
+            <div className="flex-1 min-w-[180px]">
+              <Select
+                name="kelas"
+                label="Kelas / Guru"
+                defaultValue={kelasId}
+                options={kelasOptions}
+              />
+            </div>
+            <div className="pb-0.5">
+              <Button type="submit" variant="primary" size="md">
+                Enter
+              </Button>
+            </div>
+          </form>
+        </div>
       )}
 
       {/* DataGrid dengan mode baca / edit dan paste Excel */}

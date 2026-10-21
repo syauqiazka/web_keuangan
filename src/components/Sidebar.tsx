@@ -3,8 +3,7 @@
 import Image from "next/image";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { useState } from "react";
-import { motion, AnimatePresence } from "motion/react";
+import { useState, useEffect, useRef } from "react";
 import {
   LayoutDashboard,
   Users,
@@ -14,8 +13,10 @@ import {
   Menu,
   X,
 } from "lucide-react";
+import gsap from "gsap";
+import { useGSAP } from "@gsap/react";
+import { checkReducedMotion, GSAP_EASE } from "@/lib/motion";
 import type { SessionUser } from "@/server/auth/session";
-import { EASE, DURATION } from "@/lib/motion";
 
 interface MenuItem {
   name: string;
@@ -39,7 +40,8 @@ function NavLink({
   onClick?: () => void;
 }) {
   const pathname = usePathname();
-  const isActive = pathname === item.href || pathname.startsWith(`${item.href}/`);
+  const isActive =
+    pathname === item.href || (item.href !== "/dashboard" && pathname.startsWith(`${item.href}/`));
   const Icon = item.icon;
 
   return (
@@ -47,124 +49,192 @@ function NavLink({
       href={item.href}
       prefetch={false}
       onClick={onClick}
-      className={`relative flex items-center gap-3 px-3 py-2 h-9 text-[14px] rounded-[4px] transition-colors ${
+      className={`group flex items-center gap-3 px-3 py-2 text-[13px] rounded-[6px] transition-all duration-150 ${
         isActive
-          ? "font-semibold text-text"
-          : "font-[500] text-text hover:bg-panel"
+          ? "bg-surface text-accent font-semibold shadow-xs border border-line"
+          : "text-text-2 font-medium hover:text-text hover:bg-panel border border-transparent"
       }`}
     >
-      {/* Active pill indicator */}
-      {isActive && (
-        <motion.span
-          layoutId="sidebar-active"
-          className="absolute inset-0 rounded-[4px] outline outline-1 outline-text -outline-offset-1 bg-canvas"
-          style={{ zIndex: -1 }}
-          transition={{ type: "spring", stiffness: 380, damping: 34 }}
-        />
-      )}
-      <Icon className="w-4 h-4 text-text shrink-0" strokeWidth={1.5} />
+      <Icon
+        className={`w-4 h-4 shrink-0 transition-colors ${
+          isActive ? "text-accent" : "text-text-3 group-hover:text-text"
+        }`}
+        strokeWidth={isActive ? 2 : 1.75}
+      />
       <span>{item.name}</span>
     </Link>
   );
 }
 
+function MobileDrawer({
+  isOpen,
+  onClose,
+  user,
+  initials,
+}: {
+  isOpen: boolean;
+  onClose: () => void;
+  user?: SessionUser | null;
+  initials: string;
+}) {
+  const containerRef = useRef<HTMLDivElement>(null);
+  const backdropRef = useRef<HTMLDivElement>(null);
+  const menuRef = useRef<HTMLDivElement>(null);
+
+  useGSAP(
+    () => {
+      if (!isOpen || !containerRef.current) return;
+      if (checkReducedMotion()) return;
+
+      const tl = gsap.timeline();
+      tl.fromTo(
+        backdropRef.current,
+        { opacity: 0 },
+        { opacity: 1, duration: 0.2, ease: "power2.out" }
+      ).fromTo(
+        menuRef.current,
+        { y: -14, opacity: 0 },
+        { y: 0, opacity: 1, duration: 0.26, ease: GSAP_EASE.atmos },
+        "<0.04"
+      );
+    },
+    { dependencies: [isOpen], scope: containerRef }
+  );
+
+  if (!isOpen) return null;
+
+  return (
+    <div ref={containerRef} className="lg:hidden fixed inset-0 z-40">
+      <div
+        ref={backdropRef}
+        className="fixed inset-0 bg-black/40 backdrop-blur-[2px]"
+        onClick={onClose}
+      />
+      <div
+        ref={menuRef}
+        className="fixed top-[57px] left-0 right-0 bg-surface border-b border-line shadow-overlay p-4 space-y-4 max-h-[calc(100vh-57px)] overflow-y-auto"
+      >
+        <nav className="space-y-1">
+          {MENU_ITEMS.map((item) => (
+            <NavLink key={item.href} item={item} onClick={onClose} />
+          ))}
+        </nav>
+        {user && (
+          <div className="pt-3 border-t border-line flex items-center justify-between">
+            <div className="flex items-center gap-2.5">
+              <div className="w-7 h-7 rounded bg-accent/10 text-accent font-semibold text-[11px] flex items-center justify-center">
+                {initials}
+              </div>
+              <div>
+                <div className="text-[13px] font-medium text-text leading-tight">
+                  {user.nama}
+                </div>
+                <div className="text-[11px] font-mono text-text-3">
+                  {user.peran}
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
+      </div>
+    </div>
+  );
+}
+
 export function Sidebar({ user }: { user?: SessionUser | null }) {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const pathname = usePathname();
+  const [prevPathname, setPrevPathname] = useState(pathname);
+
+  // Close mobile drawer on route change using React state adjustment pattern
+  if (pathname !== prevPathname) {
+    setPrevPathname(pathname);
+    setMobileMenuOpen(false);
+  }
+
+  // Lock body scroll when mobile drawer is open
+  useEffect(() => {
+    if (mobileMenuOpen) {
+      document.body.style.overflow = "hidden";
+    } else {
+      document.body.style.overflow = "";
+    }
+    return () => {
+      document.body.style.overflow = "";
+    };
+  }, [mobileMenuOpen]);
+
+  const initials = user?.nama
+    ? user.nama
+        .split(" ")
+        .slice(0, 2)
+        .map((n) => n[0])
+        .join("")
+        .toUpperCase()
+    : "U";
 
   return (
     <>
-      {/* Mobile Bar (< 1024px) */}
-      <div className="lg:hidden w-full bg-canvas border-b border-line px-4 py-3 flex items-center justify-between sticky top-0 z-20">
-        <div className="flex items-center gap-3">
+      {/* Mobile Top Bar (< 1024px) */}
+      <div className="lg:hidden w-full bg-surface border-b border-line px-4 py-3 flex items-center justify-between sticky top-0 z-30">
+        <Link href="/dashboard" className="flex items-center gap-3">
           <Image
             src="/logo-bank-saku-digital.jpeg"
             alt="Logo Bank Saku Digital"
-            width={40}
-            height={40}
-            className="w-10 h-10 object-contain"
+            width={36}
+            height={36}
+            className="w-9 h-9 object-contain rounded"
             priority
           />
           <div>
-            <div className="text-[14px] font-semibold text-text leading-tight">
+            <div className="text-[13px] font-semibold text-text leading-tight">
               Pencatatan Keuangan Sekolah
             </div>
-            <div className="text-[14px] font-[360] text-text-3 leading-tight">
+            <div className="text-[12px] text-text-3 leading-tight">
               Bank Saku Digital
             </div>
           </div>
-        </div>
-        <motion.button
+        </Link>
+        <button
           type="button"
           onClick={() => setMobileMenuOpen((prev) => !prev)}
-          className="p-2 text-text rounded-[4px] hover:bg-panel focus:outline-none"
-          aria-label={mobileMenuOpen ? "Tutup menu" : "Buka menu"}
-          whileTap={{ scale: 0.92 }}
-          transition={{ type: "spring", stiffness: 500, damping: 28 }}
+          className="p-2 text-text rounded-[4px] border border-line-strong hover:bg-panel focus:outline-none transition-colors"
+          aria-label={mobileMenuOpen ? "Tutup navigasi" : "Buka navigasi"}
+          aria-expanded={mobileMenuOpen}
         >
-          <AnimatePresence mode="wait" initial={false}>
-            {mobileMenuOpen ? (
-              <motion.span
-                key="close"
-                initial={{ opacity: 0, rotate: -45 }}
-                animate={{ opacity: 1, rotate: 0 }}
-                exit={{ opacity: 0, rotate: 45 }}
-                transition={{ duration: DURATION.fast }}
-              >
-                <X className="w-5 h-5 text-text" strokeWidth={1.5} />
-              </motion.span>
-            ) : (
-              <motion.span
-                key="menu"
-                initial={{ opacity: 0, rotate: 45 }}
-                animate={{ opacity: 1, rotate: 0 }}
-                exit={{ opacity: 0, rotate: -45 }}
-                transition={{ duration: DURATION.fast }}
-              >
-                <Menu className="w-5 h-5 text-text" strokeWidth={1.5} />
-              </motion.span>
-            )}
-          </AnimatePresence>
-        </motion.button>
+          {mobileMenuOpen ? (
+            <X className="w-4 h-4 text-text" strokeWidth={1.75} />
+          ) : (
+            <Menu className="w-4 h-4 text-text" strokeWidth={1.75} />
+          )}
+        </button>
       </div>
 
       {/* Mobile Drawer */}
-      <AnimatePresence>
-        {mobileMenuOpen && (
-          <motion.nav
-            className="lg:hidden bg-canvas border-b border-line px-4 py-2 space-y-1 overflow-hidden"
-            initial={{ opacity: 0, height: 0 }}
-            animate={{ opacity: 1, height: "auto" }}
-            exit={{ opacity: 0, height: 0 }}
-            transition={{ duration: DURATION.base, ease: EASE.decel }}
-          >
-            {MENU_ITEMS.map((item) => (
-              <NavLink
-                key={item.href}
-                item={item}
-                onClick={() => setMobileMenuOpen(false)}
-              />
-            ))}
-          </motion.nav>
-        )}
-      </AnimatePresence>
+      <MobileDrawer
+        isOpen={mobileMenuOpen}
+        onClose={() => setMobileMenuOpen(false)}
+        user={user}
+        initials={initials}
+      />
 
       {/* Desktop Sidebar (>= 1024px) */}
-      <aside className="hidden lg:flex flex-col w-[240px] shrink-0 min-h-screen bg-canvas border-r border-line sticky top-0 h-screen">
+      <aside className="hidden lg:flex flex-col w-[240px] shrink-0 min-h-screen bg-surface border-r border-line sticky top-0 h-screen select-none">
         {/* Header Identitas */}
         <div className="p-4 border-b border-line flex items-center gap-3">
           <Image
             src="/logo-bank-saku-digital.jpeg"
             alt="Logo Bank Saku Digital"
-            width={40}
-            height={40}
-            className="w-10 h-10 object-contain"
+            width={38}
+            height={38}
+            className="w-[38px] h-[38px] object-contain rounded"
             priority
           />
           <div className="min-w-0">
-            <h1 className="text-[14px] font-semibold text-text leading-tight truncate">
-              Pencatatan Keuangan Sekolah
+            <h1 className="text-[13px] font-semibold text-text leading-tight truncate">
+              Pencatatan Keuangan
             </h1>
-            <p className="text-[14px] font-[360] text-text-3 leading-tight truncate">
+            <p className="text-[12px] text-text-3 leading-tight truncate">
               Bank Saku Digital
             </p>
           </div>
@@ -179,9 +249,22 @@ export function Sidebar({ user }: { user?: SessionUser | null }) {
 
         {/* Profil Singkat di Bawah Sidebar */}
         {user && (
-          <div className="p-4 border-t border-line text-[14px]">
-            <div className="font-semibold text-text truncate">{user.nama}</div>
-            <div className="text-text-3 font-mono text-[12px]">{user.peran}</div>
+          <div className="p-3.5 border-t border-line bg-panel/30">
+            <div className="flex items-center gap-2.5">
+              <div className="w-8 h-8 rounded bg-accent/10 text-accent font-semibold text-[12px] flex items-center justify-center shrink-0 border border-accent/20">
+                {initials}
+              </div>
+              <div className="min-w-0 flex-1">
+                <div className="text-[13px] font-medium text-text truncate leading-tight">
+                  {user.nama}
+                </div>
+                <div className="flex items-center gap-1.5 mt-0.5">
+                  <span className="inline-block text-[10px] font-mono uppercase px-1.5 py-0.2 rounded bg-panel border border-line text-text-3 leading-none">
+                    {user.peran}
+                  </span>
+                </div>
+              </div>
+            </div>
           </div>
         )}
       </aside>

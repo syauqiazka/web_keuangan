@@ -1,45 +1,69 @@
 "use client";
 
 /**
- * StaggerGroup — menganimasikan anak-anaknya secara berurutan (stagger).
- * Dipakai untuk daftar kartu, baris ringkasan, dan grup elemen sejenis.
+ * StaggerGroup — menganimasikan sekumpulan elemen anak secara berurutan
+ * dengan GSAP stagger timeline. Sangat halus, teratur, dan bebas layout shift.
  */
 
 import * as React from "react";
-import { motion } from "motion/react";
-import { staggerContainer, staggerItem } from "@/lib/motion";
-import { useMotionContext } from "./MotionProvider";
+import gsap from "gsap";
+import { useGSAP } from "@gsap/react";
+import { checkReducedMotion, GSAP_DURATION, GSAP_EASE } from "@/lib/motion";
 
 interface StaggerGroupProps {
   children: React.ReactNode;
   className?: string;
-  /** Jarak delay antar anak dalam detik. Default 0.07 */
   staggerDelay?: number;
+  duration?: number;
+  distance?: number;
   as?: keyof React.JSX.IntrinsicElements;
 }
 
 export function StaggerGroup({
   children,
   className,
-  staggerDelay = 0.07,
-  as = "div",
+  staggerDelay = 0.08,
+  duration = GSAP_DURATION.base,
+  distance = 16,
+  as: Component = "div",
 }: StaggerGroupProps) {
-  const { reducedMotion } = useMotionContext();
-  const Tag = motion[as as keyof typeof motion] as typeof motion.div;
+  const containerRef = React.useRef<HTMLDivElement>(null);
 
-  if (reducedMotion) {
-    return React.createElement(as, { className }, children);
-  }
+  useGSAP(
+    () => {
+      if (!containerRef.current) return;
+      if (checkReducedMotion()) {
+        const items = containerRef.current.querySelectorAll("[data-stagger-item]");
+        gsap.set(items, { opacity: 1, y: 0 });
+        return;
+      }
 
-  return (
-    <Tag
-      className={className}
-      initial="hidden"
-      animate="visible"
-      variants={staggerContainer(staggerDelay)}
-    >
-      {children}
-    </Tag>
+      const items = containerRef.current.querySelectorAll("[data-stagger-item]");
+      if (!items.length) return;
+
+      gsap.fromTo(
+        items,
+        {
+          opacity: 0,
+          y: distance,
+        },
+        {
+          opacity: 1,
+          y: 0,
+          duration,
+          stagger: staggerDelay,
+          ease: GSAP_EASE.atmos,
+          clearProps: "transform",
+        }
+      );
+    },
+    { dependencies: [staggerDelay, duration, distance], scope: containerRef }
+  );
+
+  return React.createElement(
+    Component,
+    { ref: containerRef, className },
+    children
   );
 }
 
@@ -52,18 +76,11 @@ interface StaggerItemProps {
 export function StaggerItem({
   children,
   className,
-  as = "div",
+  as: Component = "div",
 }: StaggerItemProps) {
-  const { reducedMotion } = useMotionContext();
-  const Tag = motion[as as keyof typeof motion] as typeof motion.div;
-
-  if (reducedMotion) {
-    return React.createElement(as, { className }, children);
-  }
-
-  return (
-    <Tag className={className} variants={staggerItem}>
-      {children}
-    </Tag>
+  return React.createElement(
+    Component,
+    { className, "data-stagger-item": "" },
+    children
   );
 }

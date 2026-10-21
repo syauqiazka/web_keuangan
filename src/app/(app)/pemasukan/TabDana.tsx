@@ -160,7 +160,7 @@ export function TabDana({
           value={typeof value === "string" && value ? value : (sumberList[0]?.id ?? "")}
           onChange={(e) => onChange(e.target.value)}
           onKeyDown={inputProps.onKeyDown}
-          className="w-full bg-canvas text-[14px] px-2 py-1 border border-line-strong rounded-none outline-none focus:outline-2 focus:outline-accent -outline-offset-1 text-text"
+          className="w-full bg-surface text-[13px] px-2 py-1 border border-line-strong rounded-[3px] outline-none focus:ring-2 focus:ring-accent/20 focus:border-accent text-text"
         >
           {sumberList.map((s) => (
             <option key={s.id} value={s.id}>
@@ -221,15 +221,15 @@ export function TabDana({
 
   return (
     <div className="space-y-4">
-      <div className="flex items-center justify-between pb-2 border-b border-line">
+      <div className="flex items-center justify-between pb-3 border-b border-line">
         <div className="flex items-center gap-2">
           <Button
             type="button"
-            variant="secondary"
+            variant={isEditing ? "secondary" : "primary"}
             size="sm"
             onClick={() => setIsEditing((prev) => !prev)}
           >
-            {isEditing ? "Batal" : "Input"}
+            {isEditing ? "Batal Edit" : "Input Data"}
           </Button>
 
           {isEditing && (

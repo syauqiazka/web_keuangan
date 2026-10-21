@@ -47,7 +47,7 @@ export function GantiPasswordModal({
         {state?.error && (
           <div
             role="alert"
-            className="p-3 text-[14px] text-danger border border-danger bg-canvas"
+            className="p-3 rounded-[4px] text-[13px] text-danger border border-danger/30 bg-danger/5"
           >
             {state.error}
           </div>

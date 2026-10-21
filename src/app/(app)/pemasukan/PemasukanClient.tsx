@@ -6,6 +6,8 @@ import { Select } from "@/components/ui/Select";
 import { Button } from "@/components/ui/Button";
 import { FadeIn } from "@/components/motion/FadeIn";
 import { StaggerGroup, StaggerItem } from "@/components/motion/StaggerGroup";
+import { AnimatedNumber } from "@/components/motion/AnimatedNumber";
+import { formatRupiah } from "@/lib/money";
 import { TabDariSiswa } from "@/app/(app)/pemasukan/TabDariSiswa";
 import { TabDana } from "@/app/(app)/pemasukan/TabDana";
 import type {
@@ -109,94 +111,121 @@ export function PemasukanClient({
     <div className="space-y-6">
       {/* Header */}
       <FadeIn>
-        <div className="pb-4 border-b border-line">
-          <h1 className="text-[32px] font-[400] font-display text-text leading-[1.25]">
-            Pemasukan
+        <div className="pb-5 border-b border-line">
+          <h1 className="text-[24px] lg:text-[28px] font-semibold text-text tracking-tight">
+            Pemasukan Sekolah
           </h1>
+          <p className="text-[13px] text-text-3 mt-0.5">
+            Pencatatan dan pemantauan pembayaran siswa, bantuan dana pemerintah, dan donatur
+          </p>
         </div>
       </FadeIn>
 
       {/* Ringkasan */}
       <div className="space-y-3">
-        <StaggerGroup className="grid grid-cols-1 sm:grid-cols-2 gap-4" staggerDelay={0.1}>
+        <StaggerGroup className="grid grid-cols-1 sm:grid-cols-2 gap-4" staggerDelay={0.08}>
           <StaggerItem>
-            <div className="bg-canvas p-6 border border-line rounded-[8px]">
-              <div className="text-[12px] font-[500] font-mono text-label uppercase tracking-[0.08em] mb-2">
-                {labelBulan}
+            <div className="bg-surface p-5 lg:p-6 border border-line rounded-[8px] shadow-xs relative overflow-hidden flex flex-col justify-between">
+              <div className="absolute top-0 left-0 right-0 h-1 bg-network-green" />
+              <div>
+                <div className="text-[11px] font-mono font-medium text-text-3 uppercase tracking-wider mb-2">
+                  {labelBulan}
+                </div>
+                <div className="text-[26px] lg:text-[30px] font-semibold text-text leading-tight num">
+                  <AnimatedNumber
+                    value={ringkasan.jumlahBulanIni}
+                    format={formatRupiah}
+                    duration={0.6}
+                  />
+                </div>
               </div>
-              <div className="text-[32px] font-[400] font-display text-text leading-[1.25] num">
-                {ringkasan.jumlahBulanIniFormatted}
+              <div className="mt-3 text-[12px] text-text-3">
+                Kumulatif SPP, daftar ulang, bantuan & donatur bulan terpilih
               </div>
             </div>
           </StaggerItem>
           <StaggerItem>
-            <div className="bg-canvas p-6 border border-line rounded-[8px]">
-              <div className="text-[12px] font-[500] font-mono text-label uppercase tracking-[0.08em] mb-2">
-                Total Pemasukan Per Tahun
+            <div className="bg-surface p-5 lg:p-6 border border-line rounded-[8px] shadow-xs relative overflow-hidden flex flex-col justify-between">
+              <div className="absolute top-0 left-0 right-0 h-1 bg-accent" />
+              <div>
+                <div className="text-[11px] font-mono font-medium text-text-3 uppercase tracking-wider mb-2">
+                  Total Pemasukan Per Tahun
+                </div>
+                <div className="text-[26px] lg:text-[30px] font-semibold text-text leading-tight num">
+                  <AnimatedNumber
+                    value={ringkasan.totalPerTahun}
+                    format={formatRupiah}
+                    duration={0.65}
+                  />
+                </div>
               </div>
-              <div className="text-[32px] font-[400] font-display text-text leading-[1.25] num">
-                {ringkasan.totalPerTahunFormatted}
+              <div className="mt-3 text-[12px] text-text-3">
+                Total penerimaan seluruh kelas dan sumber tahun ajaran berjalan
               </div>
             </div>
           </StaggerItem>
         </StaggerGroup>
 
-        {/* Baris rincian per jenis berupa daftar label-angka (DESIGN.md bagian 8) */}
+        {/* Baris rincian per jenis */}
         {ringkasan.perJenis.length > 0 && (
-          <div className="flex flex-wrap items-center gap-x-6 gap-y-1.5 text-[13px] text-text-2 py-2 px-1">
-            <span className="font-mono text-[12px] text-label uppercase tracking-[0.06em]">
-              Rincian:
-            </span>
-            {ringkasan.perJenis.map((item) => (
-              <span key={item.nama} className="flex gap-1.5 items-center">
-                <span className="text-text-3 font-[360]">{item.nama}:</span>
-                <span className="font-[500] text-text num">{item.totalFormatted}</span>
+          <div className="bg-surface border border-line rounded-[8px] px-4 py-3 shadow-xs">
+            <div className="flex flex-wrap items-center gap-x-5 gap-y-2 text-[13px]">
+              <span className="font-mono text-[11px] font-medium text-text-3 uppercase tracking-wider">
+                Rincian:
               </span>
-            ))}
+              {ringkasan.perJenis.map((item) => (
+                <span key={item.nama} className="flex gap-1.5 items-center px-2 py-0.5 rounded bg-panel border border-line/60">
+                  <span className="text-text-3 font-normal">{item.nama}:</span>
+                  <span className="font-semibold text-text num">{item.totalFormatted}</span>
+                </span>
+              ))}
+            </div>
           </div>
         )}
       </div>
 
-      {/* Filter */}
-      <form method="GET" action="/pemasukan" className="flex flex-wrap items-end gap-3">
-        <input type="hidden" name="tab" value={tab} />
-        <div className="flex-1 min-w-[180px]">
-          <Select
-            name="tahunAjaran"
-            label="Tahun Ajaran"
-            defaultValue={tahunAjaranId}
-            options={[
-              { value: "", label: "— Semua Tahun Ajaran —" },
-              ...tahunAjaranList.map((ta) => ({ value: ta.id, label: ta.nama })),
-            ]}
-          />
-        </div>
-        <div className="min-w-[140px]">
-          <Select
-            name="kelas"
-            label="Kelas"
-            defaultValue={kelasId}
-            options={kelasOptions}
-          />
-        </div>
-        <div className="min-w-[120px]">
-          <Select
-            name="bulan"
-            label="Bulan"
-            defaultValue={bulanNomor}
-            options={BULAN_OPTIONS}
-          />
-        </div>
-        <div className="pb-0.5">
-          <Button type="submit" variant="primary" size="sm">
-            Tarik Data
-          </Button>
-        </div>
-      </form>
+      {/* Filter Toolbar */}
+      <div className="bg-surface border border-line rounded-[8px] p-4 shadow-xs">
+        <form method="GET" action="/pemasukan" className="flex flex-wrap items-end gap-3">
+          <input type="hidden" name="tab" value={tab} />
+          <div className="flex-1 min-w-[200px]">
+            <Select
+              name="tahunAjaran"
+              label="Tahun Ajaran"
+              defaultValue={tahunAjaranId}
+              options={[
+                { value: "", label: "— Semua Tahun Ajaran —" },
+                ...tahunAjaranList.map((ta) => ({ value: ta.id, label: ta.nama })),
+              ]}
+            />
+          </div>
+          <div className="min-w-[150px]">
+            <Select
+              name="kelas"
+              label="Kelas"
+              defaultValue={kelasId}
+              options={kelasOptions}
+            />
+          </div>
+          <div className="min-w-[140px]">
+            <Select
+              name="bulan"
+              label="Bulan"
+              defaultValue={bulanNomor}
+              options={BULAN_OPTIONS}
+            />
+          </div>
+          <div className="pb-0.5">
+            <Button type="submit" variant="primary" size="md">
+              Tarik Data
+            </Button>
+          </div>
+        </form>
+      </div>
 
       {/* Tabs */}
       <div>
-        <div className="flex gap-6 border-b border-line">
+        <div className="flex gap-2 border-b border-line">
           {TABS.map((t) => (
             <button
               key={t.key}
@@ -206,10 +235,10 @@ export function PemasukanClient({
                   buildUrl({ tahunAjaranId, kelasId, bulan: bulanNomor, tab: t.key })
                 )
               }
-              className={`pb-2 text-[14px] font-[500] border-b-2 transition-colors -mb-px ${
+              className={`px-4 py-2.5 text-[13px] font-medium border-b-2 transition-all -mb-px rounded-t-[4px] ${
                 tab === t.key
-                  ? "border-text text-text font-[600]"
-                  : "border-transparent text-text-3 hover:text-text-2"
+                  ? "border-accent text-accent font-semibold bg-surface"
+                  : "border-transparent text-text-3 hover:text-text hover:bg-panel/50"
               }`}
             >
               {t.label}

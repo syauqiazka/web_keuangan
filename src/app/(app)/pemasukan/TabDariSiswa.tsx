@@ -321,15 +321,15 @@ export function TabDariSiswa({
   return (
     <div className="space-y-4">
       {/* Toolbar Aksi Tab */}
-      <div className="flex flex-wrap items-center justify-between gap-3 pb-2 border-b border-line">
+      <div className="flex flex-wrap items-center justify-between gap-3 pb-3 border-b border-line">
         <div className="flex items-center gap-2">
           <Button
             type="button"
-            variant="secondary"
+            variant={isEditing ? "secondary" : "primary"}
             size="sm"
             onClick={() => setIsEditing((prev) => !prev)}
           >
-            {isEditing ? "Batal" : "Input"}
+            {isEditing ? "Batal Edit" : "Input Pembayaran"}
           </Button>
 
           {isEditing && (
@@ -339,41 +339,42 @@ export function TabDariSiswa({
               size="sm"
               onClick={() => setDialogKolomOpen(true)}
             >
-              + Tambah Kolom
+              + Tambah Kolom Jenis
             </Button>
           )}
         </div>
 
         <div className="flex items-center gap-4 text-[12px] text-text-3">
-          <span>
-            <span className="text-danger font-[600]">Nominal Merah</span> = belum lunas (kurang dari standar)
+          <span className="flex items-center gap-1.5">
+            <span className="w-2 h-2 rounded-full bg-danger inline-block" />
+            <span className="text-danger font-medium">Nominal Merah</span> = belum lunas (kurang dari patokan)
           </span>
         </div>
       </div>
 
       {/* Grid Tabel Lebar */}
-      <div className="w-full overflow-x-auto border border-line">
+      <div className="w-full overflow-x-auto border border-line bg-surface rounded-[8px] shadow-xs">
         <table className="border-collapse text-[13px] w-full" style={{ minWidth: "900px" }}>
           <thead>
             {/* Header Grup Pemasukan */}
-            <tr className="border-b border-line-strong bg-canvas">
+            <tr className="border-b border-line bg-panel/70 text-text">
               <th
                 rowSpan={2}
-                className="px-3 py-2.5 text-right font-semibold text-text sticky left-0 bg-canvas z-20 border-r border-line"
+                className="px-3 py-2.5 text-right font-semibold sticky left-0 bg-surface z-20 border-r border-line"
                 style={{ width: "48px" }}
               >
                 No
               </th>
               <th
                 rowSpan={2}
-                className="px-3 py-2.5 text-left font-semibold text-text sticky left-12 bg-canvas z-20 border-r border-line"
+                className="px-3 py-2.5 text-left font-semibold sticky left-12 bg-surface z-20 border-r border-line"
                 style={{ minWidth: "160px" }}
               >
                 Nama Siswa
               </th>
               <th
                 rowSpan={2}
-                className="px-3 py-2.5 text-left font-semibold text-text sticky left-[208px] bg-canvas z-20 border-r border-line-strong"
+                className="px-3 py-2.5 text-left font-semibold sticky left-[208px] bg-surface z-20 border-r border-line"
                 style={{ width: "110px" }}
               >
                 Kode UID
@@ -389,15 +390,15 @@ export function TabDariSiswa({
                   <th
                     key={jenis.id}
                     colSpan={colSpanCount}
-                    className="px-3 py-2 text-center font-semibold text-text border-r border-line-strong last:border-r-0"
+                    className="px-3 py-2 text-center font-semibold border-r border-line last:border-r-0"
                   >
-                    <div className="font-semibold text-[14px]">{jenis.nama}</div>
+                    <div className="font-semibold text-[13px]">{jenis.nama}</div>
                     {jenis.nominalStandar !== null ? (
-                      <div className="text-[12px] font-normal text-text-3 font-mono">
+                      <div className="text-[11px] font-normal text-text-3 font-mono mt-0.5">
                         Standar: {formatRupiah(jenis.nominalStandar)}
                       </div>
                     ) : (
-                      <div className="text-[11px] font-normal text-text-3 italic">
+                      <div className="text-[11px] font-normal text-text-3 italic mt-0.5">
                         Tanpa patokan lunas
                       </div>
                     )}
@@ -408,7 +409,7 @@ export function TabDariSiswa({
               {isEditing && (
                 <th
                   rowSpan={2}
-                  className="px-3 py-2 text-center font-semibold text-text border-l border-line-strong"
+                  className="px-3 py-2 text-center font-semibold text-text-2 border-l border-line"
                   style={{ width: "100px" }}
                 >
                   Aksi
@@ -417,34 +418,34 @@ export function TabDariSiswa({
             </tr>
 
             {/* Sub-Header Kolom */}
-            <tr className="border-b border-line bg-canvas">
+            <tr className="border-b border-line bg-panel/50 text-text-3">
               {sortedJenis.map((jenis) =>
                 jenis.bulanan ? (
                   // SPP: 4 sub-kolom
                   <React.Fragment key={`${jenis.id}-subheaders`}>
-                    <th className="px-2 py-1.5 text-[12px] font-[500] text-text-3 text-left border-r border-line">
+                    <th className="px-2 py-1.5 text-[11px] font-medium text-left border-r border-line">
                       Tanggal
                     </th>
-                    <th className="px-2 py-1.5 text-[12px] font-[500] text-text-3 text-left border-r border-line">
+                    <th className="px-2 py-1.5 text-[11px] font-medium text-left border-r border-line">
                       Bulan Terbayar
                     </th>
-                    <th className="px-2 py-1.5 text-[12px] font-[500] text-text-3 text-center border-r border-line w-16">
+                    <th className="px-2 py-1.5 text-[11px] font-medium text-center border-r border-line w-16">
                       Metode
                     </th>
-                    <th className="px-2 py-1.5 text-[12px] font-[500] text-text-3 text-right border-r border-line-strong">
+                    <th className="px-2 py-1.5 text-[11px] font-medium text-right border-r border-line">
                       Nominal & Petugas
                     </th>
                   </React.Fragment>
                 ) : (
                   // Jenis lain: 3 sub-kolom
                   <React.Fragment key={`${jenis.id}-subheaders`}>
-                    <th className="px-2 py-1.5 text-[12px] font-[500] text-text-3 text-left border-r border-line">
+                    <th className="px-2 py-1.5 text-[11px] font-medium text-left border-r border-line">
                       Tanggal
                     </th>
-                    <th className="px-2 py-1.5 text-[12px] font-[500] text-text-3 text-center border-r border-line w-16">
+                    <th className="px-2 py-1.5 text-[11px] font-medium text-center border-r border-line w-16">
                       Metode
                     </th>
-                    <th className="px-2 py-1.5 text-[12px] font-[500] text-text-3 text-right border-r border-line-strong">
+                    <th className="px-2 py-1.5 text-[11px] font-medium text-right border-r border-line">
                       Nominal & Petugas
                     </th>
                   </React.Fragment>
@@ -453,7 +454,7 @@ export function TabDariSiswa({
             </tr>
           </thead>
 
-          <tbody>
+          <tbody className="divide-y divide-line">
             {siswaRows.length === 0 ? (
               <tr>
                 <td
@@ -462,24 +463,24 @@ export function TabDariSiswa({
                     sortedJenis.reduce((acc, j) => acc + (j.bulanan ? 4 : 3), 0) +
                     (isEditing ? 1 : 0)
                   }
-                  className="px-4 py-8 text-center text-text-3 font-[360]"
+                  className="px-4 py-12 text-center text-text-3 font-normal"
                 >
-                  Belum ada siswa pada filter yang dipilih.
+                  Belum ada data siswa pada filter yang dipilih.
                 </td>
               </tr>
             ) : (
               siswaRows.map((siswa, idx) => (
                 <tr
                   key={siswa.penempatanId}
-                  className="border-b border-line hover:bg-panel transition-colors"
+                  className="hover:bg-panel/40 transition-colors"
                 >
-                  <td className="px-3 py-2 text-right text-text-3 num sticky left-0 bg-canvas z-10 border-r border-line">
+                  <td className="px-3 py-2 text-right text-text-3 num sticky left-0 bg-surface z-10 border-r border-line">
                     {idx + 1}
                   </td>
-                  <td className="px-3 py-2 text-text sticky left-12 bg-canvas z-10 border-r border-line font-[360]">
+                  <td className="px-3 py-2 text-text sticky left-12 bg-surface z-10 border-r border-line font-medium">
                     {siswa.nama}
                   </td>
-                  <td className="px-3 py-2 font-mono text-[12px] text-text-2 sticky left-[208px] bg-canvas z-10 border-r border-line-strong">
+                  <td className="px-3 py-2 font-mono text-[12px] text-text-2 sticky left-[208px] bg-surface z-10 border-r border-line">
                     {siswa.uid}
                   </td>
 

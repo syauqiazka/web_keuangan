@@ -1,19 +1,15 @@
 "use client";
 
 /**
- * AnimatedNumber — menampilkan angka dengan transisi counter.
- * Nilai akhir selalu tepat sama dengan prop `value`.
- * Angka diformat menggunakan fungsi `format` yang diberikan.
+ * AnimatedNumber — menampilkan angka dengan transisi counter presisi GSAP.
+ * Terinspirasi dari motion finansial Atmos Gallery: halus, tidak berkedip,
+ * dan secara langsung mencapai nilai nominal yang tepat.
  */
 
 import * as React from "react";
-import {
-  useMotionValue,
-  useTransform,
-  animate,
-  useReducedMotion,
-} from "motion/react";
-import { EASE, DURATION } from "@/lib/motion";
+import gsap from "gsap";
+import { useGSAP } from "@gsap/react";
+import { checkReducedMotion, GSAP_DURATION, GSAP_EASE } from "@/lib/motion";
 
 interface AnimatedNumberProps {
   value: number;
@@ -26,39 +22,54 @@ export function AnimatedNumber({
   value,
   format = (n) => n.toLocaleString("id-ID"),
   className,
-  duration = DURATION.slow,
+  duration = GSAP_DURATION.counter,
 }: AnimatedNumberProps) {
-  const prefersReduced = useReducedMotion();
+  const spanRef = React.useRef<HTMLSpanElement>(null);
+  const prevValueRef = React.useRef<number>(0);
+  const isFirstRender = React.useRef<boolean>(true);
 
-  // MotionValue selalu dimulai dari 0; jika reduced-motion, mulai langsung dari value
-  const motionVal = useMotionValue(prefersReduced ? value : 0);
-  const rounded = useTransform(motionVal, (latest) =>
-    format(Math.round(latest))
+  useGSAP(
+    () => {
+      if (!spanRef.current) return;
+
+      if (checkReducedMotion()) {
+        spanRef.current.textContent = format(value);
+        prevValueRef.current = value;
+        return;
+      }
+
+      const start = isFirstRender.current ? 0 : prevValueRef.current;
+      isFirstRender.current = false;
+      prevValueRef.current = value;
+
+      const obj = { val: start };
+
+      const tween = gsap.to(obj, {
+        val: value,
+        duration,
+        ease: GSAP_EASE.smooth,
+        onUpdate: () => {
+          if (spanRef.current) {
+            spanRef.current.textContent = format(Math.round(obj.val));
+          }
+        },
+        onComplete: () => {
+          if (spanRef.current) {
+            spanRef.current.textContent = format(value);
+          }
+        },
+      });
+
+      return () => {
+        tween.kill();
+      };
+    },
+    { dependencies: [value, duration], scope: spanRef }
   );
 
-  // Display state diupdate via subscription, bukan setState langsung di effect
-  const [display, setDisplay] = React.useState(format(prefersReduced ? value : 0));
-
-  // Langganan perubahan rounded untuk update display
-  React.useEffect(() => {
-    const unsub = rounded.on("change", setDisplay);
-    return unsub;
-  }, [rounded]);
-
-  // Animasi counter saat value berubah
-  React.useEffect(() => {
-    if (prefersReduced) {
-      // Langsung update via MotionValue agar subscription ter-trigger
-      motionVal.set(value);
-      return;
-    }
-    const controls = animate(motionVal, value, {
-      duration,
-      ease: EASE.decel,
-    });
-    return () => controls.stop();
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [value, prefersReduced]);
-
-  return <span className={className}>{display}</span>;
+  return (
+    <span ref={spanRef} className={className}>
+      {format(value)}
+    </span>
+  );
 }

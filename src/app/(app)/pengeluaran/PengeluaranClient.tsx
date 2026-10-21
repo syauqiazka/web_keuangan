@@ -11,6 +11,7 @@ import { DataGrid, type ColumnDef } from "@/components/ui/DataGrid";
 import { useToast } from "@/components/ui/Toast";
 import { FadeIn } from "@/components/motion/FadeIn";
 import { StaggerGroup, StaggerItem } from "@/components/motion/StaggerGroup";
+import { AnimatedNumber } from "@/components/motion/AnimatedNumber";
 import {
   simpanBatchPengeluaranAction,
   type BatchPengeluaranInput,
@@ -217,76 +218,103 @@ export function PengeluaranClient({
     <div className="space-y-6">
       {/* Header Halaman */}
       <FadeIn>
-        <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-4 pb-4 border-b border-line">
-          <h1 className="text-[32px] font-[400] font-display text-text leading-[1.25]">
-            Pengeluaran
-          </h1>
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-5 border-b border-line">
+          <div>
+            <h1 className="text-[24px] lg:text-[28px] font-semibold text-text tracking-tight">
+              Pengeluaran Sekolah
+            </h1>
+            <p className="text-[13px] text-text-3 mt-0.5">
+              Pencatatan operasional, gaji guru dan staf, serta pengeluaran kas sekolah
+            </p>
+          </div>
           <div className="flex items-center gap-2">
             <Button
               type="button"
-              variant="secondary"
-              size="sm"
+              variant={isEditing ? "secondary" : "primary"}
+              size="md"
               onClick={() => setIsEditing((prev) => !prev)}
             >
-              {isEditing ? "Batal" : "Input"}
+              {isEditing ? "Batal Edit" : "Input Pengeluaran"}
             </Button>
           </div>
         </div>
       </FadeIn>
 
       {/* Ringkasan Pengeluaran: Bulan Ini & Total Per Tahun */}
-      <StaggerGroup className="grid grid-cols-1 sm:grid-cols-2 gap-4" staggerDelay={0.1}>
+      <StaggerGroup className="grid grid-cols-1 sm:grid-cols-2 gap-4" staggerDelay={0.08}>
         <StaggerItem>
-          <div className="bg-canvas border border-line rounded-[8px] p-6">
-            <p className="font-mono text-[14px] text-label mb-2">
-              Jumlah Pengeluaran Bulan Ini
-            </p>
-            <p className="text-[32px] font-semibold text-text num tabular-nums">
-              {ringkasan.jumlahBulanIniFormatted}
-            </p>
+          <div className="bg-surface p-5 lg:p-6 border border-line rounded-[8px] shadow-xs relative overflow-hidden flex flex-col justify-between">
+            <div className="absolute top-0 left-0 right-0 h-1 bg-ledger-blue" />
+            <div>
+              <p className="text-[11px] font-mono font-medium text-text-3 uppercase tracking-wider mb-2">
+                Jumlah Pengeluaran Bulan Ini
+              </p>
+              <div className="text-[26px] lg:text-[30px] font-semibold text-text num tabular-nums">
+                <AnimatedNumber
+                  value={ringkasan.jumlahBulanIni}
+                  format={formatRupiah}
+                  duration={0.6}
+                />
+              </div>
+            </div>
+            <div className="mt-3 text-[12px] text-text-3">
+              Total beban kas pada bulan yang dipilih
+            </div>
           </div>
         </StaggerItem>
         <StaggerItem>
-          <div className="bg-canvas border border-line rounded-[8px] p-6">
-            <p className="font-mono text-[14px] text-label mb-2">
-              Total Pengeluaran Per Tahun
-            </p>
-            <p className="text-[32px] font-semibold text-text num tabular-nums">
-              {ringkasan.totalPerTahunFormatted}
-            </p>
+          <div className="bg-surface p-5 lg:p-6 border border-line rounded-[8px] shadow-xs relative overflow-hidden flex flex-col justify-between">
+            <div className="absolute top-0 left-0 right-0 h-1 bg-danger" />
+            <div>
+              <p className="text-[11px] font-mono font-medium text-text-3 uppercase tracking-wider mb-2">
+                Total Pengeluaran Per Tahun
+              </p>
+              <div className="text-[26px] lg:text-[30px] font-semibold text-text num tabular-nums">
+                <AnimatedNumber
+                  value={ringkasan.totalPerTahun}
+                  format={formatRupiah}
+                  duration={0.65}
+                />
+              </div>
+            </div>
+            <div className="mt-3 text-[12px] text-text-3">
+              Akumulasi seluruh pengeluaran tahun ajaran berjalan
+            </div>
           </div>
         </StaggerItem>
       </StaggerGroup>
 
-      {/* Filter Form (GET) – Tarik Data */}
+      {/* Filter Toolbar (GET) – Tarik Data */}
       {!isEditing && (
-        <form
-          method="GET"
-          action="/pengeluaran"
-          className="flex flex-wrap items-end gap-3"
-        >
-          <div className="flex-1 min-w-[200px]">
-            <Select
-              name="tahunAjaran"
-              label="Tahun Ajaran"
-              defaultValue={tahunAjaranId}
-              options={tahunOptions}
-            />
-          </div>
-          <div className="flex-1 min-w-[160px]">
-            <Select
-              name="bulan"
-              label="Bulan"
-              defaultValue={bulanNomor}
-              options={BULAN_OPTIONS}
-            />
-          </div>
-          <div className="pb-0.5">
-            <Button type="submit" variant="primary" size="sm">
-              Tarik Data
-            </Button>
-          </div>
-        </form>
+        <div className="bg-surface border border-line rounded-[8px] p-4 shadow-xs">
+          <form
+            method="GET"
+            action="/pengeluaran"
+            className="flex flex-wrap items-end gap-3"
+          >
+            <div className="flex-1 min-w-[200px]">
+              <Select
+                name="tahunAjaran"
+                label="Tahun Ajaran"
+                defaultValue={tahunAjaranId}
+                options={tahunOptions}
+              />
+            </div>
+            <div className="min-w-[160px]">
+              <Select
+                name="bulan"
+                label="Bulan"
+                defaultValue={bulanNomor}
+                options={BULAN_OPTIONS}
+              />
+            </div>
+            <div className="pb-0.5">
+              <Button type="submit" variant="primary" size="md">
+                Tarik Data
+              </Button>
+            </div>
+          </form>
+        </div>
       )}
 
       {/* DataGrid dengan mode baca / edit dan paste Excel */}

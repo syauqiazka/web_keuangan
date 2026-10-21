@@ -7,6 +7,7 @@ import { Button } from "@/components/ui/Button";
 import { Input } from "@/components/ui/Input";
 import { Select } from "@/components/ui/Select";
 import { Dialog } from "@/components/ui/Dialog";
+import { FadeIn } from "@/components/motion/FadeIn";
 import {
   buatAkunAction,
   resetPasswordAction,
@@ -182,46 +183,64 @@ function BahanAkun({
   );
 
   return (
-    <tr className={`border-b border-line h-10 ${!akun.aktif ? "opacity-50" : ""}`}>
-      <td className="px-3 py-2 text-text font-[500]">{akun.kode}</td>
-      <td className="px-3 py-2 text-text">{akun.nama}</td>
-      <td className="px-3 py-2 text-text-2">
-        {akun.peran === "ADMIN" ? "Admin" : "Petugas"}
-      </td>
-      <td className="px-3 py-2">
+    <tr className={`border-b border-line h-11 hover:bg-panel/40 transition-colors ${!akun.aktif ? "opacity-60 bg-panel/20" : ""}`}>
+      <td className="px-4 py-2 text-text font-mono text-[13px] font-medium">{akun.kode}</td>
+      <td className="px-4 py-2 text-text font-medium text-[13px]">{akun.nama}</td>
+      <td className="px-4 py-2">
         <span
-          className={`text-[12px] font-[500] ${
-            akun.aktif ? "text-accent" : "text-text-3"
+          className={`inline-block text-[11px] font-mono px-2 py-0.5 rounded ${
+            akun.peran === "ADMIN"
+              ? "bg-accent/10 text-accent font-medium border border-accent/20"
+              : "bg-panel text-text-2 border border-line"
           }`}
         >
-          {akun.aktif ? "Aktif" : "Nonaktif"}
+          {akun.peran === "ADMIN" ? "Admin" : "Petugas"}
         </span>
-        {akun.wajibGantiPassword && akun.aktif && (
-          <span className="ml-2 text-[11px] text-label">Wajib ganti sandi</span>
-        )}
       </td>
-      <td className="px-3 py-2">
-        <div className="flex gap-2 flex-wrap">
+      <td className="px-4 py-2">
+        <div className="flex items-center gap-2">
+          <span className="flex items-center gap-1.5 text-[12px] font-medium">
+            <span
+              className={`w-1.5 h-1.5 rounded-full ${
+                akun.aktif ? "bg-network-green" : "bg-text-3"
+              }`}
+            />
+            <span className={akun.aktif ? "text-network-green" : "text-text-3"}>
+              {akun.aktif ? "Aktif" : "Nonaktif"}
+            </span>
+          </span>
+          {akun.wajibGantiPassword && akun.aktif && (
+            <span className="text-[11px] text-label bg-label/10 px-1.5 py-0.5 rounded">
+              Wajib ganti sandi
+            </span>
+          )}
+        </div>
+      </td>
+      <td className="px-4 py-2">
+        <div className="flex items-center gap-2 flex-wrap">
           <button
             type="button"
             onClick={() => setDialogResetOpen(true)}
-            className="text-[12px] text-accent hover:underline"
+            className="text-[12px] text-accent hover:underline font-medium"
           >
             Reset Sandi
           </button>
           {!isCurrentUser && (
-            <form action={toggleAction} className="inline">
-              <input type="hidden" name="penggunaId" value={akun.id} />
-              <button
-                type="submit"
-                disabled={isPendingToggle}
-                className={`text-[12px] hover:underline disabled:opacity-40 ${
-                  akun.aktif ? "text-danger" : "text-accent"
-                }`}
-              >
-                {akun.aktif ? "Nonaktifkan" : "Aktifkan"}
-              </button>
-            </form>
+            <>
+              <span className="text-line-strong">•</span>
+              <form action={toggleAction} className="inline">
+                <input type="hidden" name="penggunaId" value={akun.id} />
+                <button
+                  type="submit"
+                  disabled={isPendingToggle}
+                  className={`text-[12px] font-medium hover:underline disabled:opacity-40 ${
+                    akun.aktif ? "text-danger" : "text-network-green"
+                  }`}
+                >
+                  {akun.aktif ? "Nonaktifkan" : "Aktifkan"}
+                </button>
+              </form>
+            </>
           )}
           {stateToggle?.error && (
             <span className="text-[11px] text-danger">{stateToggle.error}</span>
@@ -254,72 +273,74 @@ export function KelolaAkunClient({
   return (
     <div className="space-y-6">
       {/* Header */}
-      <div className="flex items-center gap-3 pb-4 border-b border-line">
-        <Link
-          href="/pengaturan"
-          className="text-[14px] text-text-3 hover:text-text"
-        >
-          ← Pengaturan
-        </Link>
-        <span className="text-text-3">/</span>
-        <h1 className="text-[32px] font-[400] font-display text-text leading-[1.25]">
-          Kelola Akun
-        </h1>
-      </div>
-
-      {/* Tombol buat akun */}
-      <div>
-        <Button
-          type="button"
-          variant="primary"
-          size="sm"
-          onClick={() => setDialogBuatOpen(true)}
-        >
-          + Buat Akun
-        </Button>
-      </div>
+      <FadeIn>
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-5 border-b border-line">
+          <div>
+            <div className="flex items-center gap-2 text-[12px] text-text-3 mb-1">
+              <Link href="/pengaturan" className="hover:text-text transition-colors">
+                Pengaturan
+              </Link>
+              <span>/</span>
+              <span className="text-text font-medium">Kelola Akun</span>
+            </div>
+            <h1 className="text-[24px] lg:text-[28px] font-semibold text-text tracking-tight">
+              Manajemen Akun Petugas
+            </h1>
+          </div>
+          <Button
+            type="button"
+            variant="primary"
+            size="md"
+            onClick={() => setDialogBuatOpen(true)}
+          >
+            + Buat Akun Baru
+          </Button>
+        </div>
+      </FadeIn>
 
       {/* Tabel akun */}
-      <div className="border border-line overflow-x-auto">
-        <table className="w-full border-collapse text-[14px]">
-          <colgroup>
-            <col className="w-[120px]" />
-            <col />
-            <col className="w-[100px]" />
-            <col className="w-[160px]" />
-            <col className="w-[200px]" />
-          </colgroup>
-          <thead>
-            <tr className="border-b border-line-strong bg-canvas">
-              <th className="px-3 py-2.5 font-semibold text-text text-left">Kode</th>
-              <th className="px-3 py-2.5 font-semibold text-text text-left">Nama</th>
-              <th className="px-3 py-2.5 font-semibold text-text text-left">Peran</th>
-              <th className="px-3 py-2.5 font-semibold text-text text-left">Status</th>
-              <th className="px-3 py-2.5 font-semibold text-text text-left">Aksi</th>
-            </tr>
-          </thead>
-          <tbody>
-            {akunList.length === 0 && (
-              <tr>
-                <td colSpan={5} className="px-4 py-8 text-center text-text-3">
-                  Belum ada akun.
-                </td>
+      <div className="bg-surface border border-line rounded-[8px] overflow-hidden shadow-xs">
+        <div className="overflow-x-auto">
+          <table className="w-full border-collapse text-[13px]">
+            <colgroup>
+              <col className="w-[120px]" />
+              <col />
+              <col className="w-[120px]" />
+              <col className="w-[180px]" />
+              <col className="w-[200px]" />
+            </colgroup>
+            <thead>
+              <tr className="border-b border-line bg-panel/60 text-text-2">
+                <th className="px-4 py-2.5 font-semibold text-left">Kode Akun</th>
+                <th className="px-4 py-2.5 font-semibold text-left">Nama Petugas</th>
+                <th className="px-4 py-2.5 font-semibold text-left">Peran</th>
+                <th className="px-4 py-2.5 font-semibold text-left">Status</th>
+                <th className="px-4 py-2.5 font-semibold text-left">Aksi</th>
               </tr>
-            )}
-            {akunList.map((akun) => (
-              <BahanAkun
-                key={akun.id}
-                akun={akun}
-                isCurrentUser={akun.id === currentUserId}
-                onMutate={refresh}
-              />
-            ))}
-          </tbody>
-        </table>
+            </thead>
+            <tbody className="divide-y divide-line">
+              {akunList.length === 0 && (
+                <tr>
+                  <td colSpan={5} className="px-4 py-10 text-center text-text-3">
+                    Belum ada akun terdaftar.
+                  </td>
+                </tr>
+              )}
+              {akunList.map((akun) => (
+                <BahanAkun
+                  key={akun.id}
+                  akun={akun}
+                  isCurrentUser={akun.id === currentUserId}
+                  onMutate={refresh}
+                />
+              ))}
+            </tbody>
+          </table>
+        </div>
       </div>
 
-      <p className="text-[13px] text-text-3">
-        Akun tidak dapat dihapus permanen. Gunakan &quot;Nonaktifkan&quot; untuk mencabut akses.
+      <p className="text-[12px] text-text-3">
+        Akun tidak dapat dihapus permanen untuk integritas audit transaksi. Gunakan aksi &quot;Nonaktifkan&quot; untuk mencabut akses login.
       </p>
 
       {/* Dialog buat akun */}

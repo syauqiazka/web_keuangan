@@ -323,29 +323,29 @@ export function DataGrid<T>({
       )}
 
       {/* Tabel Data Asli */}
-      <div className="w-full overflow-x-auto border border-line">
-        <table className="w-full border-collapse text-[14px]">
+      <div className="w-full overflow-x-auto border border-line bg-surface rounded-[8px] shadow-xs">
+        <table className="w-full border-collapse text-[13px]">
           {/* Header Grup Jika Ada */}
           {columnGroups && columnGroups.length > 0 && (
             <thead>
-              <tr className="border-b border-line-strong bg-canvas">
+              <tr className="border-b border-line bg-panel/70 text-text">
                 {columnGroups.map((grp, i) => (
                   <th
                     key={`${grp.title}-${i}`}
                     colSpan={grp.columnsCount}
-                    className="px-3 py-2 text-center font-semibold text-text border-r border-line-strong last:border-r-0"
+                    className="px-3 py-2 text-center font-semibold border-r border-line last:border-r-0"
                   >
                     {grp.title}
                   </th>
                 ))}
-                {isEditing && <th className="w-28 border-b border-line-strong"></th>}
+                {isEditing && <th className="w-28 border-b border-line"></th>}
               </tr>
             </thead>
           )}
 
           {/* Header Kolom */}
           <thead>
-            <tr className="border-b border-line-strong bg-canvas">
+            <tr className="border-b border-line bg-panel/50 text-text-2">
               {columns.map((col) => {
                 const alignClass =
                   col.align === "right"
@@ -355,7 +355,7 @@ export function DataGrid<T>({
                     : "text-left";
 
                 const stickyClass = col.sticky
-                  ? "sticky left-0 bg-canvas z-10"
+                  ? "sticky left-0 bg-surface z-10"
                   : "";
 
                 return (
@@ -368,14 +368,14 @@ export function DataGrid<T>({
                           ? `${col.stickyOffset}px`
                           : undefined,
                     }}
-                    className={`px-3 py-2.5 h-10 font-semibold text-text whitespace-nowrap ${alignClass} ${stickyClass}`}
+                    className={`px-3 py-2.5 h-10 font-semibold whitespace-nowrap ${alignClass} ${stickyClass}`}
                   >
                     {col.header}
                   </th>
                 );
               })}
               {isEditing && (
-                <th className="px-3 py-2.5 h-10 text-right font-semibold text-text w-28 whitespace-nowrap">
+                <th className="px-3 py-2.5 h-10 text-right font-semibold text-text-2 w-28 whitespace-nowrap">
                   Status
                 </th>
               )}
@@ -383,12 +383,12 @@ export function DataGrid<T>({
           </thead>
 
           {/* Isi Baris */}
-          <tbody>
+          <tbody className="divide-y divide-line">
             {displayData.length === 0 ? (
               <tr>
                 <td
                   colSpan={columns.length + (isEditing ? 1 : 0)}
-                  className="px-4 py-8 text-center text-text-3 font-[360]"
+                  className="px-4 py-12 text-center text-text-3 font-normal"
                 >
                   {emptyMessage}
                 </td>
@@ -400,8 +400,8 @@ export function DataGrid<T>({
                 return (
                   <tr
                     key={keyField(row, rowIndex)}
-                    className={`border-b border-line h-10 transition-colors ${
-                      isUnsaved ? "bg-panel" : "hover:bg-panel"
+                    className={`h-10 transition-colors ${
+                      isUnsaved ? "bg-ice/50" : "hover:bg-panel/40"
                     }`}
                   >
                     {columns.map((col, colIndex) => {
@@ -413,7 +413,7 @@ export function DataGrid<T>({
                           : "text-left";
 
                       const stickyClass = col.sticky
-                        ? "sticky left-0 bg-canvas z-10"
+                        ? "sticky left-0 bg-surface z-10"
                         : "";
 
                       const isCellFocused =
@@ -423,11 +423,11 @@ export function DataGrid<T>({
                       const cellError = cellErrors[errKey];
 
                       const cellEditingClass = isCellFocused
-                        ? "bg-canvas outline outline-1 outline-text -outline-offset-1"
+                        ? "bg-surface ring-1 ring-accent"
                         : "";
 
                       const cellErrorClass = cellError
-                        ? "outline outline-1 outline-danger -outline-offset-1 text-danger"
+                        ? "ring-1 ring-danger text-danger"
                         : "";
 
                       const rawValue = (row as Record<string, unknown>)[col.id];
@@ -485,7 +485,7 @@ export function DataGrid<T>({
                                   onFocus={() =>
                                     setFocusedCell({ row: rowIndex, col: colIndex })
                                   }
-                                  className={`w-full bg-canvas text-[14px] px-1 py-0.5 border border-line-strong rounded-none outline-none focus:outline-2 focus:outline-accent -outline-offset-1 text-inherit ${alignClass}`}
+                                  className={`w-full bg-surface text-[13px] px-2 py-1 border border-line-strong rounded-[3px] outline-none focus:ring-2 focus:ring-accent/20 focus:border-accent text-inherit ${alignClass}`}
                                 />
                                 {cellError && (
                                   <span className="block text-[11px] text-danger mt-0.5">
@@ -512,7 +512,7 @@ export function DataGrid<T>({
                     {isEditing && (
                       <td className="px-3 py-2 text-right whitespace-nowrap">
                         {isUnsaved && (
-                          <span className="font-mono text-[12px] text-label font-medium">
+                          <span className="font-mono text-[11px] text-label font-medium bg-label/10 px-1.5 py-0.5 rounded">
                             Belum disimpan
                           </span>
                         )}
@@ -527,7 +527,7 @@ export function DataGrid<T>({
           {/* Baris Total di Kaki Tabel Jika Ada */}
           {totals && (
             <tfoot>
-              <tr className="border-t border-text bg-canvas h-10 font-semibold">
+              <tr className="border-t-2 border-line bg-panel/60 h-10 font-semibold">
                 {columns.map((col, idx) => {
                   const val = totals[col.id];
                   const alignClass =
@@ -538,7 +538,7 @@ export function DataGrid<T>({
                       : "text-left";
 
                   const stickyClass = col.sticky
-                    ? "sticky left-0 bg-canvas z-10"
+                    ? "sticky left-0 bg-surface z-10"
                     : "";
 
                   return (

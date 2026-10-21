@@ -1,48 +1,84 @@
 "use client";
 
 /**
- * Reveal — animasikan anak ketika pertama kali masuk viewport.
- * Menggunakan useInView dari motion/react.
- * Hanya trigger sekali (once: true) untuk menghindari re-animasi saat scroll.
+ * Reveal — animasikan elemen ketika pertama kali masuk ke viewport
+ * menggunakan GSAP. Hanya berjalan sekali (once) dan menghormati reduced-motion.
  */
 
 import * as React from "react";
-import { motion, useInView } from "motion/react";
-import { fadeUp, tEnter } from "@/lib/motion";
-import { useMotionContext } from "./MotionProvider";
+import gsap from "gsap";
+import { useGSAP } from "@gsap/react";
+import { checkReducedMotion, GSAP_DURATION, GSAP_EASE } from "@/lib/motion";
 
 interface RevealProps {
   children: React.ReactNode;
   className?: string;
   delay?: number;
-  /** Ambang masuk viewport (0–1). Default 0.15 */
   threshold?: number;
+  duration?: number;
 }
 
 export function Reveal({
   children,
   className,
   delay = 0,
-  threshold = 0.15,
+  threshold = 0.1,
+  duration = GSAP_DURATION.enter,
 }: RevealProps) {
-  const { reducedMotion } = useMotionContext();
-  const ref = React.useRef<HTMLDivElement>(null);
-  const inView = useInView(ref, { once: true, amount: threshold });
+  const containerRef = React.useRef<HTMLDivElement>(null);
+  const [hasTriggered, setHasTriggered] = React.useState(false);
 
-  if (reducedMotion) {
-    return <div className={className}>{children}</div>;
-  }
+  React.useEffect(() => {
+    if (!containerRef.current || checkReducedMotion()) return;
+
+    const observer = new IntersectionObserver(
+      (entries) => {
+        const [entry] = entries;
+        if (entry?.isIntersecting) {
+          setHasTriggered(true);
+          observer.disconnect();
+        }
+      },
+      { threshold }
+    );
+
+    observer.observe(containerRef.current);
+    return () => observer.disconnect();
+  }, [threshold]);
+
+  const isVisible = hasTriggered || checkReducedMotion();
+
+  useGSAP(
+    () => {
+      if (!containerRef.current || !hasTriggered) return;
+      if (checkReducedMotion()) {
+        gsap.set(containerRef.current, { opacity: 1, y: 0 });
+        return;
+      }
+
+      gsap.fromTo(
+        containerRef.current,
+        { opacity: 0, y: 16 },
+        {
+          opacity: 1,
+          y: 0,
+          duration,
+          delay,
+          ease: GSAP_EASE.atmos,
+          clearProps: "transform",
+        }
+      );
+    },
+    { dependencies: [hasTriggered, delay, duration], scope: containerRef }
+  );
 
   return (
-    <motion.div
-      ref={ref}
+    <div
+      ref={containerRef}
       className={className}
-      initial="hidden"
-      animate={inView ? "visible" : "hidden"}
-      variants={fadeUp}
-      transition={{ ...tEnter, delay }}
+      style={{ opacity: isVisible ? undefined : 0 }}
     >
       {children}
-    </motion.div>
+    </div>
   );
 }

@@ -39,18 +39,20 @@ export const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
     ref
   ) => {
     const sizeClasses =
-      size === "sm" ? "px-3 py-1.5 text-[14px]" : "px-4 py-2 text-[14px]";
+      size === "sm"
+        ? "h-8 px-3 text-[13px] gap-1.5"
+        : "h-9 px-4 text-[14px] gap-2";
 
     let variantClasses = "";
     if (variant === "primary") {
       variantClasses =
-        "bg-text text-on-ink font-semibold rounded-[2px] border border-text hover:opacity-90 active:opacity-95";
+        "bg-accent text-on-ink font-medium rounded-[4px] border border-accent hover:opacity-90 active:scale-[0.98] shadow-xs focus:outline-none focus:ring-2 focus:ring-accent/30";
     } else if (variant === "secondary") {
       variantClasses =
-        "bg-transparent text-text font-[500] outline outline-1 outline-text -outline-offset-1 rounded-[4px] hover:bg-panel";
+        "bg-surface text-text font-medium border border-line-strong rounded-[4px] hover:bg-panel active:scale-[0.98] shadow-xs focus:outline-none focus:ring-2 focus:ring-accent/20";
     } else if (variant === "danger") {
       variantClasses =
-        "bg-transparent text-danger font-[500] outline outline-1 outline-danger -outline-offset-1 rounded-[4px] hover:bg-panel";
+        "bg-surface text-danger font-medium border border-danger/50 rounded-[4px] hover:bg-danger/10 active:scale-[0.98] focus:outline-none focus:ring-2 focus:ring-danger/20";
     }
 
     // Explicit data-* pass-through from rest
