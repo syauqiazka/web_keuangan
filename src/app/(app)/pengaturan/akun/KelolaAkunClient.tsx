@@ -188,9 +188,9 @@ function BahanAkun({
       <td className="px-4 py-2 text-text font-medium text-[13px]">{akun.nama}</td>
       <td className="px-4 py-2">
         <span
-          className={`inline-block text-[11px] font-mono px-2 py-0.5 rounded ${
+          className={`inline-block text-[11px] font-mono px-2 py-0.5 rounded-[4px] ${
             akun.peran === "ADMIN"
-              ? "bg-accent/10 text-accent font-medium border border-accent/20"
+              ? "bg-brand/10 text-brand font-medium border border-brand/20"
               : "bg-panel text-text-2 border border-line"
           }`}
         >
@@ -221,7 +221,7 @@ function BahanAkun({
           <button
             type="button"
             onClick={() => setDialogResetOpen(true)}
-            className="text-[12px] text-accent hover:underline font-medium"
+            className="text-[12px] text-brand hover:underline font-medium"
           >
             Reset Sandi
           </button>
@@ -300,7 +300,7 @@ export function KelolaAkunClient({
 
       {/* Tabel akun dengan blur reveal */}
       <BlurReveal blur={6} delay={0.12} duration={0.65}>
-        <div className="bg-surface border border-line rounded-[8px] overflow-hidden shadow-xs">
+        <div className="bg-surface border border-line rounded-[12px] overflow-hidden shadow-xs">
           <div className="overflow-x-auto">
             <table className="w-full border-collapse text-[13px]">
               <colgroup>

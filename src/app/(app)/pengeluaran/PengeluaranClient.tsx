@@ -243,8 +243,8 @@ export function PengeluaranClient({
       {/* Ringkasan Pengeluaran: Bulan Ini & Total Per Tahun dengan blur-to-sharp stagger */}
       <StaggerGroup blur={8} duration={0.75} className="grid grid-cols-1 sm:grid-cols-2 gap-4" staggerDelay={0.08}>
         <StaggerItem>
-          <div className="bg-surface p-5 lg:p-6 border border-line rounded-[8px] shadow-xs relative overflow-hidden flex flex-col justify-between">
-            <div className="absolute top-0 left-0 right-0 h-1 bg-ledger-blue" />
+          <div className="bg-surface p-5 lg:p-6 border border-line rounded-[14px] shadow-xs relative overflow-hidden flex flex-col justify-between">
+            <div className="absolute top-0 left-0 right-0 h-[3px] bg-series-out" />
             <div>
               <p className="text-[11px] font-mono font-medium text-text-3 uppercase tracking-wider mb-2">
                 Jumlah Pengeluaran Bulan Ini
@@ -263,8 +263,8 @@ export function PengeluaranClient({
           </div>
         </StaggerItem>
         <StaggerItem>
-          <div className="bg-surface p-5 lg:p-6 border border-line rounded-[8px] shadow-xs relative overflow-hidden flex flex-col justify-between">
-            <div className="absolute top-0 left-0 right-0 h-1 bg-danger" />
+          <div className="bg-surface p-5 lg:p-6 border border-line rounded-[14px] shadow-xs relative overflow-hidden flex flex-col justify-between">
+            <div className="absolute top-0 left-0 right-0 h-[3px] bg-danger" />
             <div>
               <p className="text-[11px] font-mono font-medium text-text-3 uppercase tracking-wider mb-2">
                 Total Pengeluaran Per Tahun
@@ -287,7 +287,7 @@ export function PengeluaranClient({
       {/* Filter Toolbar (GET) – Tarik Data */}
       {!isEditing && (
         <BlurReveal blur={6} delay={0.12} duration={0.65}>
-          <div className="bg-surface border border-line rounded-[8px] p-4 shadow-xs">
+          <div className="bg-surface border border-line rounded-[12px] p-4 shadow-xs">
             <form
               method="GET"
               action="/pengeluaran"

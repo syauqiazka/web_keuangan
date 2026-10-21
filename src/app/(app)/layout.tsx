@@ -15,7 +15,7 @@ export default async function AppLayout({
   }
 
   return (
-    <div className="min-h-screen bg-canvas text-text flex flex-col lg:flex-row antialiased selection:bg-accent/20">
+    <div className="min-h-screen bg-canvas text-text flex flex-col lg:flex-row antialiased selection:bg-brand/20">
       <PageTransitionIndicator />
       <Sidebar user={user} />
       <main className="flex-1 min-w-0 p-4 sm:p-6 lg:p-8 overflow-y-auto">

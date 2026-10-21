@@ -59,7 +59,7 @@ export function Dialog({
             role="dialog"
             aria-modal="true"
             aria-labelledby="dialog-title"
-            className={`w-full ${maxWidth} bg-surface border border-line rounded-[8px] p-6 shadow-overlay relative max-h-[90vh] overflow-y-auto`}
+            className={`w-full ${maxWidth} bg-surface border border-line rounded-[14px] p-6 shadow-overlay relative max-h-[90vh] overflow-y-auto`}
             variants={scaleIn}
             onClick={(e: React.MouseEvent<HTMLDivElement>) => e.stopPropagation()}
           >
@@ -67,7 +67,7 @@ export function Dialog({
               <button
                 type="button"
                 onClick={onClose}
-                className="absolute top-5 right-5 p-1 text-text-3 hover:text-text rounded-[4px] hover:bg-panel transition-colors"
+                className="absolute top-5 right-5 p-1.5 text-text-3 hover:text-text rounded-[8px] hover:bg-panel transition-colors focus:outline-none focus:ring-2 focus:ring-brand/20"
                 aria-label="Tutup dialog"
               >
                 <X className="w-4 h-4" />

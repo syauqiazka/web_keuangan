@@ -353,7 +353,7 @@ export function TabDariSiswa({
       </div>
 
       {/* Grid Tabel Lebar */}
-      <div className="w-full overflow-x-auto border border-line bg-surface rounded-[8px] shadow-xs">
+      <div className="w-full overflow-x-auto border border-line bg-surface rounded-[12px] shadow-xs">
         <table className="border-collapse text-[13px] w-full" style={{ minWidth: "900px" }}>
           <thead>
             {/* Header Grup Pemasukan */}

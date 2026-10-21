@@ -160,7 +160,7 @@ export function TabDana({
           value={typeof value === "string" && value ? value : (sumberList[0]?.id ?? "")}
           onChange={(e) => onChange(e.target.value)}
           onKeyDown={inputProps.onKeyDown}
-          className="w-full bg-surface text-[13px] px-2 py-1 border border-line-strong rounded-[3px] outline-none focus:ring-2 focus:ring-accent/20 focus:border-accent text-text"
+          className="w-full bg-surface text-[13px] px-2 py-1 border border-line rounded-[6px] outline-none focus:ring-2 focus:ring-brand/20 focus:border-brand text-text"
         >
           {sumberList.map((s) => (
             <option key={s.id} value={s.id}>

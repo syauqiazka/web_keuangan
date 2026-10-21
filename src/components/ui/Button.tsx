@@ -41,18 +41,18 @@ export const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
     const sizeClasses =
       size === "sm"
         ? "h-8 px-3 text-[13px] gap-1.5"
-        : "h-9 px-4 text-[14px] gap-2";
+        : "h-10 px-4 text-[14px] gap-2";
 
     let variantClasses = "";
     if (variant === "primary") {
       variantClasses =
-        "bg-accent text-on-ink font-medium rounded-[4px] border border-accent hover:opacity-90 active:scale-[0.98] shadow-xs focus:outline-none focus:ring-2 focus:ring-accent/30";
+        "bg-brand text-white font-medium rounded-[10px] border border-brand hover:bg-brand-secondary active:scale-[0.98] shadow-xs focus:outline-none focus:ring-2 focus:ring-brand/30";
     } else if (variant === "secondary") {
       variantClasses =
-        "bg-surface text-text font-medium border border-line-strong rounded-[4px] hover:bg-panel active:scale-[0.98] shadow-xs focus:outline-none focus:ring-2 focus:ring-accent/20";
+        "bg-surface text-text font-medium border border-line rounded-[10px] hover:bg-panel active:scale-[0.98] shadow-xs focus:outline-none focus:ring-2 focus:ring-brand/20";
     } else if (variant === "danger") {
       variantClasses =
-        "bg-surface text-danger font-medium border border-danger/50 rounded-[4px] hover:bg-danger/10 active:scale-[0.98] focus:outline-none focus:ring-2 focus:ring-danger/20";
+        "bg-surface text-danger font-medium border border-danger/40 rounded-[10px] hover:bg-danger/10 active:scale-[0.98] focus:outline-none focus:ring-2 focus:ring-danger/20";
     }
 
     // Explicit data-* pass-through from rest

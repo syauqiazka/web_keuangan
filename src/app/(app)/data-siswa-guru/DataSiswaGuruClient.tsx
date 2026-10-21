@@ -211,7 +211,7 @@ export function DataSiswaGuruClient({
       {/* Form Filter (GET) – Enter */}
       {!isEditing && (
         <BlurReveal blur={6} delay={0.12} duration={0.65}>
-          <div className="bg-surface border border-line rounded-[8px] p-4 shadow-xs">
+          <div className="bg-surface border border-line rounded-[12px] p-4 shadow-xs">
             <form
               method="GET"
               action="/data-siswa-guru"

@@ -25,7 +25,7 @@ export function Tabs({ tabs, activeTab, onChange, className = "" }: TabsProps) {
             onClick={() => onChange(tab.id)}
             className={`pb-2 text-[14px] transition-colors focus:outline-none ${
               isActive
-                ? "font-semibold text-text border-b-2 border-text -mb-[1px]"
+                ? "font-semibold text-brand border-b-2 border-brand -mb-[1px]"
                 : "font-[500] text-text-3 hover:text-text"
             }`}
           >

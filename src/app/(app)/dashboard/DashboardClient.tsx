@@ -43,7 +43,7 @@ export function DashboardClient({
                 name="tahun"
                 defaultValue={String(tahun)}
                 aria-label="Pilih tahun dashboard"
-                className="bg-surface border border-line-strong text-text text-[13px] font-medium pl-8 pr-8 py-1.5 rounded-[4px] focus:outline-none focus:ring-2 focus:ring-accent/20 focus:border-accent transition-colors cursor-pointer"
+                className="bg-surface border border-line text-text text-[13px] font-medium pl-8 pr-8 py-1.5 rounded-[10px] focus:outline-none focus:ring-2 focus:ring-brand/20 focus:border-brand transition-colors cursor-pointer"
                 onChange={(e) => {
                   (e.target.form as HTMLFormElement)?.submit();
                 }}
@@ -57,7 +57,7 @@ export function DashboardClient({
             </div>
             <button
               type="submit"
-              className="h-8 px-3 text-[13px] font-medium text-text bg-surface border border-line-strong rounded-[4px] hover:bg-panel active:scale-[0.98] transition-all shadow-xs focus:outline-none focus:ring-2 focus:ring-accent/20"
+              className="h-9 px-4 text-[13px] font-medium text-brand bg-surface border border-line rounded-[10px] hover:bg-panel hover:border-line-strong active:scale-[0.98] transition-all shadow-xs focus:outline-none focus:ring-2 focus:ring-brand/20"
             >
               Terapkan
             </button>
@@ -69,15 +69,15 @@ export function DashboardClient({
       <StaggerGroup blur={8} duration={0.75} className="grid grid-cols-1 sm:grid-cols-3 gap-4" staggerDelay={0.08}>
         {/* Total Saldo */}
         <StaggerItem>
-          <div className="bg-surface p-5 lg:p-6 border border-line rounded-[8px] shadow-xs relative overflow-hidden flex flex-col justify-between h-full">
-            <div className="absolute top-0 left-0 right-0 h-1 bg-accent" />
+          <div className="bg-surface p-5 lg:p-6 border border-line rounded-[14px] shadow-xs relative overflow-hidden flex flex-col justify-between h-full">
+            <div className="absolute top-0 left-0 right-0 h-[3px] bg-brand" />
             <div>
               <div className="flex items-center justify-between mb-3">
                 <span className="text-[11px] font-mono font-medium text-text-3 uppercase tracking-wider">
                   Total Saldo Dana Sekolah
                 </span>
-                <div className="w-7 h-7 rounded bg-accent/10 text-accent flex items-center justify-center">
-                  <Wallet className="w-3.5 h-3.5" />
+                <div className="w-8 h-8 rounded-[8px] bg-brand/10 text-brand flex items-center justify-center">
+                  <Wallet className="w-4 h-4" />
                 </div>
               </div>
               <div className="text-[28px] lg:text-[34px] font-semibold text-text leading-tight tracking-tight num">
@@ -97,15 +97,15 @@ export function DashboardClient({
 
         {/* Pemasukan */}
         <StaggerItem>
-          <div className="bg-surface p-5 lg:p-6 border border-line rounded-[8px] shadow-xs relative overflow-hidden flex flex-col justify-between h-full">
-            <div className="absolute top-0 left-0 right-0 h-1 bg-network-green" />
+          <div className="bg-surface p-5 lg:p-6 border border-line rounded-[14px] shadow-xs relative overflow-hidden flex flex-col justify-between h-full">
+            <div className="absolute top-0 left-0 right-0 h-[3px] bg-series-in" />
             <div>
               <div className="flex items-center justify-between mb-3">
                 <span className="text-[11px] font-mono font-medium text-text-3 uppercase tracking-wider">
                   Total Pemasukan
                 </span>
-                <div className="w-7 h-7 rounded bg-network-green/10 text-network-green flex items-center justify-center">
-                  <TrendingUp className="w-3.5 h-3.5" />
+                <div className="w-8 h-8 rounded-[8px] bg-series-in/10 text-series-in flex items-center justify-center">
+                  <TrendingUp className="w-4 h-4" />
                 </div>
               </div>
               <div className="text-[26px] lg:text-[30px] font-semibold text-text leading-tight tracking-tight num">
@@ -125,15 +125,15 @@ export function DashboardClient({
 
         {/* Pengeluaran */}
         <StaggerItem>
-          <div className="bg-surface p-5 lg:p-6 border border-line rounded-[8px] shadow-xs relative overflow-hidden flex flex-col justify-between h-full">
-            <div className="absolute top-0 left-0 right-0 h-1 bg-ledger-blue" />
+          <div className="bg-surface p-5 lg:p-6 border border-line rounded-[14px] shadow-xs relative overflow-hidden flex flex-col justify-between h-full">
+            <div className="absolute top-0 left-0 right-0 h-[3px] bg-series-out" />
             <div>
               <div className="flex items-center justify-between mb-3">
                 <span className="text-[11px] font-mono font-medium text-text-3 uppercase tracking-wider">
                   Total Pengeluaran
                 </span>
-                <div className="w-7 h-7 rounded bg-ledger-blue/10 text-ledger-blue flex items-center justify-center">
-                  <TrendingDown className="w-3.5 h-3.5" />
+                <div className="w-8 h-8 rounded-[8px] bg-series-out/10 text-series-out flex items-center justify-center">
+                  <TrendingDown className="w-4 h-4" />
                 </div>
               </div>
               <div className="text-[26px] lg:text-[30px] font-semibold text-text leading-tight tracking-tight num">
@@ -154,7 +154,7 @@ export function DashboardClient({
 
       {/* Grafik bulanan */}
       <Reveal blur={8} threshold={0.1}>
-        <div className="bg-surface border border-line rounded-[8px] p-5 lg:p-6 shadow-xs">
+        <div className="bg-surface border border-line rounded-[14px] p-5 lg:p-6 shadow-xs">
           <div className="mb-4">
             <h2 className="text-[16px] font-semibold text-text leading-tight">
               Arus Kas Bulanan

@@ -1,6 +1,6 @@
 @import "tailwindcss";
 
-/* Token statis [Modern Financial Dashboard] */
+/* Token statis [Premium Finance UI System] */
 @theme {
   --color-*: initial;
   --shadow-*: initial;
@@ -8,24 +8,25 @@
 
   --color-paper: #ffffff;
   --color-surface: #ffffff;
-  --color-canvas: #f7f8fa;
-  --color-ink: #1f2937;
-  --color-graphite: #4b5563;
-  --color-steel: #6b7280;
-  --color-rule: #e5e7eb;
-  --color-edge: #d1d5db;
-  --color-ice: #f0fdf4;
-  --color-network-green: #16835d;
-  --color-ledger-brown: #7b5953;
-  --color-alert: #dc4c4c;
-  --color-ledger-blue: #4f86c0;
+  --color-canvas: #f7f8f5;
+  --color-brand: #173f35;
+  --color-brand-secondary: #2f6b52;
+  --color-surface-soft: #e7eee8;
+  --color-ink: #202923;
+  --color-steel: #68736b;
+  --color-rule: #e5e9e3;
+  --color-warning: #d99a45;
+  --color-alert: #d9534f;
+  --color-network-green: #2f6b52;
+  --color-ledger-blue: #3b6b88;
 
-  --radius-button: 4px;
-  --radius-control: 4px;
-  --radius-card: 8px;
-  --radius-input: 4px;
-  --shadow-xs: 0 1px 2px 0 rgb(0 0 0 / 0.05);
-  --shadow-overlay: 0 20px 25px -5px rgb(0 0 0 / 0.07), 0 8px 10px -6px rgb(0 0 0 / 0.05);
+  --radius-button: 10px;
+  --radius-control: 10px;
+  --radius-card: 14px;
+  --radius-input: 10px;
+  --shadow-xs: 0 1px 2px 0 rgb(23 63 53 / 0.04);
+  --shadow-card: 0 1px 3px 0 rgb(23 63 53 / 0.05), 0 1px 2px -1px rgb(23 63 53 / 0.03);
+  --shadow-overlay: 0 20px 25px -5px rgb(23 63 53 / 0.08), 0 8px 10px -6px rgb(23 63 53 / 0.04);
 
   --font-display: var(--font-manrope), ui-sans-serif, system-ui, sans-serif;
   --font-sans: var(--font-inter), ui-sans-serif, system-ui, sans-serif;
@@ -34,59 +35,74 @@
 
 /* Token semantik yang berganti saat tema berubah */
 :root {
-  --canvas: #f7f8fa;
+  --canvas: #f7f8f5;
   --surface: #ffffff;
-  --panel: #f3f4f6;
-  --text: #1f2937;
-  --text-2: #4b5563;
-  --text-3: #6b7280;
-  --line: #e5e7eb;
-  --line-strong: #d1d5db;
+  --panel: #f0f4f1;
+  --surface-soft: #e7eee8;
+  --brand: #173f35;
+  --brand-secondary: #2f6b52;
+  --text: #202923;
+  --text-2: #3e4d43;
+  --text-3: #68736b;
+  --line: #e5e9e3;
+  --line-strong: #d1d8ce;
   --on-ink: #ffffff;
-  --accent: #315e4b;
-  --accent-text: #16835d;
-  --series-in: #16835d;
-  --series-out: #4f86c0;
-  --danger: #dc4c4c;
-  --label: #6b7280;
+  --accent: #173f35;
+  --accent-hover: #2f6b52;
+  --accent-text: #2f6b52;
+  --series-in: #2f6b52;
+  --series-out: #d9534f;
+  --warning: #d99a45;
+  --danger: #d9534f;
+  --label: #68736b;
 }
 
 /* Tema gelap */
 :root[data-theme="dark"] {
-  --canvas: #111827;
-  --surface: #1f2937;
-  --panel: #374151;
-  --text: #f9fafb;
-  --text-2: #e5e7eb;
-  --text-3: #9ca3af;
-  --line: #374151;
-  --line-strong: #4b5563;
+  --canvas: #0e1a16;
+  --surface: #14251f;
+  --panel: #1a3028;
+  --surface-soft: #1d382f;
+  --brand: #2f6b52;
+  --brand-secondary: #3da57a;
+  --text: #f2f6f3;
+  --text-2: #c4d3ca;
+  --text-3: #8a9e92;
+  --line: #223c33;
+  --line-strong: #2e4e42;
   --on-ink: #ffffff;
-  --accent: #315e4b;
-  --accent-text: #34d399;
-  --series-in: #34d399;
-  --series-out: #60a5fa;
+  --accent: #2f6b52;
+  --accent-hover: #3da57a;
+  --accent-text: #4ade80;
+  --series-in: #4ade80;
+  --series-out: #f87171;
+  --warning: #fbbf24;
   --danger: #f87171;
-  --label: #9ca3af;
+  --label: #8a9e92;
 }
 
 @media (prefers-color-scheme: dark) {
   :root[data-theme="system"] {
-    --canvas: #111827;
-    --surface: #1f2937;
-    --panel: #374151;
-    --text: #f9fafb;
-    --text-2: #e5e7eb;
-    --text-3: #9ca3af;
-    --line: #374151;
-    --line-strong: #4b5563;
+    --canvas: #0e1a16;
+    --surface: #14251f;
+    --panel: #1a3028;
+    --surface-soft: #1d382f;
+    --brand: #2f6b52;
+    --brand-secondary: #3da57a;
+    --text: #f2f6f3;
+    --text-2: #c4d3ca;
+    --text-3: #8a9e92;
+    --line: #223c33;
+    --line-strong: #2e4e42;
     --on-ink: #ffffff;
-    --accent: #315e4b;
-    --accent-text: #34d399;
-    --series-in: #34d399;
-    --series-out: #60a5fa;
+    --accent: #2f6b52;
+    --accent-hover: #3da57a;
+    --accent-text: #4ade80;
+    --series-in: #4ade80;
+    --series-out: #f87171;
+    --warning: #fbbf24;
     --danger: #f87171;
-    --label: #9ca3af;
+    --label: #8a9e92;
   }
 }
 
@@ -95,6 +111,9 @@
   --color-canvas: var(--canvas);
   --color-surface: var(--surface);
   --color-panel: var(--panel);
+  --color-surface-soft: var(--surface-soft);
+  --color-brand: var(--brand);
+  --color-brand-secondary: var(--brand-secondary);
   --color-text: var(--text);
   --color-text-2: var(--text-2);
   --color-text-3: var(--text-3);
@@ -102,9 +121,11 @@
   --color-line-strong: var(--line-strong);
   --color-on-ink: var(--on-ink);
   --color-accent: var(--accent);
+  --color-accent-hover: var(--accent-hover);
   --color-accent-text: var(--accent-text);
   --color-series-in: var(--series-in);
   --color-series-out: var(--series-out);
+  --color-warning: var(--warning);
   --color-danger: var(--danger);
   --color-label: var(--label);
 }

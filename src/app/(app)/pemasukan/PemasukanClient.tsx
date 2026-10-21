@@ -125,8 +125,8 @@ export function PemasukanClient({
       <div className="space-y-3">
         <StaggerGroup blur={8} duration={0.75} className="grid grid-cols-1 sm:grid-cols-2 gap-4" staggerDelay={0.08}>
           <StaggerItem>
-            <div className="bg-surface p-5 lg:p-6 border border-line rounded-[8px] shadow-xs relative overflow-hidden flex flex-col justify-between">
-              <div className="absolute top-0 left-0 right-0 h-1 bg-network-green" />
+            <div className="bg-surface p-5 lg:p-6 border border-line rounded-[14px] shadow-xs relative overflow-hidden flex flex-col justify-between">
+              <div className="absolute top-0 left-0 right-0 h-[3px] bg-series-in" />
               <div>
                 <div className="text-[11px] font-mono font-medium text-text-3 uppercase tracking-wider mb-2">
                   {labelBulan}
@@ -145,8 +145,8 @@ export function PemasukanClient({
             </div>
           </StaggerItem>
           <StaggerItem>
-            <div className="bg-surface p-5 lg:p-6 border border-line rounded-[8px] shadow-xs relative overflow-hidden flex flex-col justify-between">
-              <div className="absolute top-0 left-0 right-0 h-1 bg-accent" />
+            <div className="bg-surface p-5 lg:p-6 border border-line rounded-[14px] shadow-xs relative overflow-hidden flex flex-col justify-between">
+              <div className="absolute top-0 left-0 right-0 h-[3px] bg-brand" />
               <div>
                 <div className="text-[11px] font-mono font-medium text-text-3 uppercase tracking-wider mb-2">
                   Total Pemasukan Per Tahun
@@ -169,7 +169,7 @@ export function PemasukanClient({
         {/* Baris rincian per jenis */}
         {ringkasan.perJenis.length > 0 && (
           <BlurReveal blur={6} delay={0.1} duration={0.6}>
-            <div className="bg-surface border border-line rounded-[8px] px-4 py-3 shadow-xs">
+            <div className="bg-surface border border-line rounded-[12px] px-4 py-3 shadow-xs">
               <div className="flex flex-wrap items-center gap-x-5 gap-y-2 text-[13px]">
                 <span className="font-mono text-[11px] font-medium text-text-3 uppercase tracking-wider">
                   Rincian:
@@ -188,7 +188,7 @@ export function PemasukanClient({
 
       {/* Filter Toolbar dengan blur reveal */}
       <BlurReveal blur={6} delay={0.14} duration={0.65}>
-        <div className="bg-surface border border-line rounded-[8px] p-4 shadow-xs">
+        <div className="bg-surface border border-line rounded-[12px] p-4 shadow-xs">
           <form method="GET" action="/pemasukan" className="flex flex-wrap items-end gap-3">
             <input type="hidden" name="tab" value={tab} />
             <div className="flex-1 min-w-[200px]">
@@ -242,7 +242,7 @@ export function PemasukanClient({
                 }
                 className={`px-4 py-2.5 text-[13px] font-medium border-b-2 transition-all -mb-px rounded-t-[4px] ${
                   tab === t.key
-                    ? "border-accent text-accent font-semibold bg-surface"
+                    ? "border-brand text-brand font-semibold bg-surface"
                     : "border-transparent text-text-3 hover:text-text hover:bg-panel/50"
                 }`}
               >

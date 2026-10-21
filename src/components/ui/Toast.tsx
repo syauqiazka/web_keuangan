@@ -54,7 +54,7 @@ export function ToastProvider({ children }: { children: React.ReactNode }) {
             <motion.div
               key={t.id}
               role="status"
-              className={`pointer-events-auto bg-surface border rounded-[6px] p-3.5 shadow-overlay text-[13px] font-medium leading-snug flex items-start gap-2.5 ${
+              className={`pointer-events-auto bg-surface border rounded-[10px] p-3.5 shadow-overlay text-[13px] font-medium leading-snug flex items-start gap-2.5 ${
                 t.type === "error"
                   ? "border-danger/30 text-danger"
                   : "border-line text-text"
@@ -67,7 +67,7 @@ export function ToastProvider({ children }: { children: React.ReactNode }) {
             >
               <span
                 className={`w-1.5 h-1.5 rounded-full mt-1.5 shrink-0 ${
-                  t.type === "error" ? "bg-danger" : "bg-accent"
+                  t.type === "error" ? "bg-danger" : "bg-brand"
                 }`}
               />
               <span className="flex-1">{t.message}</span>

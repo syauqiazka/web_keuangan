@@ -69,7 +69,7 @@ export function PengaturanView({ user }: { user: SessionUser }) {
         </div>
       </BlurReveal>
 
-      <StaggerGroup blur={6} duration={0.6} className="bg-surface border border-line rounded-[8px] divide-y divide-line shadow-xs overflow-hidden" staggerDelay={0.06}>
+      <StaggerGroup blur={6} duration={0.6} className="bg-surface border border-line rounded-[14px] divide-y divide-line shadow-xs overflow-hidden" staggerDelay={0.06}>
         {/* Baris 1: Ganti Kata Sandi */}
         <StaggerItem>
           <div className="p-5 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
@@ -145,13 +145,13 @@ export function PengaturanView({ user }: { user: SessionUser }) {
           <StaggerItem>
             <div className="p-5 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
               <div className="flex items-start gap-3.5">
-                <div className="w-9 h-9 rounded bg-accent/10 border border-accent/20 flex items-center justify-center shrink-0 mt-0.5 text-accent">
+                <div className="w-9 h-9 rounded-[8px] bg-brand/10 border border-brand/20 flex items-center justify-center shrink-0 mt-0.5 text-brand">
                   <Users className="w-4 h-4" />
                 </div>
                 <div>
                   <div className="flex items-center gap-2">
                     <h2 className="text-[14px] font-semibold text-text">Kelola Akun Petugas</h2>
-                    <span className="text-[10px] font-mono font-medium px-1.5 py-0.2 rounded bg-accent/10 text-accent uppercase">
+                    <span className="text-[10px] font-mono font-medium px-1.5 py-0.5 rounded-[4px] bg-brand/10 text-brand uppercase">
                       Admin
                     </span>
                   </div>

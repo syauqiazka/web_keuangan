@@ -55,7 +55,7 @@ export function PageTransitionIndicator() {
 
   return (
     <div className="fixed top-0 left-0 right-0 z-[9999] h-[3px] bg-line overflow-hidden pointer-events-none">
-      <div className="h-full bg-accent animate-indeterminate-progress w-full" />
+      <div className="h-full bg-brand animate-indeterminate-progress w-full" />
     </div>
   );
 }

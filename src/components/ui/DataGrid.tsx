@@ -323,7 +323,7 @@ export function DataGrid<T>({
       )}
 
       {/* Tabel Data Asli */}
-      <div className="w-full overflow-x-auto border border-line bg-surface rounded-[8px] shadow-xs">
+      <div className="w-full overflow-x-auto border border-line bg-surface rounded-[12px] shadow-xs">
         <table className="w-full border-collapse text-[13px]">
           {/* Header Grup Jika Ada */}
           {columnGroups && columnGroups.length > 0 && (
@@ -423,7 +423,7 @@ export function DataGrid<T>({
                       const cellError = cellErrors[errKey];
 
                       const cellEditingClass = isCellFocused
-                        ? "bg-surface ring-1 ring-accent"
+                        ? "bg-surface-soft ring-1 ring-brand"
                         : "";
 
                       const cellErrorClass = cellError
@@ -485,7 +485,7 @@ export function DataGrid<T>({
                                   onFocus={() =>
                                     setFocusedCell({ row: rowIndex, col: colIndex })
                                   }
-                                  className={`w-full bg-surface text-[13px] px-2 py-1 border border-line-strong rounded-[3px] outline-none focus:ring-2 focus:ring-accent/20 focus:border-accent text-inherit ${alignClass}`}
+                                  className={`w-full bg-surface text-[13px] px-2 py-1 border border-line rounded-[6px] outline-none focus:ring-2 focus:ring-brand/20 focus:border-brand text-inherit ${alignClass}`}
                                 />
                                 {cellError && (
                                   <span className="block text-[11px] text-danger mt-0.5">
