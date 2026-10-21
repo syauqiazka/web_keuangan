@@ -172,13 +172,13 @@ export function TabDana({
     },
     {
       id: "tanggal",
-      header: "Tanggal",
-      width: "130px",
+      header: "Tanggal Penerimaan",
+      width: "150px",
       editable: true,
       validate: (val) => {
         if (!val || !String(val).trim()) return { valid: false, error: "Wajib diisi" };
         if (!/^(\d{2})-(\d{2})-(\d{4})$/.test(String(val).trim())) {
-          return { valid: false, error: "Gunakan DD-MM-YYYY" };
+          return { valid: false, error: "Gunakan format DD-MM-YYYY" };
         }
         return { valid: true };
       },
@@ -186,7 +186,7 @@ export function TabDana({
     },
     {
       id: "nominal",
-      header: "Nominal",
+      header: "Nominal (Rp)",
       width: "180px",
       align: "right",
       isMoney: true,
@@ -208,8 +208,8 @@ export function TabDana({
     },
     {
       id: "petugasNama",
-      header: "Petugas",
-      width: "160px",
+      header: "Petugas Pencatat",
+      width: "170px",
       editable: false,
       render: (row) => (
         <span className="text-text-2 text-[13px]">{row.petugasNama || "—"}</span>
@@ -229,7 +229,7 @@ export function TabDana({
             size="sm"
             onClick={() => setIsEditing((prev) => !prev)}
           >
-            {isEditing ? "Batal Edit" : "Input Data"}
+            {isEditing ? "Selesai / Batal Edit" : `+ Ubah / Catat Data ${labelKolom}`}
           </Button>
 
           {isEditing && (
@@ -239,7 +239,7 @@ export function TabDana({
               size="sm"
               onClick={() => setShowTambahSumber(true)}
             >
-              + {labelKolom} Baru
+              + Tambah {labelKolom} Baru
             </Button>
           )}
         </div>
@@ -267,7 +267,7 @@ export function TabDana({
           petugasNama: "Anda (saat simpan)",
           catatan: "",
         })}
-        emptyMessage={`Belum ada data ${labelKolom.toLowerCase()}.`}
+        emptyMessage={`Belum ada data ${labelKolom.toLowerCase()} untuk tahun ajaran ini. Klik "+ Ubah / Catat Data ${labelKolom}" di atas untuk mulai mencatat.`}
       />
 
       {/* Dialog Tambah Sumber Baru */}

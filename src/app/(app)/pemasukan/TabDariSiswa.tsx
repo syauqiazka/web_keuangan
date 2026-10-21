@@ -53,11 +53,6 @@ function formatBulan(iso: string): string {
   return `${bulanNames[d.getUTCMonth()]} ${d.getUTCFullYear()}`;
 }
 
-const METODE_OPTIONS = [
-  { value: "SETOR_TUNAI", label: "ST" },
-  { value: "TRANSFER", label: "TF" },
-];
-
 const BULAN_DAFTAR = [
   { value: "1", label: "Januari" },
   { value: "2", label: "Februari" },
@@ -99,7 +94,7 @@ function DialogTambahKolom({
   );
 
   return (
-    <Dialog open={open} title="Tambah Kolom Pemasukan Baru" onClose={onClose}>
+    <Dialog open={open} title="Tambah Jenis Pembayaran Baru" onClose={onClose}>
       <form action={formAction} className="space-y-4">
         <input type="hidden" name="tahunAjaranId" value={tahunAjaranId} />
         {/* Kolom baru selalu tidak bulanan (3 sub-kolom) sesuai AGENTS.md 4.4 */}
@@ -108,16 +103,17 @@ function DialogTambahKolom({
         <Input
           id="kolom-nama"
           name="nama"
-          label="Nama Kolom (Jenis Pemasukan)"
-          placeholder="Contoh: Uang Gedung, Ujian, dsb."
+          label="Nama Jenis Pembayaran"
+          placeholder="Contoh: Uang Gedung, Ujian Praktik, Seragam"
           required
+          helperText="Jenis baru yang ditambahkan bersifat non-bulanan (3 sub-kolom: Tanggal, Metode, Nominal)."
         />
         <Input
           id="kolom-nominal"
           name="nominalStandar"
-          label="Nominal Standar (opsional)"
-          placeholder="Contoh: 200.000"
-          helperText="Kosongkan jika nominal tidak memiliki patokan lunas."
+          label="Nominal Patokan Standar (Rp, opsional)"
+          placeholder="Contoh: 200.000 (kosongkan jika fleksibel)"
+          helperText="Jika diisi, pembayaran siswa yang kurang dari angka ini akan ditandai belum lunas."
         />
         {state?.error && <p className="text-[14px] text-danger">{state.error}</p>}
         <div className="flex justify-end gap-2 pt-2">
@@ -125,7 +121,7 @@ function DialogTambahKolom({
             Batal
           </Button>
           <Button type="submit" variant="primary" disabled={isPending}>
-            {isPending ? "Menyimpan…" : "Simpan"}
+            {isPending ? "Menambahkan…" : "Tambah Jenis Pembayaran"}
           </Button>
         </div>
       </form>
@@ -176,49 +172,63 @@ function DialogTambahPembayaran({
         <input type="hidden" name="penempatanId" value={penempatanId} />
         <Select
           name="jenisPemasukanId"
-          label="Jenis Pemasukan"
+          label="Pilih Jenis Pembayaran"
           value={selectedJenisId}
           onChange={(e) => setSelectedJenisId(e.target.value)}
           options={jenisList.map((j) => ({
             value: j.id,
-            label: `${j.nama}${j.nominalStandar ? ` (${formatRupiah(j.nominalStandar)})` : ""}`,
+            label: `${j.nama}${j.nominalStandar ? ` (Standar: ${formatRupiah(j.nominalStandar)})` : ""}`,
           }))}
         />
         <Input
           id="bayar-tanggal"
           name="tanggal"
-          label="Tanggal Transaksi"
+          label="Tanggal Transaksi (DD-MM-YYYY)"
           defaultValue={defaultToday}
           placeholder="DD-MM-YYYY"
           required
+          helperText="Format: tanggal-bulan-tahun"
         />
         {selectedJenis?.bulanan && (
           <Select
             name="bulanTerbayar"
-            label="Bulan Terbayar"
+            label="Bulan yang Dibayar (SPP)"
             defaultValue={String(today.getMonth() + 1)}
             options={BULAN_DAFTAR}
           />
         )}
-        <Select name="metode" label="Metode Pembayaran" options={METODE_OPTIONS} />
+        <Select
+          name="metode"
+          label="Metode Pembayaran"
+          options={[
+            { value: "SETOR_TUNAI", label: "Setor Tunai (ST)" },
+            { value: "TRANSFER", label: "Transfer Bank (TF)" },
+          ]}
+        />
         <Input
           id="bayar-nominal"
           name="nominal"
-          label="Nominal"
+          label="Nominal Pembayaran (Rp)"
           defaultValue={
             selectedJenis?.nominalStandar ? String(selectedJenis.nominalStandar) : ""
           }
-          placeholder="Contoh: 150.000"
+          placeholder="Contoh: 150000 atau 150.000"
           required
+          helperText="Ketik nominal rupiah yang dibayarkan siswa."
         />
-        <Input id="bayar-catatan" name="catatan" label="Catatan (opsional)" placeholder="" />
+        <Input
+          id="bayar-catatan"
+          name="catatan"
+          label="Catatan Tambahan (opsional)"
+          placeholder="Contoh: Titipan orang tua, cicilan ke-1"
+        />
         {state?.error && <p className="text-[14px] text-danger">{state.error}</p>}
         <div className="flex justify-end gap-2 pt-2">
           <Button type="button" variant="secondary" onClick={onClose}>
             Batal
           </Button>
           <Button type="submit" variant="primary" disabled={isPending}>
-            {isPending ? "Menyimpan…" : "Simpan"}
+            {isPending ? "Menyimpan pembayaran…" : "Simpan Pembayaran"}
           </Button>
         </div>
       </form>
@@ -245,15 +255,24 @@ function TombolHapusPembayaran({
   );
 
   return (
-    <form action={formAction} className="inline ml-1">
+    <form
+      action={formAction}
+      className="inline ml-1"
+      onSubmit={(e) => {
+        if (!window.confirm("Hapus catatan transaksi pembayaran siswa ini dari database?")) {
+          e.preventDefault();
+        }
+      }}
+    >
       <input type="hidden" name="id" value={id} />
       <button
         type="submit"
         disabled={isPending}
-        className="text-[11px] text-text-3 hover:text-danger disabled:opacity-40"
-        title="Hapus pembayaran ini"
+        className="text-[11px] px-1 py-0.5 rounded text-danger hover:bg-danger/10 disabled:opacity-40 font-medium transition-colors"
+        title="Hapus catatan pembayaran ini"
+        aria-label="Hapus pembayaran"
       >
-        ×
+        {isPending ? "…" : "Hapus"}
       </button>
       {state?.error && <span className="text-[11px] text-danger">{state.error}</span>}
     </form>
@@ -279,9 +298,9 @@ export function TabDariSiswa({
 
   if (!tahunAjaranId) {
     return (
-      <p className="text-[14px] text-text-3 py-6">
-        Pilih Tahun Ajaran untuk melihat data pembayaran siswa.
-      </p>
+      <div className="p-6 rounded-[8px] bg-surface border border-line text-text-3 text-[14px]">
+        Pilih Tahun Ajaran pada filter di atas lalu klik <strong>&ldquo;Tampilkan Data Pemasukan&rdquo;</strong> untuk melihat data pembayaran siswa.
+      </div>
     );
   }
 
@@ -294,17 +313,17 @@ export function TabDariSiswa({
 
   if (sortedJenis.length === 0) {
     return (
-      <div className="space-y-4 py-4">
+      <div className="space-y-4 p-6 rounded-[8px] bg-surface border border-line">
         <p className="text-[14px] text-text-3">
-          Belum ada jenis pemasukan untuk tahun ajaran ini.
+          Belum ada jenis pembayaran (kolom pemasukan) untuk tahun ajaran ini. Tambahkan kolom seperti SPP, Uang Gedung, atau Daftar Ulang.
         </p>
         <Button
           type="button"
-          variant="secondary"
+          variant="primary"
           size="sm"
           onClick={() => setDialogKolomOpen(true)}
         >
-          + Tambah Kolom
+          + Tambah Jenis Pembayaran Pertama
         </Button>
         {dialogKolomOpen && (
           <DialogTambahKolom
@@ -329,7 +348,7 @@ export function TabDariSiswa({
             size="sm"
             onClick={() => setIsEditing((prev) => !prev)}
           >
-            {isEditing ? "Batal Edit" : "Input Pembayaran"}
+            {isEditing ? "Selesai / Batal Edit" : "+ Ubah / Catat Pembayaran"}
           </Button>
 
           {isEditing && (
@@ -339,15 +358,19 @@ export function TabDariSiswa({
               size="sm"
               onClick={() => setDialogKolomOpen(true)}
             >
-              + Tambah Kolom Jenis
+              + Tambah Jenis Pembayaran (Kolom Baru)
             </Button>
           )}
         </div>
 
         <div className="flex items-center gap-4 text-[12px] text-text-3">
           <span className="flex items-center gap-1.5">
+            <span className="w-2 h-2 rounded-full bg-series-in inline-block" />
+            <span className="text-text font-medium">✓ Lunas</span> = mencapai patokan standar
+          </span>
+          <span className="flex items-center gap-1.5">
             <span className="w-2 h-2 rounded-full bg-danger inline-block" />
-            <span className="text-danger font-medium">Nominal Merah</span> = belum lunas (kurang dari patokan)
+            <span className="text-danger font-medium">⚠️ Kurang</span> = di bawah patokan
           </span>
         </div>
       </div>
@@ -522,9 +545,14 @@ export function TabDariSiswa({
                                     <TombolHapusPembayaran id={last.id} onSuccess={onRefresh} />
                                   )}
                                 </div>
+                                {jenis.nominalStandar && status.lunas && (
+                                  <div className="text-[10px] font-medium text-series-in mt-0.5">
+                                    ✓ Lunas
+                                  </div>
+                                )}
                                 {isBelumLunas && status.teksKekurangan && (
                                   <div className="text-[11px] font-[400] text-danger mt-0.5">
-                                    {status.teksKekurangan}
+                                    ⚠️ {status.teksKekurangan}
                                   </div>
                                 )}
                                 {last?.petugasNama && (
@@ -568,9 +596,14 @@ export function TabDariSiswa({
                                   <TombolHapusPembayaran id={last.id} onSuccess={onRefresh} />
                                 )}
                               </div>
+                              {jenis.nominalStandar && status.lunas && (
+                                <div className="text-[10px] font-medium text-series-in mt-0.5">
+                                  ✓ Lunas
+                                </div>
+                              )}
                               {isBelumLunas && status.teksKekurangan && (
                                 <div className="text-[11px] font-[400] text-danger mt-0.5">
-                                  {status.teksKekurangan}
+                                  ⚠️ {status.teksKekurangan}
                                 </div>
                               )}
                               {last?.petugasNama && (
@@ -604,7 +637,7 @@ export function TabDariSiswa({
                           })
                         }
                       >
-                        + Bayar
+                        + Catat Bayar
                       </Button>
                     </td>
                   )}

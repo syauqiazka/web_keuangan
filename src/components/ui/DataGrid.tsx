@@ -294,7 +294,7 @@ export function DataGrid<T>({
                 size="sm"
                 onClick={() => handleTambahBaris(0)}
               >
-                Tambah Baris
+                + Tambah Baris Baru
               </Button>
             )}
 
@@ -302,10 +302,15 @@ export function DataGrid<T>({
           </div>
 
           {isEditing && onSave && (
-            <div className="flex items-center gap-3">
+            <div className="flex flex-wrap items-center gap-3">
               {unsavedRowIndices.size > 0 && (
-                <span className="font-mono text-[12px] text-label">
-                  {unsavedRowIndices.size} baris belum disimpan
+                <span className="text-[12px] text-text-3 font-medium">
+                  <span className="text-warning font-semibold">{unsavedRowIndices.size} baris</span> belum disimpan
+                </span>
+              )}
+              {hasErrors && (
+                <span className="text-[12px] text-danger font-medium">
+                  Periksa sel bertanda merah
                 </span>
               )}
               <Button
@@ -315,7 +320,7 @@ export function DataGrid<T>({
                 disabled={isSaving || hasErrors}
                 onClick={handleSave}
               >
-                {isSaving ? "Menyimpan…" : "Simpan"}
+                {isSaving ? "Menyimpan perubahan…" : "Simpan semua perubahan"}
               </Button>
             </div>
           )}

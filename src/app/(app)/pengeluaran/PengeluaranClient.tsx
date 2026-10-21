@@ -155,14 +155,14 @@ export function PengeluaranClient({
     },
     {
       id: "tanggal",
-      header: "Tanggal",
-      width: "130px",
+      header: "Tanggal Transaksi",
+      width: "140px",
       align: "left",
       editable: true,
       validate: (val) => {
         if (!val || !String(val).trim()) return { valid: false, error: "Wajib diisi" };
         if (!/^(\d{2})-(\d{2})-(\d{4})$/.test(String(val).trim())) {
-          return { valid: false, error: "Gunakan DD-MM-YYYY" };
+          return { valid: false, error: "Gunakan format DD-MM-YYYY" };
         }
         return { valid: true };
       },
@@ -178,7 +178,7 @@ export function PengeluaranClient({
     },
     {
       id: "nominal",
-      header: "Nominal",
+      header: "Nominal (Rp)",
       width: "180px",
       align: "right",
       isMoney: true,
@@ -202,8 +202,8 @@ export function PengeluaranClient({
     },
     {
       id: "petugasNama",
-      header: "Petugas",
-      width: "160px",
+      header: "Petugas Pencatat",
+      width: "170px",
       editable: false,
       render: (row) => (
         <span className="text-text-2 text-[13px]">{row.petugasNama || "—"}</span>
@@ -216,15 +216,15 @@ export function PengeluaranClient({
 
   return (
     <div className="space-y-6">
-      {/* Header Halaman dengan Atmos blur-to-sharp reveal */}
+      {/* Header Halaman */}
       <BlurReveal blur={10} duration={0.75}>
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-5 border-b border-line">
           <div>
-            <h1 className="text-[24px] lg:text-[28px] font-semibold text-text tracking-tight">
-              Pengeluaran Sekolah
+            <h1 className="text-[22px] lg:text-[26px] font-semibold text-text tracking-tight">
+              Pencatatan Pengeluaran Sekolah
             </h1>
-            <p className="text-[13px] text-text-3 mt-0.5">
-              Pencatatan operasional, gaji guru dan staf, serta pengeluaran kas sekolah
+            <p className="text-[13px] text-text-3 mt-1">
+              Catat dan pantau transaksi operasional kas sekolah, belanja kebutuhan, serta gaji guru & staf.
             </p>
           </div>
           <div className="flex items-center gap-2">
@@ -234,19 +234,39 @@ export function PengeluaranClient({
               size="md"
               onClick={() => setIsEditing((prev) => !prev)}
             >
-              {isEditing ? "Batal Edit" : "Input Pengeluaran"}
+              {isEditing ? "Selesai / Batal Edit" : "+ Ubah / Catat Pengeluaran"}
             </Button>
           </div>
         </div>
       </BlurReveal>
 
-      {/* Ringkasan Pengeluaran: Bulan Ini & Total Per Tahun dengan blur-to-sharp stagger */}
+      {/* Mode Edit Banner Edukatif */}
+      {isEditing && (
+        <div className="p-4 rounded-[8px] bg-surface-soft border border-brand/30 text-text text-[13px] flex items-center justify-between gap-3">
+          <div className="flex items-center gap-2">
+            <span className="w-2 h-2 rounded-full bg-brand animate-pulse" />
+            <span>
+              <strong>Mode Edit Aktif:</strong> Anda dapat mengubah data sel secara langsung, klik <strong>&ldquo;+ Tambah Baris Baru&rdquo;</strong>, atau menempel (paste) data dari Excel. Klik <strong>&ldquo;Simpan semua perubahan&rdquo;</strong> untuk menyimpan ke database.
+            </span>
+          </div>
+          <Button
+            type="button"
+            variant="secondary"
+            size="sm"
+            onClick={() => setIsEditing(false)}
+          >
+            Tutup Mode Edit
+          </Button>
+        </div>
+      )}
+
+      {/* Ringkasan Pengeluaran: Bulan Ini & Total Per Tahun */}
       <StaggerGroup blur={8} duration={0.75} className="grid grid-cols-1 sm:grid-cols-2 gap-4" staggerDelay={0.08}>
         <StaggerItem>
-          <div className="bg-surface p-5 lg:p-6 border border-line rounded-[14px] shadow-xs relative overflow-hidden flex flex-col justify-between">
+          <div className="bg-surface p-5 lg:p-6 border border-line rounded-[12px] shadow-xs relative overflow-hidden flex flex-col justify-between">
             <div className="absolute top-0 left-0 right-0 h-[3px] bg-series-out" />
             <div>
-              <p className="text-[11px] font-mono font-medium text-text-3 uppercase tracking-wider mb-2">
+              <p className="text-[12px] font-medium text-text-3 uppercase tracking-wider mb-2">
                 Jumlah Pengeluaran Bulan Ini
               </p>
               <div className="text-[26px] lg:text-[30px] font-semibold text-text num tabular-nums">
@@ -263,10 +283,10 @@ export function PengeluaranClient({
           </div>
         </StaggerItem>
         <StaggerItem>
-          <div className="bg-surface p-5 lg:p-6 border border-line rounded-[14px] shadow-xs relative overflow-hidden flex flex-col justify-between">
+          <div className="bg-surface p-5 lg:p-6 border border-line rounded-[12px] shadow-xs relative overflow-hidden flex flex-col justify-between">
             <div className="absolute top-0 left-0 right-0 h-[3px] bg-series-out" />
             <div>
-              <p className="text-[11px] font-mono font-medium text-text-3 uppercase tracking-wider mb-2">
+              <p className="text-[12px] font-medium text-text-3 uppercase tracking-wider mb-2">
                 Total Pengeluaran Per Tahun
               </p>
               <div className="text-[26px] lg:text-[30px] font-semibold text-text num tabular-nums">
@@ -284,7 +304,7 @@ export function PengeluaranClient({
         </StaggerItem>
       </StaggerGroup>
 
-      {/* Filter Toolbar (GET) – Tarik Data */}
+      {/* Filter Toolbar (GET) – Tampilkan Pengeluaran */}
       {!isEditing && (
         <BlurReveal blur={6} delay={0.12} duration={0.65}>
           <div className="bg-surface border border-line rounded-[12px] p-4 shadow-xs">
@@ -304,14 +324,14 @@ export function PengeluaranClient({
               <div className="min-w-[160px]">
                 <Select
                   name="bulan"
-                  label="Bulan"
+                  label="Bulan Transaksi"
                   defaultValue={bulanNomor}
                   options={BULAN_OPTIONS}
                 />
               </div>
               <div className="pb-0.5">
                 <Button type="submit" variant="primary" size="md">
-                  Tarik Data
+                  Tampilkan Transaksi
                 </Button>
               </div>
             </form>
@@ -344,8 +364,8 @@ export function PengeluaranClient({
         })}
         emptyMessage={
           bulanNomor
-            ? `Belum ada pengeluaran pada periode ini.`
-            : "Belum ada catatan pengeluaran."
+            ? `Belum ada transaksi pengeluaran untuk periode ${BULAN_OPTIONS.find(b => b.value === bulanNomor)?.label ?? ""}. Klik "+ Ubah / Catat Pengeluaran" di atas untuk mulai mencatat transaksi.`
+            : 'Belum ada catatan pengeluaran untuk tahun ajaran ini. Klik "+ Ubah / Catat Pengeluaran" di atas untuk mulai mencatat transaksi.'
         }
       />
       </BlurReveal>

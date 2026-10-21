@@ -188,11 +188,11 @@ export function DataSiswaGuruClient({
       <BlurReveal blur={10} duration={0.75}>
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-5 border-b border-line">
           <div>
-            <h1 className="text-[24px] lg:text-[28px] font-semibold text-text tracking-tight">
+            <h1 className="text-[22px] lg:text-[26px] font-semibold text-text tracking-tight">
               Data Siswa & Guru
             </h1>
-            <p className="text-[13px] text-text-3 mt-0.5">
-              Direktori siswa per kelas dan tenaga pendidik dengan kode UID unik
+            <p className="text-[13px] text-text-3 mt-1">
+              Direktori penempatan siswa per kelas dan tenaga pendidik dengan kode UID untuk rekap pembayaran.
             </p>
           </div>
           <div className="flex items-center gap-2">
@@ -202,13 +202,33 @@ export function DataSiswaGuruClient({
               size="md"
               onClick={() => setIsEditing((prev) => !prev)}
             >
-              {isEditing ? "Batal Edit" : "Input Data"}
+              {isEditing ? "Selesai / Batal Edit" : "+ Ubah / Tambah Data Siswa"}
             </Button>
           </div>
         </div>
       </BlurReveal>
 
-      {/* Form Filter (GET) – Enter */}
+      {/* Mode Edit Banner Edukatif */}
+      {isEditing && (
+        <div className="p-4 rounded-[8px] bg-surface-soft border border-brand/30 text-text text-[13px] flex items-center justify-between gap-3">
+          <div className="flex items-center gap-2">
+            <span className="w-2 h-2 rounded-full bg-brand animate-pulse" />
+            <span>
+              <strong>Mode Edit Data Aktif:</strong> Anda dapat mengedit sel langsung, klik <strong>&ldquo;+ Tambah Baris Baru&rdquo;</strong>, atau menempel (paste) data daftar nama dari Microsoft Excel. Klik <strong>&ldquo;Simpan semua perubahan&rdquo;</strong> untuk menyimpan ke database.
+            </span>
+          </div>
+          <Button
+            type="button"
+            variant="secondary"
+            size="sm"
+            onClick={() => setIsEditing(false)}
+          >
+            Tutup Mode Edit
+          </Button>
+        </div>
+      )}
+
+      {/* Form Filter (GET) – Tampilkan Data Siswa */}
       {!isEditing && (
         <BlurReveal blur={6} delay={0.12} duration={0.65}>
           <div className="bg-surface border border-line rounded-[12px] p-4 shadow-xs">
@@ -228,14 +248,14 @@ export function DataSiswaGuruClient({
               <div className="flex-1 min-w-[180px]">
                 <Select
                   name="kelas"
-                  label="Kelas / Guru"
+                  label="Pilih Kelas / Guru"
                   defaultValue={kelasId}
                   options={kelasOptions}
                 />
               </div>
               <div className="pb-0.5">
                 <Button type="submit" variant="primary" size="md">
-                  Enter
+                  Tampilkan Data Siswa
                 </Button>
               </div>
             </form>
@@ -267,8 +287,8 @@ export function DataSiswaGuruClient({
         }}
         emptyMessage={
           tahunAjaranId || kelasId
-            ? "Belum ada data untuk filter yang dipilih."
-            : "Belum ada data siswa atau guru."
+            ? 'Belum ada data siswa atau guru untuk filter ini. Klik "+ Ubah / Tambah Data Siswa" di atas untuk menambah baris atau tempel daftar nama dari Excel.'
+            : "Silakan pilih Tahun Ajaran & Kelas pada filter di atas lalu klik 'Tampilkan Data Siswa'."
         }
       />
       </BlurReveal>

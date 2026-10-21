@@ -1,6 +1,6 @@
 @import "tailwindcss";
 
-/* Token statis [Light Theme Professional Finance UI System] */
+/* Token statis [Bank Saku Digital Official Design Tokens] */
 @theme {
   --color-*: initial;
   --shadow-*: initial;
@@ -8,26 +8,26 @@
 
   --color-paper: #ffffff;
   --color-surface: #ffffff;
-  --color-canvas: #f4f6f3;
-  --color-brand: #245746;
-  --color-brand-secondary: #1b4538;
-  --color-brand-hover: #1b4538;
-  --color-surface-soft: #e5efe8;
-  --color-ink: #26352d;
-  --color-steel: #647168;
-  --color-rule: #dce3dd;
+  --color-canvas: #f7f8fa;
+  --color-brand: #29735c;
+  --color-brand-secondary: #215e4b;
+  --color-brand-hover: #215e4b;
+  --color-surface-soft: #eaf1ed;
+  --color-ink: #151515;
+  --color-steel: #595959;
+  --color-rule: #dcdcdc;
   --color-warning: #a96d19;
-  --color-alert: #b84545;
-  --color-network-green: #378463;
-  --color-ledger-blue: #64859a;
+  --color-alert: #b42318;
+  --color-network-green: #29735c;
+  --color-ledger-blue: #4f86c0;
 
-  --radius-button: 10px;
-  --radius-control: 10px;
-  --radius-card: 14px;
-  --radius-input: 10px;
-  --shadow-xs: 0 1px 2px 0 rgb(36 87 70 / 0.04);
-  --shadow-card: 0 1px 3px 0 rgb(36 87 70 / 0.05), 0 1px 2px -1px rgb(36 87 70 / 0.03);
-  --shadow-overlay: 0 20px 25px -5px rgb(36 87 70 / 0.08), 0 8px 10px -6px rgb(36 87 70 / 0.04);
+  --radius-button: 8px;
+  --radius-control: 8px;
+  --radius-card: 12px;
+  --radius-input: 8px;
+  --shadow-xs: 0 1px 2px 0 rgb(21 21 21 / 0.04);
+  --shadow-card: 0 1px 3px 0 rgb(21 21 21 / 0.05), 0 1px 2px -1px rgb(21 21 21 / 0.03);
+  --shadow-overlay: 0 16px 24px -4px rgb(21 21 21 / 0.08), 0 6px 10px -4px rgb(21 21 21 / 0.03);
 
   --font-display: var(--font-manrope), ui-sans-serif, system-ui, sans-serif;
   --font-sans: var(--font-inter), ui-sans-serif, system-ui, sans-serif;
@@ -36,77 +36,77 @@
 
 /* Token semantik yang berganti saat tema berubah */
 :root {
-  --canvas: #f4f6f3;
+  --canvas: #f7f8fa;
   --surface: #ffffff;
-  --panel: #edf2ee;
-  --surface-soft: #e5efe8;
-  --brand: #245746;
-  --brand-secondary: #1b4538;
-  --brand-hover: #1b4538;
-  --text: #26352d;
-  --text-2: #3d4d43;
-  --text-3: #647168;
-  --line: #dce3dd;
-  --line-strong: #c8d3c9;
+  --panel: #f0f2f5;
+  --surface-soft: #eaf1ed;
+  --brand: #29735c;
+  --brand-secondary: #215e4b;
+  --brand-hover: #215e4b;
+  --text: #151515;
+  --text-2: #383838;
+  --text-3: #595959;
+  --line: #dcdcdc;
+  --line-strong: #cbcac8;
   --on-ink: #ffffff;
-  --accent: #245746;
-  --accent-hover: #1b4538;
-  --accent-text: #245746;
-  --series-in: #378463;
-  --series-out: #64859a;
+  --accent: #29735c;
+  --accent-hover: #215e4b;
+  --accent-text: #29735c;
+  --series-in: #29735c;
+  --series-out: #4f86c0;
   --warning: #a96d19;
-  --danger: #b84545;
-  --label: #647168;
+  --danger: #b42318;
+  --label: #595959;
 }
 
 /* Tema gelap yang tenang dan tidak menyilaukan */
 :root[data-theme="dark"] {
-  --canvas: #121c17;
-  --surface: #182821;
-  --panel: #1e332a;
-  --surface-soft: #233e33;
-  --brand: #378463;
-  --brand-secondary: #479e78;
-  --brand-hover: #479e78;
-  --text: #f0f5f1;
-  --text-2: #c4d5cb;
-  --text-3: #879b8f;
-  --line: #274337;
-  --line-strong: #335546;
+  --canvas: #111413;
+  --surface: #181d1a;
+  --panel: #202723;
+  --surface-soft: #243029;
+  --brand: #368a70;
+  --brand-secondary: #429f82;
+  --brand-hover: #429f82;
+  --text: #f5f5f5;
+  --text-2: #cccccc;
+  --text-3: #999999;
+  --line: #2b3530;
+  --line-strong: #38453f;
   --on-ink: #ffffff;
-  --accent: #378463;
-  --accent-hover: #479e78;
-  --accent-text: #5cb88f;
-  --series-in: #378463;
-  --series-out: #7da0b6;
-  --warning: #c98522;
-  --danger: #d45959;
-  --label: #879b8f;
+  --accent: #368a70;
+  --accent-hover: #429f82;
+  --accent-text: #5ec2a3;
+  --series-in: #368a70;
+  --series-out: #6ba1db;
+  --warning: #d48e24;
+  --danger: #d9453b;
+  --label: #999999;
 }
 
 @media (prefers-color-scheme: dark) {
   :root[data-theme="system"] {
-    --canvas: #121c17;
-    --surface: #182821;
-    --panel: #1e332a;
-    --surface-soft: #233e33;
-    --brand: #378463;
-    --brand-secondary: #479e78;
-    --brand-hover: #479e78;
-    --text: #f0f5f1;
-    --text-2: #c4d5cb;
-    --text-3: #879b8f;
-    --line: #274337;
-    --line-strong: #335546;
+    --canvas: #111413;
+    --surface: #181d1a;
+    --panel: #202723;
+    --surface-soft: #243029;
+    --brand: #368a70;
+    --brand-secondary: #429f82;
+    --brand-hover: #429f82;
+    --text: #f5f5f5;
+    --text-2: #cccccc;
+    --text-3: #999999;
+    --line: #2b3530;
+    --line-strong: #38453f;
     --on-ink: #ffffff;
-    --accent: #378463;
-    --accent-hover: #479e78;
-    --accent-text: #5cb88f;
-    --series-in: #378463;
-    --series-out: #7da0b6;
-    --warning: #c98522;
-    --danger: #d45959;
-    --label: #879b8f;
+    --accent: #368a70;
+    --accent-hover: #429f82;
+    --accent-text: #5ec2a3;
+    --series-in: #368a70;
+    --series-out: #6ba1db;
+    --warning: #d48e24;
+    --danger: #d9453b;
+    --label: #999999;
   }
 }
 

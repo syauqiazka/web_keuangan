@@ -53,9 +53,9 @@ interface PemasukanClientProps {
 }
 
 const TABS: { key: TabKey; label: string }[] = [
-  { key: "dari-siswa", label: "Dari Siswa" },
-  { key: "bantuan", label: "Bantuan" },
-  { key: "donatur", label: "Donatur" },
+  { key: "dari-siswa", label: "Pembayaran Siswa" },
+  { key: "bantuan", label: "Bantuan Lembaga / Pemerintah" },
+  { key: "donatur", label: "Donatur & Dana Hibah" },
 ];
 
 export function PemasukanClient({
@@ -112,11 +112,11 @@ export function PemasukanClient({
       {/* Header dengan Atmos blur-to-sharp reveal */}
       <BlurReveal blur={10} duration={0.75}>
         <div className="pb-5 border-b border-line">
-          <h1 className="text-[24px] lg:text-[28px] font-semibold text-text tracking-tight">
-            Pemasukan Sekolah
+          <h1 className="text-[22px] lg:text-[26px] font-semibold text-text tracking-tight">
+            Pencatatan Pemasukan Sekolah
           </h1>
-          <p className="text-[13px] text-text-3 mt-0.5">
-            Pencatatan dan pemantauan pembayaran siswa, bantuan dana pemerintah, dan donatur
+          <p className="text-[13px] text-text-3 mt-1">
+            Pantau dan kelola penerimaan dana sekolah dari pembayaran siswa (SPP & non-SPP), bantuan pemerintah, dan donatur.
           </p>
         </div>
       </BlurReveal>
@@ -125,10 +125,10 @@ export function PemasukanClient({
       <div className="space-y-3">
         <StaggerGroup blur={8} duration={0.75} className="grid grid-cols-1 sm:grid-cols-2 gap-4" staggerDelay={0.08}>
           <StaggerItem>
-            <div className="bg-surface p-5 lg:p-6 border border-line rounded-[14px] shadow-xs relative overflow-hidden flex flex-col justify-between">
+            <div className="bg-surface p-5 lg:p-6 border border-line rounded-[12px] shadow-xs relative overflow-hidden flex flex-col justify-between">
               <div className="absolute top-0 left-0 right-0 h-[3px] bg-series-in" />
               <div>
-                <div className="text-[11px] font-mono font-medium text-text-3 uppercase tracking-wider mb-2">
+                <div className="text-[12px] font-medium text-text-3 uppercase tracking-wider mb-2">
                   {labelBulan}
                 </div>
                 <div className="text-[26px] lg:text-[30px] font-semibold text-text leading-tight num">
@@ -145,10 +145,10 @@ export function PemasukanClient({
             </div>
           </StaggerItem>
           <StaggerItem>
-            <div className="bg-surface p-5 lg:p-6 border border-line rounded-[14px] shadow-xs relative overflow-hidden flex flex-col justify-between">
+            <div className="bg-surface p-5 lg:p-6 border border-line rounded-[12px] shadow-xs relative overflow-hidden flex flex-col justify-between">
               <div className="absolute top-0 left-0 right-0 h-[3px] bg-brand" />
               <div>
-                <div className="text-[11px] font-mono font-medium text-text-3 uppercase tracking-wider mb-2">
+                <div className="text-[12px] font-medium text-text-3 uppercase tracking-wider mb-2">
                   Total Pemasukan Per Tahun
                 </div>
                 <div className="text-[26px] lg:text-[30px] font-semibold text-text leading-tight num">
@@ -205,7 +205,7 @@ export function PemasukanClient({
             <div className="min-w-[150px]">
               <Select
                 name="kelas"
-                label="Kelas"
+                label="Filter Kelas Siswa"
                 defaultValue={kelasId}
                 options={kelasOptions}
               />
@@ -213,14 +213,14 @@ export function PemasukanClient({
             <div className="min-w-[140px]">
               <Select
                 name="bulan"
-                label="Bulan"
+                label="Bulan Transaksi"
                 defaultValue={bulanNomor}
                 options={BULAN_OPTIONS}
               />
             </div>
             <div className="pb-0.5">
               <Button type="submit" variant="primary" size="md">
-                Tarik Data
+                Tampilkan Data Pemasukan
               </Button>
             </div>
           </form>

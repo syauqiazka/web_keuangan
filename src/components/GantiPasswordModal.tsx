@@ -98,7 +98,7 @@ export function GantiPasswordModal({
             </Button>
           )}
           <Button type="submit" variant="primary" disabled={isPending}>
-            {isPending ? "Menyimpan…" : "Simpan Kata Sandi"}
+            {isPending ? "Menyimpan sandi baru…" : "Simpan Kata Sandi Baru"}
           </Button>
         </div>
       </form>

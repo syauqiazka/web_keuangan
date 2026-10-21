@@ -228,7 +228,16 @@ function BahanAkun({
           {!isCurrentUser && (
             <>
               <span className="text-line-strong">•</span>
-              <form action={toggleAction} className="inline">
+              <form
+                action={toggleAction}
+                className="inline"
+                onSubmit={(e) => {
+                  const aksi = akun.aktif ? "menonaktifkan" : "mengaktifkan kembali";
+                  if (!window.confirm(`Apakah Anda yakin ingin ${aksi} akun petugas "${akun.nama}" (${akun.kode})?`)) {
+                    e.preventDefault();
+                  }
+                }}
+              >
                 <input type="hidden" name="penggunaId" value={akun.id} />
                 <button
                   type="submit"
@@ -237,7 +246,7 @@ function BahanAkun({
                     akun.aktif ? "text-danger" : "text-series-in"
                   }`}
                 >
-                  {akun.aktif ? "Nonaktifkan" : "Aktifkan"}
+                  {isPendingToggle ? "Memproses…" : (akun.aktif ? "Nonaktifkan Akun" : "Aktifkan Akun")}
                 </button>
               </form>
             </>

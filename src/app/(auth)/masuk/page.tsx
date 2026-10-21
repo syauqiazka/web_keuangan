@@ -228,8 +228,8 @@ export default function MasukPage() {
             <Input
               id="kode"
               name="kode"
-              label="Kode Akun"
-              placeholder="Masukkan kode akun"
+              label="Kode Akun Petugas"
+              placeholder="Contoh: admin atau kode_petugas"
               autoComplete="username"
               required
               disabled={isPending}
@@ -240,7 +240,7 @@ export default function MasukPage() {
               name="password"
               type="password"
               label="Kata Sandi"
-              placeholder="Masukkan kata sandi"
+              placeholder="Masukkan kata sandi akun Anda"
               autoComplete="current-password"
               required
               disabled={isPending}
@@ -253,7 +253,7 @@ export default function MasukPage() {
                 disabled={isPending}
                 className="w-full"
               >
-                {isPending ? "Memverifikasi…" : "Masuk"}
+                {isPending ? "Memverifikasi akun…" : "Masuk ke Sistem Keuangan"}
               </Button>
             </div>
           </form>
