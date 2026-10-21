@@ -118,7 +118,7 @@ export function DashboardClient({
             </div>
             <div className="mt-4 pt-3 border-t border-line/60 flex items-center justify-between text-[12px] text-text-3">
               <span>Siswa + Bantuan + Donatur</span>
-              <span className="font-medium text-network-green">Positif</span>
+              <span className="font-medium text-series-in">Positif</span>
             </div>
           </div>
         </StaggerItem>
@@ -146,7 +146,7 @@ export function DashboardClient({
             </div>
             <div className="mt-4 pt-3 border-t border-line/60 flex items-center justify-between text-[12px] text-text-3">
               <span>Operasional & Gaji</span>
-              <span className="font-medium text-ledger-blue">Tahun {tahun}</span>
+              <span className="font-medium text-series-out">Tahun {tahun}</span>
             </div>
           </div>
         </StaggerItem>

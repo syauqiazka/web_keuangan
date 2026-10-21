@@ -264,7 +264,7 @@ export function PengeluaranClient({
         </StaggerItem>
         <StaggerItem>
           <div className="bg-surface p-5 lg:p-6 border border-line rounded-[14px] shadow-xs relative overflow-hidden flex flex-col justify-between">
-            <div className="absolute top-0 left-0 right-0 h-[3px] bg-danger" />
+            <div className="absolute top-0 left-0 right-0 h-[3px] bg-series-out" />
             <div>
               <p className="text-[11px] font-mono font-medium text-text-3 uppercase tracking-wider mb-2">
                 Total Pengeluaran Per Tahun

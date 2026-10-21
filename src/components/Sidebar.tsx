@@ -33,18 +33,16 @@ const MENU_ITEMS: MenuItem[] = [
 ];
 
 /**
- * NavLink — dark sidebar variant.
- * Active  : surface-soft bg (#E7EEE8), brand text (#173F35), bold.
- * Inactive: white/70 text, hover white/90 text + white/10 bg.
+ * NavLink — Light, calm, and professional navigation link.
+ * Active  : bg-surface-soft (#E5EFE8), text-brand (#245746), font-semibold, subtle border.
+ * Inactive: text-text-3 (#647168), hover:text-text (#26352D), hover:bg-canvas (#F4F6F3).
  */
 function NavLink({
   item,
   onClick,
-  dark = false,
 }: {
   item: MenuItem;
   onClick?: () => void;
-  dark?: boolean;
 }) {
   const pathname = usePathname();
   const isActive =
@@ -52,37 +50,14 @@ function NavLink({
     (item.href !== "/dashboard" && pathname.startsWith(`${item.href}/`));
   const Icon = item.icon;
 
-  if (dark) {
-    return (
-      <Link
-        href={item.href}
-        onClick={onClick}
-        className={`group flex items-center gap-3 px-3 py-2.5 text-[13px] rounded-[8px] transition-all duration-150 ${
-          isActive
-            ? "bg-surface-soft text-brand font-semibold shadow-xs"
-            : "text-white/70 font-medium hover:text-white hover:bg-white/10 border border-transparent"
-        }`}
-      >
-        <Icon
-          className={`w-4 h-4 shrink-0 transition-colors ${
-            isActive ? "text-brand" : "text-white/55 group-hover:text-white/90"
-          }`}
-          strokeWidth={isActive ? 2.25 : 1.75}
-        />
-        <span>{item.name}</span>
-      </Link>
-    );
-  }
-
-  // Light variant for mobile drawer
   return (
     <Link
       href={item.href}
       onClick={onClick}
       className={`group flex items-center gap-3 px-3 py-2.5 text-[13px] rounded-[8px] transition-all duration-150 ${
         isActive
-          ? "bg-surface-soft text-brand font-semibold border border-line shadow-xs"
-          : "text-text-2 font-medium hover:text-text hover:bg-panel border border-transparent"
+          ? "bg-surface-soft text-brand font-semibold border border-line/70 shadow-xs"
+          : "text-text-3 font-medium hover:text-text hover:bg-canvas border border-transparent"
       }`}
     >
       <Icon
@@ -146,13 +121,13 @@ function MobileDrawer({
       >
         <nav className="space-y-1">
           {MENU_ITEMS.map((item) => (
-            <NavLink key={item.href} item={item} onClick={onClose} dark={false} />
+            <NavLink key={item.href} item={item} onClick={onClose} />
           ))}
         </nav>
         {user && (
           <div className="pt-3 border-t border-line flex items-center justify-between">
             <div className="flex items-center gap-2.5">
-              <div className="w-7 h-7 rounded-[6px] bg-surface-soft text-brand font-semibold text-[11px] flex items-center justify-center border border-line">
+              <div className="w-8 h-8 rounded-[8px] bg-surface-soft text-brand font-semibold text-[11px] flex items-center justify-center border border-line">
                 {initials}
               </div>
               <div>
@@ -206,9 +181,9 @@ export function Sidebar({ user }: { user?: SessionUser | null }) {
   return (
     <>
       {/* ── Mobile Top Bar (< 1024px) ── */}
-      <div className="lg:hidden w-full bg-brand border-b border-white/15 px-4 py-3 flex items-center justify-between sticky top-0 z-30">
+      <div className="lg:hidden w-full bg-surface border-b border-line px-4 py-3 flex items-center justify-between sticky top-0 z-30 shadow-xs">
         <Link href="/dashboard" className="flex items-center gap-3">
-          <div className="w-8 h-8 rounded-[8px] bg-white/15 flex items-center justify-center border border-white/20">
+          <div className="w-8 h-8 rounded-[8px] bg-surface-soft flex items-center justify-center border border-line">
             <Image
               src="/logo-bank-saku-digital.jpeg"
               alt="Logo Bank Saku Digital"
@@ -219,10 +194,10 @@ export function Sidebar({ user }: { user?: SessionUser | null }) {
             />
           </div>
           <div>
-            <div className="text-[13px] font-semibold text-white leading-tight">
+            <div className="text-[13px] font-semibold text-text leading-tight">
               Pencatatan Keuangan Sekolah
             </div>
-            <div className="text-[11px] text-white/55 leading-tight">
+            <div className="text-[11px] text-text-3 leading-tight">
               Bank Saku Digital
             </div>
           </div>
@@ -230,14 +205,14 @@ export function Sidebar({ user }: { user?: SessionUser | null }) {
         <button
           type="button"
           onClick={() => setMobileMenuOpen((prev) => !prev)}
-          className="p-2 text-white/80 rounded-[8px] border border-white/20 hover:bg-white/10 focus:outline-none transition-colors"
+          className="p-2 text-text-2 rounded-[8px] border border-line hover:bg-canvas focus:outline-none transition-colors"
           aria-label={mobileMenuOpen ? "Tutup navigasi" : "Buka navigasi"}
           aria-expanded={mobileMenuOpen}
         >
           {mobileMenuOpen ? (
-            <X className="w-4 h-4 text-white" strokeWidth={1.75} />
+            <X className="w-4 h-4 text-text" strokeWidth={1.75} />
           ) : (
-            <Menu className="w-4 h-4 text-white" strokeWidth={1.75} />
+            <Menu className="w-4 h-4 text-text" strokeWidth={1.75} />
           )}
         </button>
       </div>
@@ -251,10 +226,10 @@ export function Sidebar({ user }: { user?: SessionUser | null }) {
       />
 
       {/* ── Desktop Sidebar (>= 1024px) ── */}
-      <aside className="hidden lg:flex flex-col w-[240px] shrink-0 min-h-screen bg-brand sticky top-0 h-screen select-none border-r border-white/10">
+      <aside className="hidden lg:flex flex-col w-[240px] shrink-0 min-h-screen bg-surface sticky top-0 h-screen select-none border-r border-line shadow-xs">
         {/* Brand header */}
-        <div className="px-4 py-5 border-b border-white/10 flex items-center gap-3">
-          <div className="w-9 h-9 rounded-[10px] bg-white/15 flex items-center justify-center shrink-0 border border-white/20">
+        <div className="px-4 py-5 border-b border-line flex items-center gap-3">
+          <div className="w-9 h-9 rounded-[10px] bg-surface-soft flex items-center justify-center shrink-0 border border-line">
             <Image
               src="/logo-bank-saku-digital.jpeg"
               alt="Logo Bank Saku Digital"
@@ -265,10 +240,10 @@ export function Sidebar({ user }: { user?: SessionUser | null }) {
             />
           </div>
           <div className="min-w-0">
-            <h1 className="text-[12px] font-semibold text-white leading-tight truncate">
+            <h1 className="text-[13px] font-semibold text-text leading-tight truncate">
               Pencatatan Keuangan
             </h1>
-            <p className="text-[11px] text-white/50 leading-tight truncate">
+            <p className="text-[11px] text-text-3 leading-tight truncate">
               Bank Saku Digital
             </p>
           </div>
@@ -277,23 +252,23 @@ export function Sidebar({ user }: { user?: SessionUser | null }) {
         {/* Nav */}
         <nav className="p-3 space-y-0.5 flex-1 overflow-y-auto">
           {MENU_ITEMS.map((item) => (
-            <NavLink key={item.href} item={item} dark={true} />
+            <NavLink key={item.href} item={item} />
           ))}
         </nav>
 
         {/* User profile footer */}
         {user && (
-          <div className="px-3.5 py-4 border-t border-white/10">
+          <div className="px-3.5 py-4 border-t border-line">
             <div className="flex items-center gap-2.5">
-              <div className="w-8 h-8 rounded-[8px] bg-surface-soft text-brand font-semibold text-[12px] flex items-center justify-center shrink-0 border border-white/20">
+              <div className="w-8 h-8 rounded-[8px] bg-surface-soft text-brand font-semibold text-[12px] flex items-center justify-center shrink-0 border border-line">
                 {initials}
               </div>
               <div className="min-w-0 flex-1">
-                <div className="text-[13px] font-medium text-white truncate leading-tight">
+                <div className="text-[13px] font-medium text-text truncate leading-tight">
                   {user.nama}
                 </div>
                 <div className="flex items-center gap-1.5 mt-0.5">
-                  <span className="inline-block text-[10px] font-mono uppercase px-1.5 py-0.5 rounded-[4px] bg-white/10 text-white/55 leading-none border border-white/15">
+                  <span className="inline-block text-[10px] font-mono uppercase px-1.5 py-0.5 rounded-[4px] bg-canvas text-text-3 leading-none border border-line">
                     {user.peran}
                   </span>
                 </div>

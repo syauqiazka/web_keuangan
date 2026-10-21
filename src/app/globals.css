@@ -1,6 +1,6 @@
 @import "tailwindcss";
 
-/* Token statis [Premium Finance UI System] */
+/* Token statis [Light Theme Professional Finance UI System] */
 @theme {
   --color-*: initial;
   --shadow-*: initial;
@@ -8,25 +8,26 @@
 
   --color-paper: #ffffff;
   --color-surface: #ffffff;
-  --color-canvas: #f7f8f5;
-  --color-brand: #173f35;
-  --color-brand-secondary: #2f6b52;
-  --color-surface-soft: #e7eee8;
-  --color-ink: #202923;
-  --color-steel: #68736b;
-  --color-rule: #e5e9e3;
-  --color-warning: #d99a45;
-  --color-alert: #d9534f;
-  --color-network-green: #2f6b52;
-  --color-ledger-blue: #3b6b88;
+  --color-canvas: #f4f6f3;
+  --color-brand: #245746;
+  --color-brand-secondary: #1b4538;
+  --color-brand-hover: #1b4538;
+  --color-surface-soft: #e5efe8;
+  --color-ink: #26352d;
+  --color-steel: #647168;
+  --color-rule: #dce3dd;
+  --color-warning: #a96d19;
+  --color-alert: #b84545;
+  --color-network-green: #378463;
+  --color-ledger-blue: #64859a;
 
   --radius-button: 10px;
   --radius-control: 10px;
   --radius-card: 14px;
   --radius-input: 10px;
-  --shadow-xs: 0 1px 2px 0 rgb(23 63 53 / 0.04);
-  --shadow-card: 0 1px 3px 0 rgb(23 63 53 / 0.05), 0 1px 2px -1px rgb(23 63 53 / 0.03);
-  --shadow-overlay: 0 20px 25px -5px rgb(23 63 53 / 0.08), 0 8px 10px -6px rgb(23 63 53 / 0.04);
+  --shadow-xs: 0 1px 2px 0 rgb(36 87 70 / 0.04);
+  --shadow-card: 0 1px 3px 0 rgb(36 87 70 / 0.05), 0 1px 2px -1px rgb(36 87 70 / 0.03);
+  --shadow-overlay: 0 20px 25px -5px rgb(36 87 70 / 0.08), 0 8px 10px -6px rgb(36 87 70 / 0.04);
 
   --font-display: var(--font-manrope), ui-sans-serif, system-ui, sans-serif;
   --font-sans: var(--font-inter), ui-sans-serif, system-ui, sans-serif;
@@ -35,74 +36,77 @@
 
 /* Token semantik yang berganti saat tema berubah */
 :root {
-  --canvas: #f7f8f5;
+  --canvas: #f4f6f3;
   --surface: #ffffff;
-  --panel: #f0f4f1;
-  --surface-soft: #e7eee8;
-  --brand: #173f35;
-  --brand-secondary: #2f6b52;
-  --text: #202923;
-  --text-2: #3e4d43;
-  --text-3: #68736b;
-  --line: #e5e9e3;
-  --line-strong: #d1d8ce;
+  --panel: #edf2ee;
+  --surface-soft: #e5efe8;
+  --brand: #245746;
+  --brand-secondary: #1b4538;
+  --brand-hover: #1b4538;
+  --text: #26352d;
+  --text-2: #3d4d43;
+  --text-3: #647168;
+  --line: #dce3dd;
+  --line-strong: #c8d3c9;
   --on-ink: #ffffff;
-  --accent: #173f35;
-  --accent-hover: #2f6b52;
-  --accent-text: #2f6b52;
-  --series-in: #2f6b52;
-  --series-out: #d9534f;
-  --warning: #d99a45;
-  --danger: #d9534f;
-  --label: #68736b;
+  --accent: #245746;
+  --accent-hover: #1b4538;
+  --accent-text: #245746;
+  --series-in: #378463;
+  --series-out: #64859a;
+  --warning: #a96d19;
+  --danger: #b84545;
+  --label: #647168;
 }
 
-/* Tema gelap */
+/* Tema gelap yang tenang dan tidak menyilaukan */
 :root[data-theme="dark"] {
-  --canvas: #0e1a16;
-  --surface: #14251f;
-  --panel: #1a3028;
-  --surface-soft: #1d382f;
-  --brand: #2f6b52;
-  --brand-secondary: #3da57a;
-  --text: #f2f6f3;
-  --text-2: #c4d3ca;
-  --text-3: #8a9e92;
-  --line: #223c33;
-  --line-strong: #2e4e42;
+  --canvas: #121c17;
+  --surface: #182821;
+  --panel: #1e332a;
+  --surface-soft: #233e33;
+  --brand: #378463;
+  --brand-secondary: #479e78;
+  --brand-hover: #479e78;
+  --text: #f0f5f1;
+  --text-2: #c4d5cb;
+  --text-3: #879b8f;
+  --line: #274337;
+  --line-strong: #335546;
   --on-ink: #ffffff;
-  --accent: #2f6b52;
-  --accent-hover: #3da57a;
-  --accent-text: #4ade80;
-  --series-in: #4ade80;
-  --series-out: #f87171;
-  --warning: #fbbf24;
-  --danger: #f87171;
-  --label: #8a9e92;
+  --accent: #378463;
+  --accent-hover: #479e78;
+  --accent-text: #5cb88f;
+  --series-in: #378463;
+  --series-out: #7da0b6;
+  --warning: #c98522;
+  --danger: #d45959;
+  --label: #879b8f;
 }
 
 @media (prefers-color-scheme: dark) {
   :root[data-theme="system"] {
-    --canvas: #0e1a16;
-    --surface: #14251f;
-    --panel: #1a3028;
-    --surface-soft: #1d382f;
-    --brand: #2f6b52;
-    --brand-secondary: #3da57a;
-    --text: #f2f6f3;
-    --text-2: #c4d3ca;
-    --text-3: #8a9e92;
-    --line: #223c33;
-    --line-strong: #2e4e42;
+    --canvas: #121c17;
+    --surface: #182821;
+    --panel: #1e332a;
+    --surface-soft: #233e33;
+    --brand: #378463;
+    --brand-secondary: #479e78;
+    --brand-hover: #479e78;
+    --text: #f0f5f1;
+    --text-2: #c4d5cb;
+    --text-3: #879b8f;
+    --line: #274337;
+    --line-strong: #335546;
     --on-ink: #ffffff;
-    --accent: #2f6b52;
-    --accent-hover: #3da57a;
-    --accent-text: #4ade80;
-    --series-in: #4ade80;
-    --series-out: #f87171;
-    --warning: #fbbf24;
-    --danger: #f87171;
-    --label: #8a9e92;
+    --accent: #378463;
+    --accent-hover: #479e78;
+    --accent-text: #5cb88f;
+    --series-in: #378463;
+    --series-out: #7da0b6;
+    --warning: #c98522;
+    --danger: #d45959;
+    --label: #879b8f;
   }
 }
 
@@ -114,6 +118,7 @@
   --color-surface-soft: var(--surface-soft);
   --color-brand: var(--brand);
   --color-brand-secondary: var(--brand-secondary);
+  --color-brand-hover: var(--brand-hover);
   --color-text: var(--text);
   --color-text-2: var(--text-2);
   --color-text-3: var(--text-3);

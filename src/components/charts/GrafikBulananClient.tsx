@@ -137,17 +137,17 @@ export function GrafikBulananClient({ data, tahun }: GrafikBulananClientProps) {
       {/* Legenda & Quick Hover Info */}
       <div className="flex flex-wrap items-center justify-between gap-3 text-[13px]">
         <div className="flex items-center gap-4">
-          <span className="flex items-center gap-1.5 font-medium text-text-2">
+          <span className="flex items-center gap-1.5 font-medium text-text">
             <span
               aria-hidden="true"
-              className="w-2.5 h-2.5 rounded-[2px] bg-network-green inline-block"
+              className="w-2.5 h-2.5 rounded-[2px] bg-series-in inline-block"
             />
             Pemasukan
           </span>
-          <span className="flex items-center gap-1.5 font-medium text-text-2">
+          <span className="flex items-center gap-1.5 font-medium text-text">
             <span
               aria-hidden="true"
-              className="w-2.5 h-2.5 rounded-[2px] bg-ledger-blue inline-block"
+              className="w-2.5 h-2.5 rounded-[2px] bg-series-out inline-block"
             />
             Pengeluaran
           </span>
@@ -156,10 +156,10 @@ export function GrafikBulananClient({ data, tahun }: GrafikBulananClientProps) {
         {/* Hover detail pill */}
         <div className="h-6 flex items-center">
           {hoveredData ? (
-            <div className="text-[12px] flex items-center gap-3 px-2.5 py-1 rounded bg-panel border border-line text-text animate-in fade-in zoom-in-95 duration-150">
+            <div className="text-[12px] flex items-center gap-3 px-2.5 py-1 rounded-[6px] bg-surface-soft border border-line text-text animate-in fade-in zoom-in-95 duration-150">
               <span className="font-semibold text-text">{BULAN_LENGKAP[hoveredData.bulan - 1]}</span>
-              <span className="text-network-green font-medium num">Masuk: {formatRupiah(hoveredData.pemasukan)}</span>
-              <span className="text-ledger-blue font-medium num">Keluar: {formatRupiah(hoveredData.pengeluaran)}</span>
+              <span className="text-series-in font-medium num">Masuk: {formatRupiah(hoveredData.pemasukan)}</span>
+              <span className="text-series-out font-medium num">Keluar: {formatRupiah(hoveredData.pengeluaran)}</span>
             </div>
           ) : (
             <span className="text-[12px] text-text-3 font-normal">Arahkan kursor pada batang untuk rincian nominal</span>
@@ -241,8 +241,8 @@ export function GrafikBulananClient({ data, tahun }: GrafikBulananClientProps) {
                     y={PADDING_TOP}
                     width={colW}
                     height={chartH}
-                    fill="var(--panel)"
-                    opacity={0.6}
+                    fill="var(--surface-soft)"
+                    opacity={0.7}
                   />
                 )}
 
@@ -314,8 +314,8 @@ export function GrafikBulananClient({ data, tahun }: GrafikBulananClientProps) {
             <thead>
               <tr className="bg-panel border-b border-line text-text-2">
                 <th className="py-2 px-3 text-left font-semibold">Bulan</th>
-                <th className="py-2 px-3 text-right font-semibold text-network-green">Pemasukan</th>
-                <th className="py-2 px-3 text-right font-semibold text-ledger-blue">Pengeluaran</th>
+                <th className="py-2 px-3 text-right font-semibold text-series-in">Pemasukan</th>
+                <th className="py-2 px-3 text-right font-semibold text-series-out">Pengeluaran</th>
                 <th className="py-2 px-3 text-right font-semibold">Selisih</th>
               </tr>
             </thead>
@@ -331,7 +331,7 @@ export function GrafikBulananClient({ data, tahun }: GrafikBulananClientProps) {
                     <td className="py-1.5 px-3 text-right num text-text">
                       {formatRupiah(d.pengeluaran)}
                     </td>
-                    <td className={`py-1.5 px-3 text-right num font-medium ${selisih >= 0 ? "text-network-green" : "text-danger"}`}>
+                    <td className={`py-1.5 px-3 text-right num font-medium ${selisih >= 0 ? "text-series-in" : "text-danger"}`}>
                       {formatRupiah(selisih)}
                     </td>
                   </tr>

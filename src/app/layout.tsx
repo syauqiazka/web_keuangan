@@ -25,6 +25,7 @@ export default async function RootLayout({
       lang="id"
       data-theme={dataTheme}
       className={`${manrope.variable} ${inter.variable} ${plexMono.variable}`}
+      suppressHydrationWarning
     >
       <body>
         <MotionProvider>

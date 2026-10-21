@@ -86,7 +86,7 @@ export default function MasukPage() {
       >
         {/* Logo + Nama */}
         <div className="hero-item flex items-center gap-3">
-          <div className="w-10 h-10 rounded-[10px] bg-white/15 flex items-center justify-center shrink-0 border border-white/20">
+          <div className="w-10 h-10 rounded-[10px] bg-white/15 flex items-center justify-center shrink-0 border border-white/25">
             <Image
               src="/logo-bank-saku-digital.jpeg"
               alt="Logo Bank Saku Digital"
@@ -97,10 +97,10 @@ export default function MasukPage() {
             />
           </div>
           <div>
-            <div className="text-[14px] font-semibold leading-tight">
+            <div className="text-[14px] font-semibold text-white leading-tight">
               Pencatatan Keuangan Sekolah
             </div>
-            <div className="text-[12px] text-white/60 leading-tight">
+            <div className="text-[12px] text-white/80 leading-tight">
               Bank Saku Digital
             </div>
           </div>
@@ -109,12 +109,12 @@ export default function MasukPage() {
         {/* Headline */}
         <div className="space-y-8">
           <div className="hero-item">
-            <h1 className="text-[32px] xl:text-[38px] font-display font-medium leading-[1.2] tracking-tight">
+            <h1 className="text-[32px] xl:text-[38px] font-display font-medium text-white leading-[1.2] tracking-tight">
               Keuangan sekolah yang{" "}
-              <span className="text-surface-soft opacity-80">tertata,</span>{" "}
+              <span className="text-surface-soft font-semibold">tertata,</span>{" "}
               akurat, dan transparan.
             </h1>
-            <p className="mt-4 text-[15px] text-white/65 leading-relaxed max-w-sm">
+            <p className="mt-4 text-[15px] text-white/90 leading-relaxed max-w-sm">
               Sistem pencatatan internal untuk admin dan petugas. Pantau arus kas,
               pemasukan siswa, bantuan, dan pengeluaran dari satu tempat.
             </p>
@@ -141,16 +141,16 @@ export default function MasukPage() {
             ].map(({ icon: Icon, title, desc }) => (
               <div
                 key={title}
-                className="hero-item flex items-start gap-3 p-3.5 rounded-[12px] bg-white/8 border border-white/12"
+                className="hero-item flex items-start gap-3 p-3.5 rounded-[12px] bg-white/10 border border-white/20"
               >
-                <div className="w-8 h-8 rounded-[8px] bg-white/15 flex items-center justify-center shrink-0">
-                  <Icon className="w-4 h-4 text-white/90" strokeWidth={1.75} />
+                <div className="w-8 h-8 rounded-[8px] bg-white/20 flex items-center justify-center shrink-0">
+                  <Icon className="w-4 h-4 text-white" strokeWidth={2} />
                 </div>
                 <div>
-                  <div className="text-[13px] font-semibold text-white/95 leading-tight">
+                  <div className="text-[13px] font-semibold text-white leading-tight">
                     {title}
                   </div>
-                  <div className="text-[12px] text-white/55 mt-0.5 leading-snug">
+                  <div className="text-[12px] text-white/85 mt-0.5 leading-snug">
                     {desc}
                   </div>
                 </div>
@@ -160,7 +160,7 @@ export default function MasukPage() {
         </div>
 
         {/* Footer label */}
-        <div className="hero-item text-[11px] text-white/35 font-mono uppercase tracking-wider">
+        <div className="hero-item text-[11px] text-white/70 font-mono uppercase tracking-wider">
           Sistem Internal — Hanya untuk Petugas Resmi
         </div>
       </div>

@@ -202,10 +202,10 @@ function BahanAkun({
           <span className="flex items-center gap-1.5 text-[12px] font-medium">
             <span
               className={`w-1.5 h-1.5 rounded-full ${
-                akun.aktif ? "bg-network-green" : "bg-text-3"
+                akun.aktif ? "bg-series-in" : "bg-text-3"
               }`}
             />
-            <span className={akun.aktif ? "text-network-green" : "text-text-3"}>
+            <span className={akun.aktif ? "text-series-in" : "text-text-3"}>
               {akun.aktif ? "Aktif" : "Nonaktif"}
             </span>
           </span>
@@ -234,7 +234,7 @@ function BahanAkun({
                   type="submit"
                   disabled={isPendingToggle}
                   className={`text-[12px] font-medium hover:underline disabled:opacity-40 ${
-                    akun.aktif ? "text-danger" : "text-network-green"
+                    akun.aktif ? "text-danger" : "text-series-in"
                   }`}
                 >
                   {akun.aktif ? "Nonaktifkan" : "Aktifkan"}

@@ -401,7 +401,7 @@ export function DataGrid<T>({
                   <tr
                     key={keyField(row, rowIndex)}
                     className={`h-10 transition-colors ${
-                      isUnsaved ? "bg-ice/50" : "hover:bg-panel/40"
+                      isUnsaved ? "bg-surface-soft/60" : "hover:bg-panel/40"
                     }`}
                   >
                     {columns.map((col, colIndex) => {
