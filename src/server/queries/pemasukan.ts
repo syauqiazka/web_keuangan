@@ -340,7 +340,7 @@ export async function getRingkasanPemasukan(params: {
   let bulanMulai: Date | undefined;
   let bulanSelesai: Date | undefined;
   let monthNumber: number | undefined;
-  if (bulan && /^\\d{4}-\\d{2}$/.test(bulan)) {
+  if (bulan && /^\d{4}-\d{2}$/.test(bulan)) {
     const [y, m] = bulan.split("-").map(Number);
     monthNumber = m;
     bulanMulai = new Date(Date.UTC(y, m - 1, 1));
@@ -362,7 +362,13 @@ export async function getRingkasanPemasukan(params: {
         _sum: { nominal: true },
       }),
       db.pemasukanDana.aggregate({
-        where: { deletedAt: null, tanggal: { gte: bulanMulai, lte: bulanSelesai }, ...(tahunAjaranId ? { tanggal: { gte: bulanMulai > startTahun! ? bulanMulai : startTahun!, lte: bulanSelesai < endTahun! ? bulanSelesai : endTahun! } } : {}) },
+        where: {
+          deletedAt: null,
+          tanggal: {
+            gte: tahunAjaranId && startTahun && startTahun > bulanMulai ? startTahun : bulanMulai,
+            lte: tahunAjaranId && endTahun && endTahun < bulanSelesai ? endTahun : bulanSelesai,
+          },
+        },
         _sum: { nominal: true },
       }),
     ]);
