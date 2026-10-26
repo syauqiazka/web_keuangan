@@ -33,7 +33,8 @@ export default async function PemasukanPage({ searchParams }: PageProps) {
 
   const ringkasan = await getRingkasanPemasukan({
     tahunAjaranId: tahunAjaranId || undefined,
-    bulan: bulanFilter || undefined,
+    bulan: tahunAjaranId ? bulanFilter || undefined : undefined,
+    bulanNomor: !tahunAjaranId ? bulanNomor || undefined : undefined,
   });
 
 
@@ -49,7 +50,8 @@ export default async function PemasukanPage({ searchParams }: PageProps) {
       getPemasukanDanaList({
         kategori: "BANTUAN",
         tahunAjaranId: tahunAjaranId || undefined,
-        bulan: bulanFilter || undefined,
+        bulan: tahunAjaranId ? bulanFilter || undefined : undefined,
+        bulanNomor: !tahunAjaranId ? bulanNomor || undefined : undefined,
       }),
       getPemasukanDanaList({
         kategori: "DONATUR",
