@@ -128,7 +128,31 @@ export async function getPembayaranSiswaGrid(params: {
     }),
   ]);
 
-  const jenisOptions: JenisPemasukanOption[] = jenisRows.map((r) => ({
+  // Bulanan mengikuti bulan yang dibayar; sekali bayar mengikuti tanggal transaksi.
+  const jenisById = new Map(jenisRows.map((jenis) => [jenis.id, jenis]));
+  const cocokDenganBulan = (tanggal: Date | null | undefined) => {
+    if (!bulan && !bulanNomor) return true;
+    if (!tanggal) return false;
+    const month = tanggal.getUTCMonth() + 1;
+    const year = tanggal.getUTCFullYear();
+    if (bulan && /^\d{4}-\d{2}$/.test(bulan)) {
+      const [filterYear, filterMonth] = bulan.split("-").map(Number);
+      return year === filterYear && month === filterMonth;
+    }
+    if (bulanNomor) return month === Number(bulanNomor);
+    return true;
+  };
+  const filteredPembayaran = pembayaranList.filter((p) => {
+    const jenis = jenisById.get(p.jenisPemasukanId);
+    return jenis?.bulanan ? cocokDenganBulan(p.bulanTerbayar) : cocokDenganBulan(p.tanggal);
+  });
+  // Saat memfilter bulan, kolom sekali bayar hanya muncul jika ada transaksi jenis itu pada bulan tersebut.
+  const jenisDenganTransaksiBulanIni = new Set(filteredPembayaran.map((p) => p.jenisPemasukanId));
+  const visibleJenisRows = (bulan || bulanNomor)
+    ? jenisRows.filter((jenis) => jenis.bulanan || jenisDenganTransaksiBulanIni.has(jenis.id))
+    : jenisRows;
+
+  const jenisOptions: JenisPemasukanOption[] = visibleJenisRows.map((r) => ({
     id: r.id,
     nama: r.nama,
     urutan: r.urutan,
@@ -137,27 +161,6 @@ export async function getPembayaranSiswaGrid(params: {
     aktif: r.aktif,
     tahunAjaranNama: r.tahunAjaran.nama,
   }));
-
-  // Filter sesuai makna kolom: pembayaran bulanan (misalnya SPP) mengikuti
-  // bulan yang dibayar; pemasukan non-bulanan mengikuti tanggal transaksinya.
-  const jenisById = new Map(jenisRows.map((jenis) => [jenis.id, jenis]));
-  const filteredPembayaran = pembayaranList.filter((p) => {
-    const jenis = jenisById.get(p.jenisPemasukanId);
-    // Kewajiban non-bulanan (contoh uang gedung) adalah satu kali per tahun ajaran:
-    // statusnya harus tetap terlihat lunas/kurang walau filter transaksi sedang di bulan lain.
-    if (!jenis?.bulanan) return true;
-    if (!bulan && !bulanNomor) return true;
-    const tanggalFilter = p.bulanTerbayar;
-    if (!tanggalFilter) return false;
-    const month = tanggalFilter.getUTCMonth() + 1;
-    const year = tanggalFilter.getUTCFullYear();
-    if (bulan && /^\d{4}-\d{2}$/.test(bulan)) {
-      const [filterYear, filterMonth] = bulan.split("-").map(Number);
-      return year === filterYear && month === filterMonth;
-    }
-    if (bulanNomor) return month === Number(bulanNomor);
-    return true;
-  });
 
   const pembayaranByKey: Record<string, PembayaranSel[]> = {};
   for (const p of filteredPembayaran) {
