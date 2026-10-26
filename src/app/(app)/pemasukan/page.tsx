@@ -56,7 +56,8 @@ export default async function PemasukanPage({ searchParams }: PageProps) {
       getPemasukanDanaList({
         kategori: "DONATUR",
         tahunAjaranId: tahunAjaranId || undefined,
-        bulan: bulanFilter || undefined,
+        bulan: tahunAjaranId ? bulanFilter || undefined : undefined,
+        bulanNomor: !tahunAjaranId ? bulanNomor || undefined : undefined,
       }),
       getSumberDanaList("BANTUAN"),
       getSumberDanaList("DONATUR"),
