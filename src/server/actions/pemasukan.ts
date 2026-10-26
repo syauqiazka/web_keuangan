@@ -103,10 +103,6 @@ export async function hapusJenisPemasukanAction(
   if (!id) return { error: "ID jenis pembayaran tidak ditemukan." };
   const jenis = await db.jenisPemasukan.findUnique({ where: { id } });
   if (!jenis || !jenis.aktif) return { error: "Jenis pembayaran tidak ditemukan atau sudah dihapus." };
-  const jumlahTransaksi = await db.pembayaranSiswa.count({ where: { jenisPemasukanId: id } });
-  if (jumlahTransaksi > 0) {
-    return { error: `Tidak bisa menghapus "${jenis.nama}" karena sudah memiliki riwayat transaksi. Riwayat keuangan harus tetap utuh.` };
-  }
   await db.jenisPemasukan.update({ where: { id }, data: { aktif: false } });
   return { success: true };
 }
