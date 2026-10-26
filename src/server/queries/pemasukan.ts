@@ -266,6 +266,7 @@ export async function getSumberDanaList(
 export async function getRingkasanPemasukan(params: {
   tahunAjaranId?: string;
   bulan?: string; // "YYYY-MM"
+  bulanNomor?: string; // bulan transaksi lintas tahun saat Semua Tahun dipilih
 }): Promise<RingkasanPemasukan> {
   const user = await getSessionUser();
   const empty: RingkasanPemasukan = {
@@ -277,7 +278,7 @@ export async function getRingkasanPemasukan(params: {
   };
   if (!user) return empty;
 
-  const { tahunAjaranId, bulan } = params;
+  const { tahunAjaranId, bulan, bulanNomor } = params;
 
   let startTahun: Date | undefined;
   let endTahun: Date | undefined;
@@ -301,7 +302,7 @@ export async function getRingkasanPemasukan(params: {
     ...(startTahun && endTahun ? { tanggal: { gte: startTahun, lte: endTahun } } : {}),
   };
 
-  const [{ totalBulanIni: jumlahBulanIni, totalPerTahun }, jenisGroups, bantuanSum, donaturSum] =
+  const [{ totalBulanIni: totalBulanIniAwal, totalPerTahun }, jenisGroups, bantuanSum, donaturSum] =
     await Promise.all([
       getTotalPemasukan({ tahunAjaranId, bulan }),
       // Per jenis pemasukan (hanya siswa)
@@ -321,6 +322,20 @@ export async function getRingkasanPemasukan(params: {
         _sum: { nominal: true },
       }),
     ]);
+
+  let jumlahBulanIni = totalBulanIniAwal;
+  if (!tahunAjaranId && bulanNomor) {
+    const m = Number(bulanNomor);
+    if (Number.isInteger(m) && m >= 1 && m <= 12) {
+      const [pembayaranBulan, danaBulan] = await Promise.all([
+        db.pembayaranSiswa.findMany({ where: { deletedAt: null }, select: { tanggal: true, nominal: true } }),
+        db.pemasukanDana.findMany({ where: { deletedAt: null }, select: { tanggal: true, nominal: true } }),
+      ]);
+      jumlahBulanIni =
+        pembayaranBulan.filter((r) => r.tanggal.getUTCMonth() + 1 === m).reduce((sum, r) => sum + Number(r.nominal), 0) +
+        danaBulan.filter((r) => r.tanggal.getUTCMonth() + 1 === m).reduce((sum, r) => sum + Number(r.nominal), 0);
+    }
+  }
 
   // Resolve jenis names
   let perJenis: { nama: string; total: number; totalFormatted: string }[] = [];
