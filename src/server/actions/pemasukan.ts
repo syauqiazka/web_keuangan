@@ -3,6 +3,7 @@
 import { z } from "zod";
 import { db } from "@/lib/db";
 import { requireAdmin, requirePetugas } from "@/server/auth/guards";
+import { resolveTahunKalender } from "@/lib/dates";
 
 export interface ActionState {
   error?: string;
@@ -171,7 +172,12 @@ export async function tambahPembayaranSiswaAction(
 
   // Validasi penempatan dan jenis pemasukan
   const [penempatan, jenis] = await Promise.all([
-    db.penempatanKelas.findUnique({ where: { id: penempatanId } }),
+    db.penempatanKelas.findUnique({
+      where: { id: penempatanId },
+      include: {
+        tahunAjaran: { select: { mulai: true, selesai: true } },
+      },
+    }),
     db.jenisPemasukan.findUnique({ where: { id: jenisPemasukanId } }),
   ]);
   if (!penempatan) return { error: "Data penempatan siswa tidak ditemukan." };
@@ -182,12 +188,21 @@ export async function tambahPembayaranSiswaAction(
     return { error: "Tahun ajaran penempatan dan jenis pemasukan tidak cocok." };
   }
 
-  // Validasi bulanTerbayar
+  // Form mengirim nomor bulan ("1"-"12"), bukan string "YYYY-MM".
+  // Tentukan tahun kalender dari rentang tahun ajaran siswa agar Januari-Juni
+  // masuk ke tahun yang benar untuk tahun ajaran yang melintasi dua tahun.
   let bulanTerbayarDate: Date | null = null;
   if (jenis.bulanan) {
-    if (!bulanTerbayar) return { error: "Bulan terbayar harus diisi untuk jenis pemasukan bulanan." };
-    const [y, m] = bulanTerbayar.split("-").map(Number);
-    if (isNaN(y) || isNaN(m)) return { error: "Format bulan terbayar tidak valid." };
+    if (!bulanTerbayar) {
+      return { error: "Bulan terbayar harus diisi untuk jenis pemasukan bulanan." };
+    }
+
+    const m = Number(bulanTerbayar);
+    if (!Number.isInteger(m) || m < 1 || m > 12) {
+      return { error: "Bulan terbayar tidak valid." };
+    }
+
+    const y = resolveTahunKalender(penempatan.tahunAjaran, m);
     bulanTerbayarDate = new Date(Date.UTC(y, m - 1, 1));
   }
 
