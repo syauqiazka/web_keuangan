@@ -23,7 +23,7 @@ export default async function PemasukanPage({ searchParams }: PageProps) {
   ]);
 
   const activeTa = tahunAjaranList.find((t) => t.aktif) ?? tahunAjaranList[0];
-  const tahunAjaranId = sp.tahunAjaran ?? activeTa?.id ?? "";
+  const tahunAjaranId = sp.tahunAjaran === "all" ? "" : (sp.tahunAjaran ?? activeTa?.id ?? "");
   const kelasId = sp.kelas ?? "";
   const bulanNomor = sp.bulan ?? "";
   const tab = (sp.tab ?? "dari-siswa") as "dari-siswa" | "bantuan" | "donatur";
@@ -40,12 +40,12 @@ export default async function PemasukanPage({ searchParams }: PageProps) {
   // Data spesifik per tab
   const [siswaData, bantuanRows, donaturRows, bantuanSumber, donaturSumber] =
     await Promise.all([
-      tahunAjaranId
-        ? getPembayaranSiswaGrid({
-            tahunAjaranId,
-            kelasId: kelasId || undefined,
-          })
-        : Promise.resolve({ jenisOptions: [], siswaRows: [] }),
+      getPembayaranSiswaGrid({
+        tahunAjaranId: tahunAjaranId || undefined,
+        kelasId: kelasId || undefined,
+        bulan: tahunAjaranId ? bulanFilter || undefined : undefined,
+        bulanNomor: !tahunAjaranId ? bulanNomor || undefined : undefined,
+      }),
       getPemasukanDanaList({
         kategori: "BANTUAN",
         tahunAjaranId: tahunAjaranId || undefined,
