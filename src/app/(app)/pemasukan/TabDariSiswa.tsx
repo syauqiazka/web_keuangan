@@ -296,14 +296,6 @@ export function TabDariSiswa({
     namaSiswa: string;
   }>({ open: false, penempatanId: "", namaSiswa: "" });
 
-  if (!tahunAjaranId) {
-    return (
-      <div className="p-6 rounded-[8px] bg-surface border border-line text-text-3 text-[14px]">
-        Pilih Tahun Ajaran pada filter di atas lalu klik <strong>&ldquo;Tampilkan Data Pemasukan&rdquo;</strong> untuk melihat data pembayaran siswa.
-      </div>
-    );
-  }
-
   // ATURAN: SPP selalu grup pertama (dan satu-satunya yang bulanan)
   const sortedJenis = [...jenisOptions].sort((a, b) => {
     if (a.bulanan && !b.bulanan) return -1;
@@ -325,7 +317,7 @@ export function TabDariSiswa({
         >
           + Tambah Jenis Pembayaran Pertama
         </Button>
-        {dialogKolomOpen && (
+        {dialogKolomOpen && !!tahunAjaranId && (
           <DialogTambahKolom
             tahunAjaranId={tahunAjaranId}
             open={dialogKolomOpen}
@@ -346,12 +338,12 @@ export function TabDariSiswa({
             type="button"
             variant={isEditing ? "secondary" : "primary"}
             size="sm"
-            onClick={() => setIsEditing((prev) => !prev)}
+            onClick={() => tahunAjaranId && setIsEditing((prev) => !prev)}
           >
-            {isEditing ? "Selesai Edit" : "Edit Pembayaran Siswa"}
+            {!tahunAjaranId ? "Pilih tahun ajaran untuk mengedit" : isEditing ? "Selesai Edit" : "Edit Pembayaran Siswa"}
           </Button>
 
-          {isEditing && (
+          {isEditing && !!tahunAjaranId && (
             <Button
               type="button"
               variant="secondary"
@@ -415,7 +407,7 @@ export function TabDariSiswa({
                     colSpan={colSpanCount}
                     className="px-3 py-2 text-center font-semibold border-r border-line last:border-r-0"
                   >
-                    <div className="font-semibold text-[13px]">{jenis.nama}</div>
+                    <div className="font-semibold text-[13px]">{jenis.nama}{!tahunAjaranId && jenis.tahunAjaranNama ? ` · ${jenis.tahunAjaranNama}` : ""}</div>
                     {jenis.nominalStandar !== null ? (
                       <div className="text-[11px] font-normal text-text-3 font-mono mt-0.5">
                         Standar: {formatRupiah(jenis.nominalStandar)}
@@ -541,7 +533,7 @@ export function TabDariSiswa({
                                   }`}
                                 >
                                   <span>{formatRupiah(status.totalTerbayar)}</span>
-                                  {isEditing && last && (
+                                  {isEditing && !!tahunAjaranId && last && (
                                     <TombolHapusPembayaran id={last.id} onSuccess={onRefresh} />
                                   )}
                                 </div>
@@ -662,7 +654,7 @@ export function TabDariSiswa({
       )}
 
       {/* Dialog Tambah Pembayaran Siswa */}
-      {dialogBayarState.open && (
+      {dialogBayarState.open && !!tahunAjaranId && (
         <DialogTambahPembayaran
           open={dialogBayarState.open}
           onClose={() => setDialogBayarState((s) => ({ ...s, open: false }))}
