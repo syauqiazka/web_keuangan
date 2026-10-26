@@ -101,7 +101,7 @@ export async function getPembayaranSiswaGrid(params: {
   };
 
   const jenisRowsPromise = db.jenisPemasukan.findMany({
-    where: { ...(tahunAjaranId ? { tahunAjaranId } : {}), aktif: true },
+    where: { ...(tahunAjaranId ? { tahunAjaranId, aktif: true } : {}) },
     include: { tahunAjaran: { select: { nama: true, mulai: true } } },
     orderBy: tahunAjaranId
       ? [{ urutan: "asc" }, { nama: "asc" }]
