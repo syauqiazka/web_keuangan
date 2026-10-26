@@ -13,6 +13,7 @@ import {
   tambahJenisPemasukanAction,
   tambahPembayaranSiswaAction,
   hapusPembayaranSiswaAction,
+  hapusJenisPemasukanAction,
   type ActionState,
 } from "@/server/actions/pemasukan";
 import type { JenisPemasukanOption, SiswaSel, PembayaranSel } from "@/server/queries/pemasukan";
@@ -286,6 +287,29 @@ function TombolHapusPembayaran({
   );
 }
 
+// ─── Tombol Hapus Jenis Pembayaran ─────────────────────────────────
+function TombolHapusJenisPembayaran({ id, nama, onSuccess }: { id: string; nama: string; onSuccess: () => void }) {
+  const [state, formAction, isPending] = useActionState<ActionState | null, FormData>(
+    async (_prev, fd) => {
+      const result = await hapusJenisPemasukanAction(_prev, fd);
+      if (result.success) onSuccess();
+      return result;
+    },
+    null
+  );
+  return (
+    <form action={formAction} className="mt-1" onSubmit={(e) => {
+      if (!window.confirm(`Hapus jenis pembayaran "${nama}"? Jenis yang sudah memiliki transaksi tidak bisa dihapus agar riwayat keuangan tetap aman.`)) e.preventDefault();
+    }}>
+      <input type="hidden" name="id" value={id} />
+      <button type="submit" disabled={isPending} className="text-[10px] px-2 py-1 rounded border border-danger/30 text-danger hover:bg-danger/10 disabled:opacity-40 font-medium transition-colors">
+        {isPending ? "Menghapus…" : "Hapus jenis"}
+      </button>
+      {state?.error && <p className="mt-1 max-w-[150px] text-[10px] text-danger font-normal">{state.error}</p>}
+    </form>
+  );
+}
+
 // ─── Komponen Utama TabDariSiswa ──────────────────────────────────
 
 export function TabDariSiswa({
@@ -415,6 +439,9 @@ export function TabDariSiswa({
                     className="px-3 py-2 text-center font-semibold border-r border-line last:border-r-0"
                   >
                     <div className="font-semibold text-[13px]">{jenis.nama}{!tahunAjaranId && jenis.tahunAjaranNama ? ` · ${jenis.tahunAjaranNama}` : ""}</div>
+                    {isEditing && !!tahunAjaranId && (
+                      <TombolHapusJenisPembayaran id={jenis.id} nama={jenis.nama} onSuccess={() => { showToast("Jenis pembayaran berhasil dihapus.", "success"); onRefresh(); }} />
+                    )}
                     {jenis.nominalStandar !== null ? (
                       <div className="text-[11px] font-normal text-text-3 font-mono mt-0.5">
                         Standar: {formatRupiah(jenis.nominalStandar)}
@@ -446,7 +473,7 @@ export function TabDariSiswa({
                   // SPP: 4 sub-kolom
                   <React.Fragment key={`${jenis.id}-subheaders`}>
                     <th className="px-2 py-1.5 text-[11px] font-medium text-left border-r border-line">
-                      Tanggal
+                      Tgl. Transaksi
                     </th>
                     <th className="px-2 py-1.5 text-[11px] font-medium text-left border-r border-line">
                       Bulan Terbayar
@@ -524,7 +551,7 @@ export function TabDariSiswa({
                             {pembayaranList.length ? (
                               <div className="space-y-1">
                                 {pembayaranList.map((p) => (
-                                  <div key={p.id} className="whitespace-nowrap">{formatTanggal(p.tanggal)}</div>
+                                  <div key={p.id} className="inline-block rounded-md border border-line bg-panel/60 px-1.5 py-1 text-[11px] leading-none whitespace-nowrap tabular-nums">{formatTanggal(p.tanggal)}</div>
                                 ))}
                               </div>
                             ) : "—"}
@@ -578,9 +605,12 @@ export function TabDariSiswa({
                                   </div>
                                 )}
                                 {pembayaranList.map((p) => (
-                                  <div key={p.id} className="mt-1 border-t border-line/70 pt-1 text-[10px] text-text-3">
-                                    <div>{formatRupiah(p.nominal)} · {p.metode === "TRANSFER" ? "TF" : "ST"}</div>
-                                    <div>oleh {p.petugasNama}</div>
+                                  <div key={p.id} className="mt-1.5 border-t border-line/50 pt-1.5 text-[10px] leading-tight text-text-3">
+                                    <div className="flex items-center justify-between gap-2">
+                                      <span className="font-medium text-text-2">{formatRupiah(p.nominal)} · {p.metode === "TRANSFER" ? "TF" : "ST"}</span>
+                                      <span className="shrink-0 rounded bg-panel px-1 py-0.5 text-[9px] tabular-nums">{formatTanggal(p.tanggal)}</span>
+                                    </div>
+                                    <div className="mt-0.5">oleh {p.petugasNama}</div>
                                   </div>
                                 ))}
                                 {status.isCicilan && (
