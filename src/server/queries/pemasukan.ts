@@ -191,11 +191,12 @@ export async function getPemasukanDanaList(params: {
   kategori: "BANTUAN" | "DONATUR";
   tahunAjaranId?: string;
   bulan?: string; // "YYYY-MM"
+  bulanNomor?: string;
 }): Promise<PemasukanDanaRow[]> {
   const user = await getSessionUser();
   if (!user) return [];
 
-  const { kategori, tahunAjaranId, bulan } = params;
+  const { kategori, tahunAjaranId, bulan, bulanNomor } = params;
 
   let startDate: Date | undefined;
   let endDate: Date | undefined;
@@ -227,7 +228,11 @@ export async function getPemasukanDanaList(params: {
     orderBy: [{ tanggal: "desc" }, { createdAt: "desc" }],
   });
 
-  return rows.map((r) => ({
+  const filteredRows = !tahunAjaranId && bulanNomor
+    ? rows.filter((r) => r.tanggal.getUTCMonth() + 1 === Number(bulanNomor))
+    : rows;
+
+  return filteredRows.map((r) => ({
     id: r.id,
     sumberDanaId: r.sumberDanaId,
     sumberNama: r.sumberDana.nama,
