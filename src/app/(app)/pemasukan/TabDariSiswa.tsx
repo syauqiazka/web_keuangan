@@ -299,7 +299,7 @@ function TombolHapusJenisPembayaran({ id, nama, onSuccess }: { id: string; nama:
   );
   return (
     <form action={formAction} className="mt-1" onSubmit={(e) => {
-      if (!window.confirm(`Hapus jenis pembayaran "${nama}"? Jenis yang sudah memiliki transaksi tidak bisa dihapus agar riwayat keuangan tetap aman.`)) e.preventDefault();
+      if (!window.confirm(`Hapus jenis pembayaran "${nama}"? Jenis ini akan disembunyikan dari tahun ajaran aktif; riwayat transaksinya tetap tersimpan.`)) e.preventDefault();
     }}>
       <input type="hidden" name="id" value={id} />
       <button type="submit" disabled={isPending} className="text-[10px] px-2 py-1 rounded border border-danger/30 text-danger hover:bg-danger/10 disabled:opacity-40 font-medium transition-colors">
@@ -632,7 +632,7 @@ export function TabDariSiswa({
                           {pembayaranList.length ? (
                             <div className="space-y-1">
                               {pembayaranList.map((p) => (
-                                <div key={p.id} className="whitespace-nowrap">{formatTanggal(p.tanggal)}</div>
+                                <div key={p.id} className="inline-block rounded-md border border-line bg-panel/60 px-1.5 py-1 text-[11px] leading-none whitespace-nowrap tabular-nums">{formatTanggal(p.tanggal)}</div>
                               ))}
                             </div>
                           ) : "—"}
