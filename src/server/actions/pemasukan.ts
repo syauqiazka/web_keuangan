@@ -93,6 +93,24 @@ export async function tambahJenisPemasukanAction(
   return { success: true, createdId: created.id };
 }
 
+export async function hapusJenisPemasukanAction(
+  _prev: ActionState | null,
+  formData: FormData
+): Promise<ActionState> {
+  const user = await requireAdmin().catch(() => null);
+  if (!user) return { error: "Hanya admin yang dapat mengelola jenis pemasukan." };
+  const id = String(formData.get("id") ?? "");
+  if (!id) return { error: "ID jenis pembayaran tidak ditemukan." };
+  const jenis = await db.jenisPemasukan.findUnique({ where: { id } });
+  if (!jenis || !jenis.aktif) return { error: "Jenis pembayaran tidak ditemukan atau sudah dihapus." };
+  const jumlahTransaksi = await db.pembayaranSiswa.count({ where: { jenisPemasukanId: id } });
+  if (jumlahTransaksi > 0) {
+    return { error: `Tidak bisa menghapus "${jenis.nama}" karena sudah memiliki riwayat transaksi. Riwayat keuangan harus tetap utuh.` };
+  }
+  await db.jenisPemasukan.update({ where: { id }, data: { aktif: false } });
+  return { success: true };
+}
+
 export async function ubahJenisPemasukanAction(
   _prev: ActionState | null,
   formData: FormData
