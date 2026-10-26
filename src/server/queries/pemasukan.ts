@@ -115,21 +115,13 @@ export async function getPembayaranSiswaGrid(params: {
       include: { anggota: true },
       orderBy: [{ anggota: { nama: "asc" } }],
     }),
+    // Ambil semua transaksi dalam penempatan terpilih. Filter bulan dilakukan
+    // setelah jenis pembayaran diketahui: SPP memakai bulanTerbayar, sedangkan
+    // jenis non-bulanan memakai tanggal transaksi.
     db.pembayaranSiswa.findMany({
       where: {
         deletedAt: null,
         penempatan: penempatanWhere,
-        ...(bulan && /^\\d{4}-\\d{2}$/.test(bulan)
-          ? (() => {
-              const [y, m] = bulan.split("-").map(Number);
-              return {
-                tanggal: {
-                  gte: new Date(Date.UTC(y, m - 1, 1)),
-                  lt: new Date(Date.UTC(y, m, 1)),
-                },
-              };
-            })()
-          : {}),
       },
       include: { petugas: true },
       orderBy: [{ tanggal: "asc" }, { createdAt: "asc" }],
@@ -146,10 +138,23 @@ export async function getPembayaranSiswaGrid(params: {
     tahunAjaranNama: r.tahunAjaran.nama,
   }));
 
-  // Semua tahun + bulan terpilih berarti cari transaksi pada bulan itu di setiap tahun.
-  const filteredPembayaran = !tahunAjaranId && bulanNomor
-    ? pembayaranList.filter((p) => p.tanggal.getUTCMonth() + 1 === Number(bulanNomor))
-    : pembayaranList;
+  // Filter sesuai makna kolom: pembayaran bulanan (misalnya SPP) mengikuti
+  // bulan yang dibayar; pemasukan non-bulanan mengikuti tanggal transaksinya.
+  const jenisById = new Map(jenisRows.map((jenis) => [jenis.id, jenis]));
+  const filteredPembayaran = pembayaranList.filter((p) => {
+    if (!bulan && !bulanNomor) return true;
+    const jenis = jenisById.get(p.jenisPemasukanId);
+    const tanggalFilter = jenis?.bulanan ? p.bulanTerbayar : p.tanggal;
+    if (!tanggalFilter) return false;
+    const month = tanggalFilter.getUTCMonth() + 1;
+    const year = tanggalFilter.getUTCFullYear();
+    if (bulan && /^\d{4}-\d{2}$/.test(bulan)) {
+      const [filterYear, filterMonth] = bulan.split("-").map(Number);
+      return year === filterYear && month === filterMonth;
+    }
+    if (bulanNomor) return month === Number(bulanNomor);
+    return true;
+  });
 
   const pembayaranByKey: Record<string, PembayaranSel[]> = {};
   for (const p of filteredPembayaran) {
