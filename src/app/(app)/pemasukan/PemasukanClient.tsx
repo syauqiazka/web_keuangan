@@ -83,7 +83,7 @@ export function PemasukanClient({
       tab?: TabKey;
     }) => {
       const sp = new URLSearchParams();
-      if (params.tahunAjaranId) sp.set("tahunAjaran", params.tahunAjaranId);
+      sp.set("tahunAjaran", params.tahunAjaranId || "all");
       if (params.kelasId) sp.set("kelas", params.kelasId);
       if (params.bulan) sp.set("bulan", params.bulan);
       if (params.tab) sp.set("tab", params.tab);
@@ -206,9 +206,9 @@ export function PemasukanClient({
               <Select
                 name="tahunAjaran"
                 label="Tahun Ajaran"
-                defaultValue={tahunAjaranId}
+                defaultValue={tahunAjaranId || "all"}
                 options={[
-                  { value: "", label: "— Semua Tahun Ajaran —" },
+                  { value: "all", label: "— Semua Tahun Ajaran —" },
                   ...tahunAjaranList.map((ta) => ({
                     value: ta.id,
                     label: ta.aktif ? `${ta.nama} (Aktif)` : ta.nama,
