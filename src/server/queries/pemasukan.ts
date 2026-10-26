@@ -142,9 +142,12 @@ export async function getPembayaranSiswaGrid(params: {
   // bulan yang dibayar; pemasukan non-bulanan mengikuti tanggal transaksinya.
   const jenisById = new Map(jenisRows.map((jenis) => [jenis.id, jenis]));
   const filteredPembayaran = pembayaranList.filter((p) => {
-    if (!bulan && !bulanNomor) return true;
     const jenis = jenisById.get(p.jenisPemasukanId);
-    const tanggalFilter = jenis?.bulanan ? p.bulanTerbayar : p.tanggal;
+    // Kewajiban non-bulanan (contoh uang gedung) adalah satu kali per tahun ajaran:
+    // statusnya harus tetap terlihat lunas/kurang walau filter transaksi sedang di bulan lain.
+    if (!jenis?.bulanan) return true;
+    if (!bulan && !bulanNomor) return true;
+    const tanggalFilter = p.bulanTerbayar;
     if (!tanggalFilter) return false;
     const month = tanggalFilter.getUTCMonth() + 1;
     const year = tanggalFilter.getUTCFullYear();
