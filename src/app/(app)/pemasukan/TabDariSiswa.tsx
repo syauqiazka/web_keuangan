@@ -514,13 +514,31 @@ export function TabDariSiswa({
                       return (
                         <React.Fragment key={`${siswa.penempatanId}-${jenis.id}`}>
                           <td className="px-2 py-2 text-text-2 num border-r border-line text-left">
-                            {last ? formatTanggal(last.tanggal) : "—"}
+                            {pembayaranList.length ? (
+                              <div className="space-y-1">
+                                {pembayaranList.map((p) => (
+                                  <div key={p.id} className="whitespace-nowrap">{formatTanggal(p.tanggal)}</div>
+                                ))}
+                              </div>
+                            ) : "—"}
                           </td>
                           <td className="px-2 py-2 text-text-2 border-r border-line text-left">
-                            {last?.bulanTerbayar ? formatBulan(last.bulanTerbayar) : "—"}
+                            {pembayaranList.length ? (
+                              <div className="space-y-1">
+                                {pembayaranList.map((p) => (
+                                  <div key={p.id} className="whitespace-nowrap">{p.bulanTerbayar ? formatBulan(p.bulanTerbayar) : "—"}</div>
+                                ))}
+                              </div>
+                            ) : "—"}
                           </td>
                           <td className="px-2 py-2 text-center text-text-2 border-r border-line font-mono text-[12px]">
-                            {last ? (last.metode === "TRANSFER" ? "TF" : "ST") : "—"}
+                            {pembayaranList.length ? (
+                              <div className="space-y-1">
+                                {pembayaranList.map((p) => (
+                                  <div key={p.id}>{p.metode === "TRANSFER" ? "TF" : "ST"}</div>
+                                ))}
+                              </div>
+                            ) : "—"}
                           </td>
                           <td className="px-2 py-2 text-right border-r border-line-strong">
                             {pembayaranList.length === 0 && !jenis.bulanan ? (
@@ -552,14 +570,15 @@ export function TabDariSiswa({
                                     ⚠️ {status.teksKekurangan}
                                   </div>
                                 )}
-                                {last?.petugasNama && (
-                                  <div className="text-[10px] text-text-3">
-                                    oleh {last.petugasNama}
+                                {pembayaranList.map((p) => (
+                                  <div key={p.id} className="mt-1 border-t border-line/70 pt-1 text-[10px] text-text-3">
+                                    <div>{formatRupiah(p.nominal)} · {p.metode === "TRANSFER" ? "TF" : "ST"}</div>
+                                    <div>oleh {p.petugasNama}</div>
                                   </div>
-                                )}
+                                ))}
                                 {status.isCicilan && (
                                   <div className="text-[10px] text-label font-mono">
-                                    {pembayaranList.length}x cicilan
+                                    Total {pembayaranList.length} transaksi
                                   </div>
                                 )}
                               </div>
@@ -573,10 +592,22 @@ export function TabDariSiswa({
                     return (
                       <React.Fragment key={`${siswa.penempatanId}-${jenis.id}`}>
                         <td className="px-2 py-2 text-text-2 num border-r border-line text-left">
-                          {last ? formatTanggal(last.tanggal) : "—"}
+                          {pembayaranList.length ? (
+                            <div className="space-y-1">
+                              {pembayaranList.map((p) => (
+                                <div key={p.id} className="whitespace-nowrap">{formatTanggal(p.tanggal)}</div>
+                              ))}
+                            </div>
+                          ) : "—"}
                         </td>
                         <td className="px-2 py-2 text-center text-text-2 border-r border-line font-mono text-[12px]">
-                          {last ? (last.metode === "TRANSFER" ? "TF" : "ST") : "—"}
+                          {pembayaranList.length ? (
+                            <div className="space-y-1">
+                              {pembayaranList.map((p) => (
+                                <div key={p.id}>{p.metode === "TRANSFER" ? "TF" : "ST"}</div>
+                              ))}
+                            </div>
+                          ) : "—"}
                         </td>
                         <td className="px-2 py-2 text-right border-r border-line-strong">
                           {pembayaranList.length === 0 && !jenis.nominalStandar ? (
@@ -608,14 +639,15 @@ export function TabDariSiswa({
                                   ⚠️ {status.teksKekurangan}
                                 </div>
                               )}
-                              {last?.petugasNama && (
-                                <div className="text-[10px] text-text-3">
-                                  oleh {last.petugasNama}
+                              {pembayaranList.map((p) => (
+                                <div key={p.id} className="mt-1 border-t border-line/70 pt-1 text-[10px] text-text-3">
+                                  <div>{formatTanggal(p.tanggal)} · {formatRupiah(p.nominal)} · {p.metode === "TRANSFER" ? "TF" : "ST"}</div>
+                                  <div>oleh {p.petugasNama}</div>
                                 </div>
-                              )}
+                              ))}
                               {status.isCicilan && (
                                 <div className="text-[10px] text-label font-mono">
-                                  {pembayaranList.length}x cicilan
+                                  Total {pembayaranList.length} transaksi
                                 </div>
                               )}
                             </div>
