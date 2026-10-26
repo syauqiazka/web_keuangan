@@ -97,8 +97,15 @@ function DialogTambahKolom({
     <Dialog open={open} title="Tambah Jenis Pembayaran Baru" onClose={onClose}>
       <form action={formAction} className="space-y-4">
         <input type="hidden" name="tahunAjaranId" value={tahunAjaranId} />
-        {/* Kolom baru selalu tidak bulanan (3 sub-kolom) sesuai AGENTS.md 4.4 */}
-        <input type="hidden" name="bulanan" value="false" />
+        <Select
+          name="bulanan"
+          label="Pola Pembayaran"
+          defaultValue="false"
+          options={[
+            { value: "true", label: "Berulang setiap bulan (contoh: SPP)" },
+            { value: "false", label: "Sekali bayar / tidak berulang (contoh: uang gedung)" },
+          ]}
+        />
 
         <Input
           id="kolom-nama"
@@ -106,14 +113,14 @@ function DialogTambahKolom({
           label="Nama Jenis Pembayaran"
           placeholder="Contoh: Uang Gedung, Ujian Praktik, Seragam"
           required
-          helperText="Jenis baru yang ditambahkan bersifat non-bulanan (3 sub-kolom: Tanggal, Metode, Nominal)."
+          helperText="Pilih apakah kewajiban ini muncul setiap bulan atau hanya sekali pada tahun ajaran."
         />
         <Input
           id="kolom-nominal"
           name="nominalStandar"
           label="Nominal Patokan Standar (Rp, opsional)"
           placeholder="Contoh: 200.000 (kosongkan jika fleksibel)"
-          helperText="Jika diisi, pembayaran siswa yang kurang dari angka ini akan ditandai belum lunas."
+          helperText="Nominal kewajiban. Untuk jenis bulanan, ini berlaku per bulan; untuk sekali bayar, berlaku per tahun ajaran."
         />
         {state?.error && <p className="text-[14px] text-danger">{state.error}</p>}
         <div className="flex justify-end gap-2 pt-2">
@@ -641,7 +648,7 @@ export function TabDariSiswa({
                               )}
                               {pembayaranList.map((p) => (
                                 <div key={p.id} className="mt-1 border-t border-line/70 pt-1 text-[10px] text-text-3">
-                                  <div>{formatTanggal(p.tanggal)} · {formatRupiah(p.nominal)} · {p.metode === "TRANSFER" ? "TF" : "ST"}</div>
+                                  <div>{formatRupiah(p.nominal)} · {p.metode === "TRANSFER" ? "TF" : "ST"}</div>
                                   <div>oleh {p.petugasNama}</div>
                                 </div>
                               ))}
