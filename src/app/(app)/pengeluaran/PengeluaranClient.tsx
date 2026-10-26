@@ -13,6 +13,7 @@ import { BlurReveal } from "@/components/motion/BlurReveal";
 import { StaggerGroup, StaggerItem } from "@/components/motion/StaggerGroup";
 import { AnimatedNumber } from "@/components/motion/AnimatedNumber";
 import {
+  hapusPengeluaranAction,
   simpanBatchPengeluaranAction,
   type BatchPengeluaranInput,
 } from "@/server/actions/pengeluaran";
@@ -143,6 +144,28 @@ export function PengeluaranClient({
     });
   };
 
+  const handleDelete = async (row: EditablePengeluaranRow) => {
+    if (isEditing) {
+      showToast("Selesaikan atau batalkan mode edit sebelum menghapus transaksi.", "error");
+      return;
+    }
+    if (!window.confirm(`Hapus transaksi pengeluaran "${row.jenis}" sebesar ${formatRupiah(typeof row.nominal === "number" ? row.nominal : parseRupiah(String(row.nominal)))}? Data akan disembunyikan dari laporan.`)) {
+      return;
+    }
+
+    const formData = new FormData();
+    formData.set("id", row.id);
+    startSaving(async () => {
+      const result = await hapusPengeluaranAction(null, formData);
+      if (!result.success) {
+        showToast(result.error ?? "Gagal menghapus pengeluaran.", "error");
+        return;
+      }
+      showToast("Transaksi pengeluaran berhasil dihapus.", "success");
+      router.refresh();
+    });
+  };
+
   const columns: ColumnDef<EditablePengeluaranRow>[] = [
     {
       id: "no",
@@ -210,6 +233,23 @@ export function PengeluaranClient({
       editable: false,
       render: (row) => (
         <span className="text-text-2 text-[13px]">{row.petugasNama || "—"}</span>
+      ),
+    },
+    {
+      id: "aksi",
+      header: "Aksi",
+      width: "100px",
+      editable: false,
+      render: (row) => (
+        <Button
+          type="button"
+          variant="secondary"
+          size="sm"
+          disabled={isEditing || isSaving || !row.id}
+          onClick={() => void handleDelete(row)}
+        >
+          Hapus
+        </Button>
       ),
     },
   ];
