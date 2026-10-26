@@ -13,6 +13,7 @@ export interface JenisPemasukanOption {
   bulanan: boolean;
   nominalStandar: number | null;
   aktif: boolean;
+  tahunAjaranNama?: string;
 }
 
 export interface PembayaranSel {
@@ -85,39 +86,73 @@ export async function getJenisPemasukanList(
 // ─── Pembayaran Siswa ─────────────────────────────────────────────
 
 export async function getPembayaranSiswaGrid(params: {
-  tahunAjaranId: string;
+  tahunAjaranId?: string;
   kelasId?: string;
+  bulan?: string; // "YYYY-MM" saat tahun ajaran tertentu dipilih
+  bulanNomor?: string; // "1"-"12" untuk semua tahun ajaran
 }): Promise<{ jenisOptions: JenisPemasukanOption[]; siswaRows: SiswaSel[] }> {
   const user = await getSessionUser();
   if (!user) return { jenisOptions: [], siswaRows: [] };
 
-  const { tahunAjaranId, kelasId } = params;
+  const { tahunAjaranId, kelasId, bulan, bulanNomor } = params;
+  const penempatanWhere = {
+    ...(tahunAjaranId ? { tahunAjaranId } : {}),
+    ...(kelasId ? { kelasId } : {}),
+  };
 
-  const [jenisOptions, penempatan, pembayaranList] = await Promise.all([
-    getJenisPemasukanList(tahunAjaranId),
+  const jenisRowsPromise = db.jenisPemasukan.findMany({
+    where: { ...(tahunAjaranId ? { tahunAjaranId } : {}), aktif: true },
+    include: { tahunAjaran: { select: { nama: true, mulai: true } } },
+    orderBy: tahunAjaranId
+      ? [{ urutan: "asc" }, { nama: "asc" }]
+      : [{ tahunAjaran: { mulai: "desc" } }, { urutan: "asc" }, { nama: "asc" }],
+  });
+
+  const [jenisRows, penempatan, pembayaranList] = await Promise.all([
+    jenisRowsPromise,
     db.penempatanKelas.findMany({
-      where: {
-        tahunAjaranId,
-        ...(kelasId ? { kelasId } : {}),
-      },
+      where: penempatanWhere,
       include: { anggota: true },
       orderBy: [{ anggota: { nama: "asc" } }],
     }),
     db.pembayaranSiswa.findMany({
       where: {
         deletedAt: null,
-        penempatan: {
-          tahunAjaranId,
-          ...(kelasId ? { kelasId } : {}),
-        },
+        penempatan: penempatanWhere,
+        ...(bulan && /^\\d{4}-\\d{2}$/.test(bulan)
+          ? (() => {
+              const [y, m] = bulan.split("-").map(Number);
+              return {
+                tanggal: {
+                  gte: new Date(Date.UTC(y, m - 1, 1)),
+                  lt: new Date(Date.UTC(y, m, 1)),
+                },
+              };
+            })()
+          : {}),
       },
       include: { petugas: true },
+      orderBy: [{ tanggal: "asc" }, { createdAt: "asc" }],
     }),
   ]);
 
-  // Index pembayaran by penempatanId + jenisPemasukanId
+  const jenisOptions: JenisPemasukanOption[] = jenisRows.map((r) => ({
+    id: r.id,
+    nama: r.nama,
+    urutan: r.urutan,
+    bulanan: r.bulanan,
+    nominalStandar: r.nominalStandar ? Number(r.nominalStandar) : null,
+    aktif: r.aktif,
+    tahunAjaranNama: r.tahunAjaran.nama,
+  }));
+
+  // Semua tahun + bulan terpilih berarti cari transaksi pada bulan itu di setiap tahun.
+  const filteredPembayaran = !tahunAjaranId && bulanNomor
+    ? pembayaranList.filter((p) => p.tanggal.getUTCMonth() + 1 === Number(bulanNomor))
+    : pembayaranList;
+
   const pembayaranByKey: Record<string, PembayaranSel[]> = {};
-  for (const p of pembayaranList) {
+  for (const p of filteredPembayaran) {
     const key = `${p.penempatanId}__${p.jenisPemasukanId}`;
     if (!pembayaranByKey[key]) pembayaranByKey[key] = [];
     pembayaranByKey[key].push({
