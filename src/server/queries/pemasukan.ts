@@ -313,9 +313,10 @@ export async function getRingkasanPemasukan(params: {
     ...(startTahun && endTahun ? { tanggal: { gte: startTahun, lte: endTahun } } : {}),
   };
 
-  const [{ totalBulanIni: totalBulanIniAwal, totalPerTahun }, jenisGroups, bantuanSum, donaturSum] =
+  const [{ totalPerTahun }, jenisGroups, bantuanSum, donaturSum] =
     await Promise.all([
-      getTotalPemasukan({ tahunAjaranId, bulan }),
+      // Total tahunan tetap berdasarkan tanggal transaksi yang benar-benar diterima.
+      getTotalPemasukan({ tahunAjaranId }),
       // Per jenis pemasukan (hanya siswa)
       tahunAjaranId
         ? db.pembayaranSiswa.groupBy({
@@ -334,18 +335,48 @@ export async function getRingkasanPemasukan(params: {
       }),
     ]);
 
-  let jumlahBulanIni = totalBulanIniAwal;
-  if (!tahunAjaranId && bulanNomor) {
+  // Ringkasan bulanan harus konsisten dengan tabel:
+  // SPP/jenis bulanan memakai bulanTerbayar; sekali bayar, bantuan, dan donatur memakai tanggal transaksi.
+  let bulanMulai: Date | undefined;
+  let bulanSelesai: Date | undefined;
+  let monthNumber: number | undefined;
+  if (bulan && /^\\d{4}-\\d{2}$/.test(bulan)) {
+    const [y, m] = bulan.split("-").map(Number);
+    monthNumber = m;
+    bulanMulai = new Date(Date.UTC(y, m - 1, 1));
+    bulanSelesai = new Date(Date.UTC(y, m, 0, 23, 59, 59, 999));
+  } else if (!tahunAjaranId && bulanNomor) {
     const m = Number(bulanNomor);
-    if (Number.isInteger(m) && m >= 1 && m <= 12) {
-      const [pembayaranBulan, danaBulan] = await Promise.all([
-        db.pembayaranSiswa.findMany({ where: { deletedAt: null }, select: { tanggal: true, nominal: true } }),
-        db.pemasukanDana.findMany({ where: { deletedAt: null }, select: { tanggal: true, nominal: true } }),
-      ]);
-      jumlahBulanIni =
-        pembayaranBulan.filter((r) => r.tanggal.getUTCMonth() + 1 === m).reduce((sum, r) => sum + Number(r.nominal), 0) +
-        danaBulan.filter((r) => r.tanggal.getUTCMonth() + 1 === m).reduce((sum, r) => sum + Number(r.nominal), 0);
-    }
+    if (Number.isInteger(m) && m >= 1 && m <= 12) monthNumber = m;
+  }
+
+  let jumlahBulanIni = 0;
+  if (bulanMulai && bulanSelesai) {
+    const [bulanan, sekaliBayar, dana] = await Promise.all([
+      db.pembayaranSiswa.aggregate({
+        where: { deletedAt: null, bulanTerbayar: { gte: bulanMulai, lte: bulanSelesai }, jenisPemasukan: { bulanan: true }, ...(tahunAjaranId ? { penempatan: { tahunAjaranId } } : {}) },
+        _sum: { nominal: true },
+      }),
+      db.pembayaranSiswa.aggregate({
+        where: { deletedAt: null, tanggal: { gte: bulanMulai, lte: bulanSelesai }, jenisPemasukan: { bulanan: false }, ...(tahunAjaranId ? { penempatan: { tahunAjaranId } } : {}) },
+        _sum: { nominal: true },
+      }),
+      db.pemasukanDana.aggregate({
+        where: { deletedAt: null, tanggal: { gte: bulanMulai, lte: bulanSelesai }, ...(tahunAjaranId ? { tanggal: { gte: bulanMulai > startTahun! ? bulanMulai : startTahun!, lte: bulanSelesai < endTahun! ? bulanSelesai : endTahun! } } : {}) },
+        _sum: { nominal: true },
+      }),
+    ]);
+    jumlahBulanIni = Number(bulanan._sum.nominal ?? 0) + Number(sekaliBayar._sum.nominal ?? 0) + Number(dana._sum.nominal ?? 0);
+  } else if (monthNumber) {
+    const [bulanan, sekaliBayar, dana] = await Promise.all([
+      db.pembayaranSiswa.findMany({ where: { deletedAt: null, jenisPemasukan: { bulanan: true }, bulanTerbayar: { not: null } }, select: { bulanTerbayar: true, nominal: true } }),
+      db.pembayaranSiswa.findMany({ where: { deletedAt: null, jenisPemasukan: { bulanan: false } }, select: { tanggal: true, nominal: true } }),
+      db.pemasukanDana.findMany({ where: { deletedAt: null }, select: { tanggal: true, nominal: true } }),
+    ]);
+    jumlahBulanIni =
+      bulanan.filter((r) => r.bulanTerbayar && r.bulanTerbayar.getUTCMonth() + 1 === monthNumber).reduce((sum, r) => sum + Number(r.nominal), 0) +
+      sekaliBayar.filter((r) => r.tanggal.getUTCMonth() + 1 === monthNumber).reduce((sum, r) => sum + Number(r.nominal), 0) +
+      dana.filter((r) => r.tanggal.getUTCMonth() + 1 === monthNumber).reduce((sum, r) => sum + Number(r.nominal), 0);
   }
 
   // Resolve jenis names
