@@ -523,7 +523,7 @@ export function TabDariSiswa({
                             {last ? (last.metode === "TRANSFER" ? "TF" : "ST") : "—"}
                           </td>
                           <td className="px-2 py-2 text-right border-r border-line-strong">
-                            {pembayaranList.length === 0 ? (
+                            {pembayaranList.length === 0 && !jenis.bulanan ? (
                               <span className="text-text-3">—</span>
                             ) : (
                               <div>
@@ -540,6 +540,11 @@ export function TabDariSiswa({
                                 {jenis.nominalStandar && status.lunas && (
                                   <div className="text-[10px] font-medium text-series-in mt-0.5">
                                     ✓ Lunas
+                                  </div>
+                                )}
+                                {jenis.bulanan && jenis.nominalStandar && pembayaranList.length === 0 && (
+                                  <div className="text-[10px] font-medium text-danger mt-0.5">
+                                    Belum Dibayar
                                   </div>
                                 )}
                                 {isBelumLunas && status.teksKekurangan && (
