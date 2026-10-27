@@ -70,13 +70,13 @@ export function DashboardClient({
         {/* Total Saldo */}
         <StaggerItem>
           <div className="bg-surface p-5 lg:p-6 border border-line rounded-[12px] shadow-xs relative overflow-hidden flex flex-col justify-between h-full">
-            <div className="absolute top-0 left-0 right-0 h-[3px] bg-brand" />
+            <div className="absolute top-0 left-0 right-0 h-[3px] bg-balance" />
             <div>
               <div className="flex items-center justify-between mb-3">
                 <span className="text-[12px] font-medium text-text-3 uppercase tracking-wider">
                   Total Saldo Sekolah
                 </span>
-                <div className="w-8 h-8 rounded-[8px] bg-surface-soft text-brand flex items-center justify-center border border-line">
+                <div className="w-8 h-8 rounded-[8px] bg-balance-soft text-balance flex items-center justify-center border border-balance-border">
                   <Wallet className="w-4 h-4" />
                 </div>
               </div>
@@ -90,7 +90,7 @@ export function DashboardClient({
             </div>
             <div className="mt-4 pt-3 border-t border-line flex items-center justify-between text-[12px] text-text-3">
               <span>Pemasukan − Pengeluaran</span>
-              <span className="font-medium text-text">Tahun {tahun}</span>
+              <span className="font-semibold text-balance">Tahun {tahun}</span>
             </div>
           </div>
         </StaggerItem>
@@ -98,13 +98,13 @@ export function DashboardClient({
         {/* Pemasukan */}
         <StaggerItem>
           <div className="bg-surface p-5 lg:p-6 border border-line rounded-[12px] shadow-xs relative overflow-hidden flex flex-col justify-between h-full">
-            <div className="absolute top-0 left-0 right-0 h-[3px] bg-series-in" />
+            <div className="absolute top-0 left-0 right-0 h-[3px] bg-income" />
             <div>
               <div className="flex items-center justify-between mb-3">
                 <span className="text-[12px] font-medium text-text-3 uppercase tracking-wider">
                   Total Pemasukan
                 </span>
-                <div className="w-8 h-8 rounded-[8px] bg-surface-soft text-series-in flex items-center justify-center border border-line">
+                <div className="w-8 h-8 rounded-[8px] bg-income-soft text-income flex items-center justify-center border border-income-border">
                   <TrendingUp className="w-4 h-4" />
                 </div>
               </div>
@@ -118,7 +118,7 @@ export function DashboardClient({
             </div>
             <div className="mt-4 pt-3 border-t border-line flex items-center justify-between text-[12px] text-text-3">
               <span>Siswa + Bantuan + Donatur</span>
-              <span className="font-semibold text-series-in">Tahun {tahun}</span>
+              <span className="font-semibold text-income">Tahun {tahun}</span>
             </div>
           </div>
         </StaggerItem>
@@ -126,13 +126,13 @@ export function DashboardClient({
         {/* Pengeluaran */}
         <StaggerItem>
           <div className="bg-surface p-5 lg:p-6 border border-line rounded-[12px] shadow-xs relative overflow-hidden flex flex-col justify-between h-full">
-            <div className="absolute top-0 left-0 right-0 h-[3px] bg-series-out" />
+            <div className="absolute top-0 left-0 right-0 h-[3px] bg-expense" />
             <div>
               <div className="flex items-center justify-between mb-3">
                 <span className="text-[12px] font-medium text-text-3 uppercase tracking-wider">
                   Total Pengeluaran
                 </span>
-                <div className="w-8 h-8 rounded-[8px] bg-surface-soft text-series-out flex items-center justify-center border border-line">
+                <div className="w-8 h-8 rounded-[8px] bg-expense-soft text-expense flex items-center justify-center border border-expense-border">
                   <TrendingDown className="w-4 h-4" />
                 </div>
               </div>
@@ -146,7 +146,7 @@ export function DashboardClient({
             </div>
             <div className="mt-4 pt-3 border-t border-line flex items-center justify-between text-[12px] text-text-3">
               <span>Operasional & Gaji Guru</span>
-              <span className="font-semibold text-series-out">Tahun {tahun}</span>
+              <span className="font-semibold text-expense">Tahun {tahun}</span>
             </div>
           </div>
         </StaggerItem>
@@ -165,13 +165,13 @@ export function DashboardClient({
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 pt-1">
           <a
             href="/pemasukan"
-            className="flex items-center gap-3 p-3 rounded-[8px] border border-line hover:border-brand/50 hover:bg-surface-soft transition-all group"
+            className="flex items-center gap-3 p-3 rounded-[8px] border border-line hover:border-income/50 hover:bg-income-soft transition-all group"
           >
-            <div className="w-8 h-8 rounded-[6px] bg-surface-soft text-brand flex items-center justify-center shrink-0 border border-line/60 group-hover:bg-brand group-hover:text-white transition-colors">
+            <div className="w-8 h-8 rounded-[6px] bg-income-soft text-income flex items-center justify-center shrink-0 border border-income-border group-hover:bg-income group-hover:text-white transition-colors">
               <TrendingUp className="w-4 h-4" />
             </div>
             <div className="min-w-0">
-              <div className="text-[13px] font-medium text-text group-hover:text-brand transition-colors">
+              <div className="text-[13px] font-medium text-text group-hover:text-income transition-colors">
                 Catat Pemasukan
               </div>
               <div className="text-[11px] text-text-3 truncate">
@@ -182,13 +182,13 @@ export function DashboardClient({
 
           <a
             href="/pengeluaran"
-            className="flex items-center gap-3 p-3 rounded-[8px] border border-line hover:border-series-out/50 hover:bg-panel transition-all group"
+            className="flex items-center gap-3 p-3 rounded-[8px] border border-line hover:border-expense/50 hover:bg-expense-soft transition-all group"
           >
-            <div className="w-8 h-8 rounded-[6px] bg-panel text-series-out flex items-center justify-center shrink-0 border border-line/60 group-hover:bg-series-out group-hover:text-white transition-colors">
+            <div className="w-8 h-8 rounded-[6px] bg-expense-soft text-expense flex items-center justify-center shrink-0 border border-expense-border group-hover:bg-expense group-hover:text-white transition-colors">
               <TrendingDown className="w-4 h-4" />
             </div>
             <div className="min-w-0">
-              <div className="text-[13px] font-medium text-text group-hover:text-series-out transition-colors">
+              <div className="text-[13px] font-medium text-text group-hover:text-expense transition-colors">
                 Catat Pengeluaran
               </div>
               <div className="text-[11px] text-text-3 truncate">
@@ -199,13 +199,13 @@ export function DashboardClient({
 
           <a
             href="/data-siswa-guru"
-            className="flex items-center gap-3 p-3 rounded-[8px] border border-line hover:border-brand/50 hover:bg-surface-soft transition-all group"
+            className="flex items-center gap-3 p-3 rounded-[8px] border border-line hover:border-balance/50 hover:bg-balance-soft transition-all group"
           >
-            <div className="w-8 h-8 rounded-[6px] bg-surface-soft text-brand flex items-center justify-center shrink-0 border border-line/60 group-hover:bg-brand group-hover:text-white transition-colors">
+            <div className="w-8 h-8 rounded-[6px] bg-balance-soft text-balance flex items-center justify-center shrink-0 border border-balance-border group-hover:bg-balance group-hover:text-white transition-colors">
               <Wallet className="w-4 h-4" />
             </div>
             <div className="min-w-0">
-              <div className="text-[13px] font-medium text-text group-hover:text-brand transition-colors">
+              <div className="text-[13px] font-medium text-text group-hover:text-balance transition-colors">
                 Kelola Siswa & Guru
               </div>
               <div className="text-[11px] text-text-3 truncate">

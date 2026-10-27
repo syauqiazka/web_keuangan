@@ -33,9 +33,9 @@ const MENU_ITEMS: MenuItem[] = [
 ];
 
 /**
- * NavLink — Light, calm, and professional navigation link.
- * Active  : bg-surface-soft (#E5EFE8), text-brand (#245746), font-semibold, subtle border.
- * Inactive: text-text-3 (#647168), hover:text-text (#26352D), hover:bg-canvas (#F4F6F3).
+ * NavLink — Green and Gold sidebar navigation item.
+ * Active  : subtle gold-tinted active background, gold indicator bar, gold text & icon.
+ * Inactive: soft sage muted text, smooth hover state with crisp contrast.
  */
 function NavLink({
   item,
@@ -54,15 +54,24 @@ function NavLink({
     <Link
       href={item.href}
       onClick={onClick}
-      className={`group flex items-center gap-3 px-3 py-2.5 text-[13px] rounded-[8px] transition-all duration-150 ${
+      className={`group relative flex items-center gap-3 px-3 py-2.5 text-[13px] rounded-[8px] transition-all duration-150 ${
         isActive
-          ? "bg-surface-soft text-brand font-semibold border border-line/70 shadow-xs"
-          : "text-text-3 font-medium hover:text-text hover:bg-canvas border border-transparent"
+          ? "bg-sidebar-active-bg text-sidebar-active-text font-semibold border border-sidebar-active-border shadow-xs"
+          : "text-sidebar-text-muted font-medium hover:text-sidebar-hover-text hover:bg-sidebar-hover-bg border border-transparent"
       }`}
     >
+      {/* Gold indicator bar for active item */}
+      {isActive && (
+        <span
+          className="absolute left-0 top-2 bottom-2 w-1 bg-sidebar-gold rounded-r"
+          aria-hidden="true"
+        />
+      )}
       <Icon
         className={`w-4 h-4 shrink-0 transition-colors ${
-          isActive ? "text-brand" : "text-text-3 group-hover:text-text"
+          isActive
+            ? "text-sidebar-gold"
+            : "text-sidebar-text-muted group-hover:text-sidebar-hover-text"
         }`}
         strokeWidth={isActive ? 2.25 : 1.75}
       />
@@ -112,12 +121,12 @@ function MobileDrawer({
     <div ref={containerRef} className="lg:hidden fixed inset-0 z-40">
       <div
         ref={backdropRef}
-        className="fixed inset-0 bg-black/40 backdrop-blur-[2px]"
+        className="fixed inset-0 bg-black/50 backdrop-blur-[2px]"
         onClick={onClose}
       />
       <div
         ref={menuRef}
-        className="fixed top-[57px] left-0 right-0 bg-surface border-b border-line shadow-overlay p-4 space-y-4 max-h-[calc(100vh-57px)] overflow-y-auto"
+        className="fixed top-[57px] left-0 right-0 bg-sidebar-bg border-b border-sidebar-border shadow-overlay p-4 space-y-4 max-h-[calc(100vh-57px)] overflow-y-auto"
       >
         <nav className="space-y-1">
           {MENU_ITEMS.map((item) => (
@@ -125,16 +134,16 @@ function MobileDrawer({
           ))}
         </nav>
         {user && (
-          <div className="pt-3 border-t border-line flex items-center justify-between">
+          <div className="pt-3 border-t border-sidebar-border flex items-center justify-between">
             <div className="flex items-center gap-2.5">
-              <div className="w-8 h-8 rounded-[8px] bg-surface-soft text-brand font-semibold text-[11px] flex items-center justify-center border border-line">
+              <div className="w-8 h-8 rounded-[8px] bg-sidebar-active-bg text-sidebar-gold font-semibold text-[11px] flex items-center justify-center border border-sidebar-active-border">
                 {initials}
               </div>
               <div>
-                <div className="text-[13px] font-medium text-text leading-tight">
+                <div className="text-[13px] font-medium text-sidebar-text leading-tight">
                   {user.nama}
                 </div>
-                <div className="text-[11px] font-mono text-text-3">
+                <div className="text-[11px] font-mono text-sidebar-text-muted">
                   {user.peran}
                 </div>
               </div>
@@ -181,9 +190,9 @@ export function Sidebar({ user }: { user?: SessionUser | null }) {
   return (
     <>
       {/* ── Mobile Top Bar (< 1024px) ── */}
-      <div className="lg:hidden w-full bg-surface border-b border-line px-4 py-3 flex items-center justify-between sticky top-0 z-30 shadow-xs">
+      <div className="lg:hidden w-full bg-sidebar-bg border-b border-sidebar-border px-4 py-3 flex items-center justify-between sticky top-0 z-30 shadow-xs">
         <Link href="/dashboard" className="flex items-center gap-3">
-          <div className="w-8 h-8 rounded-[8px] bg-surface-soft flex items-center justify-center border border-line">
+          <div className="w-8 h-8 rounded-[8px] bg-surface flex items-center justify-center border border-sidebar-border p-0.5">
             <Image
               src="/logo-bank-saku-digital.jpeg"
               alt="Logo Bank Saku Digital"
@@ -194,10 +203,10 @@ export function Sidebar({ user }: { user?: SessionUser | null }) {
             />
           </div>
           <div>
-            <div className="text-[13px] font-semibold text-text leading-tight">
+            <div className="text-[13px] font-semibold text-white leading-tight">
               Pencatatan Keuangan Sekolah
             </div>
-            <div className="text-[11px] text-text-3 leading-tight">
+            <div className="text-[11px] text-sidebar-text-muted leading-tight">
               Bank Saku Digital
             </div>
           </div>
@@ -205,14 +214,14 @@ export function Sidebar({ user }: { user?: SessionUser | null }) {
         <button
           type="button"
           onClick={() => setMobileMenuOpen((prev) => !prev)}
-          className="p-2 text-text-2 rounded-[8px] border border-line hover:bg-canvas focus:outline-none transition-colors"
+          className="p-2 text-sidebar-text rounded-[8px] border border-sidebar-border hover:bg-sidebar-hover-bg focus:outline-none transition-colors"
           aria-label={mobileMenuOpen ? "Tutup navigasi" : "Buka navigasi"}
           aria-expanded={mobileMenuOpen}
         >
           {mobileMenuOpen ? (
-            <X className="w-4 h-4 text-text" strokeWidth={1.75} />
+            <X className="w-4 h-4 text-sidebar-text" strokeWidth={1.75} />
           ) : (
-            <Menu className="w-4 h-4 text-text" strokeWidth={1.75} />
+            <Menu className="w-4 h-4 text-sidebar-text" strokeWidth={1.75} />
           )}
         </button>
       </div>
@@ -226,31 +235,31 @@ export function Sidebar({ user }: { user?: SessionUser | null }) {
       />
 
       {/* ── Desktop Sidebar (>= 1024px) ── */}
-      <aside className="hidden lg:flex flex-col w-[240px] shrink-0 min-h-screen bg-surface sticky top-0 h-screen select-none border-r border-line shadow-xs">
+      <aside className="hidden lg:flex flex-col w-[240px] shrink-0 min-h-screen bg-sidebar-bg sticky top-0 h-screen select-none border-r border-sidebar-border shadow-xs">
         {/* Brand header */}
-        <div className="px-4 py-5 border-b border-line flex items-center gap-3">
-          <div className="w-9 h-9 rounded-[10px] bg-surface-soft flex items-center justify-center shrink-0 border border-line">
+        <div className="px-4 py-5 border-b border-sidebar-border flex items-center gap-3">
+          <div className="w-9 h-9 rounded-[10px] bg-surface flex items-center justify-center shrink-0 border border-sidebar-border p-1">
             <Image
               src="/logo-bank-saku-digital.jpeg"
               alt="Logo Bank Saku Digital"
               width={32}
               height={32}
-              className="w-8 h-8 object-contain rounded-[6px]"
+              className="w-7 h-7 object-contain rounded-[4px]"
               priority
             />
           </div>
           <div className="min-w-0">
-            <h1 className="text-[13px] font-semibold text-text leading-tight truncate">
+            <h1 className="text-[13px] font-semibold text-white leading-tight truncate">
               Pencatatan Keuangan
             </h1>
-            <p className="text-[11px] text-text-3 leading-tight truncate">
+            <p className="text-[11px] text-sidebar-text-muted leading-tight truncate">
               Bank Saku Digital
             </p>
           </div>
         </div>
 
         {/* Nav */}
-        <nav className="p-3 space-y-0.5 flex-1 overflow-y-auto">
+        <nav className="p-3 space-y-1 flex-1 overflow-y-auto">
           {MENU_ITEMS.map((item) => (
             <NavLink key={item.href} item={item} />
           ))}
@@ -258,17 +267,17 @@ export function Sidebar({ user }: { user?: SessionUser | null }) {
 
         {/* User profile footer */}
         {user && (
-          <div className="px-3.5 py-4 border-t border-line">
+          <div className="px-3.5 py-4 border-t border-sidebar-border">
             <div className="flex items-center gap-2.5">
-              <div className="w-8 h-8 rounded-[8px] bg-surface-soft text-brand font-semibold text-[12px] flex items-center justify-center shrink-0 border border-line">
+              <div className="w-8 h-8 rounded-[8px] bg-sidebar-active-bg text-sidebar-gold font-semibold text-[12px] flex items-center justify-center shrink-0 border border-sidebar-active-border">
                 {initials}
               </div>
               <div className="min-w-0 flex-1">
-                <div className="text-[13px] font-medium text-text truncate leading-tight">
+                <div className="text-[13px] font-medium text-white truncate leading-tight">
                   {user.nama}
                 </div>
                 <div className="flex items-center gap-1.5 mt-0.5">
-                  <span className="inline-block text-[10px] font-mono uppercase px-1.5 py-0.5 rounded-[4px] bg-canvas text-text-3 leading-none border border-line">
+                  <span className="inline-block text-[10px] font-mono uppercase px-1.5 py-0.5 rounded-[4px] bg-sidebar-hover-bg text-sidebar-gold leading-none border border-sidebar-border">
                     {user.peran}
                   </span>
                 </div>

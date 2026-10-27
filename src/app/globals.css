@@ -52,11 +52,40 @@
   --accent: #29735c;
   --accent-hover: #215e4b;
   --accent-text: #29735c;
-  --series-in: #29735c;
-  --series-out: #4f86c0;
+
+  /* Finansial: Pemasukan (Hijau), Pengeluaran (Merah Bata), Saldo (Emas/Amber) */
+  --income: #18794e;
+  --income-soft: #eef9f2;
+  --income-border: #b6e3cc;
+  --income-text: #146340;
+
+  --expense: #c0392b;
+  --expense-soft: #fdf3f2;
+  --expense-border: #f3c6c2;
+  --expense-text: #9a2c20;
+
+  --balance: #c68406;
+  --balance-soft: #fdf8ea;
+  --balance-border: #f7dfa5;
+  --balance-text: #8e5c00;
+
+  --series-in: var(--income);
+  --series-out: var(--expense);
   --warning: #a96d19;
   --danger: #b42318;
   --label: #595959;
+
+  /* Sidebar Hijau & Gold */
+  --sidebar-bg: #12382b;
+  --sidebar-border: #1a4c3b;
+  --sidebar-text: #d6e8df;
+  --sidebar-text-muted: #8dafa1;
+  --sidebar-hover-bg: #1a4c3b;
+  --sidebar-hover-text: #ffffff;
+  --sidebar-active-bg: rgba(212, 163, 56, 0.15);
+  --sidebar-active-border: rgba(212, 163, 56, 0.35);
+  --sidebar-active-text: #ffd470;
+  --sidebar-gold: #d4a338;
 }
 
 /* Tema gelap yang tenang dan tidak menyilaukan */
@@ -77,11 +106,40 @@
   --accent: #368a70;
   --accent-hover: #429f82;
   --accent-text: #5ec2a3;
-  --series-in: #368a70;
-  --series-out: #6ba1db;
+
+  /* Finansial Dark Mode */
+  --income: #3ec08d;
+  --income-soft: #142920;
+  --income-border: #1d4233;
+  --income-text: #5ce0ad;
+
+  --expense: #e26559;
+  --expense-soft: #301a18;
+  --expense-border: #4f2622;
+  --expense-text: #f28f85;
+
+  --balance: #f0b441;
+  --balance-soft: #2a200f;
+  --balance-border: #4a3818;
+  --balance-text: #f7c667;
+
+  --series-in: var(--income);
+  --series-out: var(--expense);
   --warning: #d48e24;
   --danger: #d9453b;
   --label: #999999;
+
+  /* Sidebar Dark Mode */
+  --sidebar-bg: #0b1a14;
+  --sidebar-border: #152920;
+  --sidebar-text: #c7ded4;
+  --sidebar-text-muted: #719485;
+  --sidebar-hover-bg: #152e23;
+  --sidebar-hover-text: #f0f7f3;
+  --sidebar-active-bg: rgba(240, 180, 65, 0.16);
+  --sidebar-active-border: rgba(240, 180, 65, 0.4);
+  --sidebar-active-text: #ffd97d;
+  --sidebar-gold: #e5a93c;
 }
 
 @media (prefers-color-scheme: dark) {
@@ -102,11 +160,38 @@
     --accent: #368a70;
     --accent-hover: #429f82;
     --accent-text: #5ec2a3;
-    --series-in: #368a70;
-    --series-out: #6ba1db;
+
+    --income: #3ec08d;
+    --income-soft: #142920;
+    --income-border: #1d4233;
+    --income-text: #5ce0ad;
+
+    --expense: #e26559;
+    --expense-soft: #301a18;
+    --expense-border: #4f2622;
+    --expense-text: #f28f85;
+
+    --balance: #f0b441;
+    --balance-soft: #2a200f;
+    --balance-border: #4a3818;
+    --balance-text: #f7c667;
+
+    --series-in: var(--income);
+    --series-out: var(--expense);
     --warning: #d48e24;
     --danger: #d9453b;
     --label: #999999;
+
+    --sidebar-bg: #0b1a14;
+    --sidebar-border: #152920;
+    --sidebar-text: #c7ded4;
+    --sidebar-text-muted: #719485;
+    --sidebar-hover-bg: #152e23;
+    --sidebar-hover-text: #f0f7f3;
+    --sidebar-active-bg: rgba(240, 180, 65, 0.16);
+    --sidebar-active-border: rgba(240, 180, 65, 0.4);
+    --sidebar-active-text: #ffd97d;
+    --sidebar-gold: #e5a93c;
   }
 }
 
@@ -133,6 +218,32 @@
   --color-warning: var(--warning);
   --color-danger: var(--danger);
   --color-label: var(--label);
+
+  --color-income: var(--income);
+  --color-income-soft: var(--income-soft);
+  --color-income-border: var(--income-border);
+  --color-income-text: var(--income-text);
+
+  --color-expense: var(--expense);
+  --color-expense-soft: var(--expense-soft);
+  --color-expense-border: var(--expense-border);
+  --color-expense-text: var(--expense-text);
+
+  --color-balance: var(--balance);
+  --color-balance-soft: var(--balance-soft);
+  --color-balance-border: var(--balance-border);
+  --color-balance-text: var(--balance-text);
+
+  --color-sidebar-bg: var(--sidebar-bg);
+  --color-sidebar-border: var(--sidebar-border);
+  --color-sidebar-text: var(--sidebar-text);
+  --color-sidebar-text-muted: var(--sidebar-text-muted);
+  --color-sidebar-hover-bg: var(--sidebar-hover-bg);
+  --color-sidebar-hover-text: var(--sidebar-hover-text);
+  --color-sidebar-active-bg: var(--sidebar-active-bg);
+  --color-sidebar-active-border: var(--sidebar-active-border);
+  --color-sidebar-active-text: var(--sidebar-active-text);
+  --color-sidebar-gold: var(--sidebar-gold);
 }
 
 body {

@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useTransition } from "react";
+import { useState, useTransition, useMemo, useCallback } from "react";
 import { useRouter } from "next/navigation";
 import type { PengeluaranRow, RingkasanPengeluaran } from "@/server/queries/pengeluaran";
 import type { TahunAjaranOption } from "@/server/queries/anggota";
@@ -12,6 +12,9 @@ import { useToast } from "@/components/ui/Toast";
 import { BlurReveal } from "@/components/motion/BlurReveal";
 import { StaggerGroup, StaggerItem } from "@/components/motion/StaggerGroup";
 import { AnimatedNumber } from "@/components/motion/AnimatedNumber";
+import { FilterIcon } from "@/components/ui/FilterIcon";
+import { ExportExcelButton } from "@/components/ui/ExportExcelButton";
+import { RotateCcw, X, ChevronDown, ChevronUp } from "lucide-react";
 import {
   hapusPengeluaranAction,
   simpanBatchPengeluaranAction,
@@ -25,6 +28,11 @@ interface PengeluaranClientProps {
   tahunAjaranList: TahunAjaranOption[];
   tahunAjaranId: string;
   bulan: string; // "YYYY-MM"
+  bulanNomor: string; // "01"-"12"
+  dari: string; // "YYYY-MM-DD"
+  sampai: string; // "YYYY-MM-DD"
+  jenis: string;
+  jenisList: string[];
   page: number;
 }
 
@@ -59,15 +67,75 @@ export function PengeluaranClient({
   ringkasan,
   tahunAjaranList,
   tahunAjaranId,
-  bulan,
+  bulanNomor,
+  dari,
+  sampai,
+  jenis,
+  jenisList,
   page,
 }: PengeluaranClientProps) {
   const router = useRouter();
   const { showToast } = useToast();
   const [isEditing, setIsEditing] = useState(false);
   const [isSaving, startSaving] = useTransition();
+  const [filterPanelOpen, setFilterPanelOpen] = useState(true);
 
-  const bulanNomor = bulan ? bulan.split("-")[1] ?? "" : "";
+  // Hitung jumlah filter aktif
+  const activeFiltersCount = useMemo(() => {
+    let count = 0;
+    if (tahunAjaranId) {
+      const activeTa = tahunAjaranList.find((t) => t.aktif);
+      if (tahunAjaranId !== activeTa?.id) count++;
+    }
+    if (bulanNomor) count++;
+    if (dari) count++;
+    if (sampai) count++;
+    if (jenis) count++;
+    return count;
+  }, [tahunAjaranId, bulanNomor, dari, sampai, jenis, tahunAjaranList]);
+
+  // URL untuk export Excel
+  const buildExportUrl = useMemo(() => {
+    const sp = new URLSearchParams();
+    if (tahunAjaranId) sp.set("tahunAjaran", tahunAjaranId);
+    if (bulanNomor) sp.set("bulan", bulanNomor);
+    if (dari) sp.set("dari", dari);
+    if (sampai) sp.set("sampai", sampai);
+    if (jenis) sp.set("jenis", jenis);
+    return `/api/export/pengeluaran?${sp.toString()}`;
+  }, [tahunAjaranId, bulanNomor, dari, sampai, jenis]);
+
+  const handlePageChange = (newPage: number) => {
+    const sp = new URLSearchParams();
+    if (tahunAjaranId) sp.set("tahunAjaran", tahunAjaranId);
+    if (bulanNomor) sp.set("bulan", bulanNomor);
+    if (dari) sp.set("dari", dari);
+    if (sampai) sp.set("sampai", sampai);
+    if (jenis) sp.set("jenis", jenis);
+    if (newPage > 1) sp.set("halaman", String(newPage));
+    const qs = sp.toString();
+    router.push(qs ? `/pengeluaran?${qs}` : "/pengeluaran");
+  };
+
+  const removeFilter = useCallback(
+    (key: "tahunAjaran" | "bulan" | "tanggal" | "jenis") => {
+      const sp = new URLSearchParams(window.location.search);
+      if (key === "tahunAjaran") sp.delete("tahunAjaran");
+      if (key === "bulan") sp.delete("bulan");
+      if (key === "tanggal") {
+        sp.delete("dari");
+        sp.delete("sampai");
+      }
+      if (key === "jenis") sp.delete("jenis");
+      sp.delete("halaman");
+      router.push(`/pengeluaran?${sp.toString()}`);
+    },
+    [router]
+  );
+
+  const handleResetFilter = useCallback(() => {
+    router.push("/pengeluaran");
+  }, [router]);
 
   const tahunOptions = [
     { value: "", label: "— Semua Tahun Ajaran —" },
@@ -77,16 +145,12 @@ export function PengeluaranClient({
     })),
   ];
 
-  const totalPages = Math.max(1, Math.ceil(total / 50));
+  const jenisOptions = [
+    { value: "", label: "— Semua Jenis Pengeluaran —" },
+    ...jenisList.map((j) => ({ value: j, label: j })),
+  ];
 
-  const handlePageChange = (newPage: number) => {
-    const sp = new URLSearchParams();
-    if (tahunAjaranId) sp.set("tahunAjaran", tahunAjaranId);
-    if (bulanNomor) sp.set("bulan", bulanNomor);
-    if (newPage > 1) sp.set("halaman", String(newPage));
-    const qs = sp.toString();
-    router.push(qs ? `/pengeluaran?${qs}` : "/pengeluaran");
-  };
+  const totalPages = Math.max(1, Math.ceil(total / 50));
 
   // Default tanggal hari ini dalam format DD-MM-YYYY
   const today = new Date();
@@ -149,6 +213,10 @@ export function PengeluaranClient({
       showToast("Selesaikan atau batalkan mode edit sebelum menghapus transaksi.", "error");
       return;
     }
+    if (!row.id) {
+      showToast("Baris baru yang belum disimpan tidak bisa dihapus dengan tombol ini.", "error");
+      return;
+    }
     if (!window.confirm(`Hapus transaksi pengeluaran "${row.jenis}" sebesar ${formatRupiah(typeof row.nominal === "number" ? row.nominal : parseRupiah(String(row.nominal)))}? Data akan disembunyikan dari laporan.`)) {
       return;
     }
@@ -165,6 +233,8 @@ export function PengeluaranClient({
       router.refresh();
     });
   };
+
+  const totalNominalHalaman = rows.reduce((sum, r) => sum + r.nominal, 0);
 
   const columns: ColumnDef<EditablePengeluaranRow>[] = [
     {
@@ -219,7 +289,7 @@ export function PengeluaranClient({
         }
       },
       render: (row) => (
-        <span className="num font-semibold text-text">
+        <span className="num font-semibold text-expense">
           {typeof row.nominal === "number"
             ? formatRupiah(row.nominal)
             : row.nominal}
@@ -233,6 +303,16 @@ export function PengeluaranClient({
       editable: false,
       render: (row) => (
         <span className="text-text-2 text-[13px]">{row.petugasNama || "—"}</span>
+      ),
+    },
+    {
+      id: "catatan",
+      header: "Catatan",
+      editable: true,
+      render: (row) => (
+        <span className="text-text-3 text-[12px] italic">
+          {row.catatan ? String(row.catatan) : "—"}
+        </span>
       ),
     },
     {
@@ -254,14 +334,23 @@ export function PengeluaranClient({
     },
   ];
 
-  // Hitung total nominal di halaman ini untuk tfoot
-  const totalNominalHalaman = rows.reduce((acc, curr) => acc + curr.nominal, 0);
+  // Label periode dinamis
+  const namaBulanTerpilih = bulanNomor
+    ? BULAN_OPTIONS.find((b) => b.value === bulanNomor)?.label
+    : null;
+
+  let labelPeriode = "Jumlah Pengeluaran Periode Ini";
+  if (dari && sampai) {
+    labelPeriode = `Jumlah Pengeluaran (${dari} s/d ${sampai})`;
+  } else if (namaBulanTerpilih) {
+    labelPeriode = `Jumlah Pengeluaran Bulan ${namaBulanTerpilih}`;
+  }
 
   return (
     <div className="space-y-6">
       {/* Header Halaman */}
       <BlurReveal blur={10} duration={0.75}>
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-5 border-b border-line">
+        <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 pb-5 border-b border-line">
           <div>
             <h1 className="text-[22px] lg:text-[26px] font-semibold text-text tracking-tight">
               Pencatatan Pengeluaran Sekolah
@@ -270,7 +359,12 @@ export function PengeluaranClient({
               Catat dan pantau transaksi operasional kas sekolah, belanja kebutuhan, serta gaji guru & staf.
             </p>
           </div>
-          <div className="flex items-center gap-2">
+          <div className="flex flex-wrap items-center gap-2.5">
+            <ExportExcelButton
+              exportUrl={buildExportUrl}
+              defaultFilename="pengeluaran.xlsx"
+              label="Export Excel (.xlsx)"
+            />
             {!isEditing ? (
               <Button
                 type="button"
@@ -281,8 +375,8 @@ export function PengeluaranClient({
                 Edit Data Pengeluaran
               </Button>
             ) : (
-              <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-[8px] bg-surface-soft border border-brand/30 text-brand text-[13px] font-medium">
-                <span className="w-2 h-2 rounded-full bg-brand animate-pulse" />
+              <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-[8px] bg-expense-soft border border-expense-border text-expense text-[13px] font-medium">
+                <span className="w-2 h-2 rounded-full bg-expense animate-pulse" />
                 Mode Edit Aktif
               </span>
             )}
@@ -300,14 +394,14 @@ export function PengeluaranClient({
         </div>
       )}
 
-      {/* Ringkasan Pengeluaran: Bulan Ini & Total Per Tahun */}
+      {/* Ringkasan Pengeluaran: Periode Terpilih & Total Per Tahun (Merah Bata) */}
       <StaggerGroup blur={8} duration={0.75} className="grid grid-cols-1 sm:grid-cols-2 gap-4" staggerDelay={0.08}>
         <StaggerItem>
-          <div className="bg-surface p-5 lg:p-6 border border-line rounded-[12px] shadow-xs relative overflow-hidden flex flex-col justify-between">
-            <div className="absolute top-0 left-0 right-0 h-[3px] bg-series-out" />
+          <div className="bg-surface p-5 lg:p-6 border border-line rounded-[12px] shadow-xs relative overflow-hidden flex flex-col justify-between h-full">
+            <div className="absolute top-0 left-0 right-0 h-[3px] bg-expense" />
             <div>
               <p className="text-[12px] font-medium text-text-3 uppercase tracking-wider mb-2">
-                Jumlah Pengeluaran Bulan Ini
+                {labelPeriode}
               </p>
               <div className="text-[26px] lg:text-[30px] font-semibold text-text num tabular-nums">
                 <AnimatedNumber
@@ -318,16 +412,16 @@ export function PengeluaranClient({
               </div>
             </div>
             <div className="mt-3 text-[12px] text-text-3">
-              Total beban kas pada bulan yang dipilih
+              Total beban kas hasil penyaringan kriteria filter aktif
             </div>
           </div>
         </StaggerItem>
         <StaggerItem>
-          <div className="bg-surface p-5 lg:p-6 border border-line rounded-[12px] shadow-xs relative overflow-hidden flex flex-col justify-between">
+          <div className="bg-surface p-5 lg:p-6 border border-line rounded-[12px] shadow-xs relative overflow-hidden flex flex-col justify-between h-full">
             <div className="absolute top-0 left-0 right-0 h-[3px] bg-series-out" />
             <div>
               <p className="text-[12px] font-medium text-text-3 uppercase tracking-wider mb-2">
-                Total Pengeluaran Per Tahun
+                Total Pengeluaran Per Tahun (Seluruh Beban)
               </p>
               <div className="text-[26px] lg:text-[30px] font-semibold text-text num tabular-nums">
                 <AnimatedNumber
@@ -338,43 +432,188 @@ export function PengeluaranClient({
               </div>
             </div>
             <div className="mt-3 text-[12px] text-text-3">
-              Akumulasi seluruh pengeluaran tahun ajaran berjalan
+              Akumulasi seluruh pengeluaran tahun ajaran berjalan (identik dengan Dashboard)
             </div>
           </div>
         </StaggerItem>
       </StaggerGroup>
 
-      {/* Filter Toolbar (GET) – Tampilkan Pengeluaran */}
+      {/* Advanced Filter Toolbar */}
       {!isEditing && (
         <BlurReveal blur={6} delay={0.12} duration={0.65}>
-          <div className="bg-surface border border-line rounded-[12px] p-4 shadow-xs">
-            <form
-              method="GET"
-              action="/pengeluaran"
-              className="flex flex-wrap items-end gap-3"
-            >
-              <div className="flex-1 min-w-[200px]">
-                <Select
-                  name="tahunAjaran"
-                  label="Tahun Ajaran"
-                  defaultValue={tahunAjaranId}
-                  options={tahunOptions}
-                />
+          <div className="bg-surface border border-line rounded-[12px] shadow-xs overflow-hidden">
+            <div className="p-4 flex flex-wrap items-center justify-between gap-3 border-b border-line bg-panel/30">
+              <div className="flex items-center gap-3">
+                <button
+                  type="button"
+                  onClick={() => setFilterPanelOpen((prev) => !prev)}
+                  className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-[8px] border border-line bg-surface text-text hover:bg-surface-soft hover:border-brand/40 text-[13px] font-medium transition-colors cursor-pointer"
+                  aria-expanded={filterPanelOpen}
+                  aria-label="Buka atau tutup panel filter pencarian pengeluaran"
+                >
+                  <FilterIcon className="w-4 h-4 text-expense" />
+                  <span>Filter Pengeluaran</span>
+                  {activeFiltersCount > 0 && (
+                    <span className="inline-flex items-center justify-center px-2 py-0.5 text-[11px] font-bold rounded-full bg-expense text-white">
+                      {activeFiltersCount}
+                    </span>
+                  )}
+                  {filterPanelOpen ? (
+                    <ChevronUp className="w-4 h-4 text-text-3 ml-1" />
+                  ) : (
+                    <ChevronDown className="w-4 h-4 text-text-3 ml-1" />
+                  )}
+                </button>
+                <span className="text-[12px] text-text-3 hidden sm:inline">
+                  Saring berdasarkan tahun ajaran, bulan, rentang tanggal, & jenis belanja kas
+                </span>
               </div>
-              <div className="min-w-[160px]">
-                <Select
-                  name="bulan"
-                  label="Bulan Transaksi"
-                  defaultValue={bulanNomor}
-                  options={BULAN_OPTIONS}
-                />
+
+              {activeFiltersCount > 0 && (
+                <button
+                  type="button"
+                  onClick={handleResetFilter}
+                  className="inline-flex items-center gap-1.5 px-3 py-1.5 text-[12px] font-medium rounded-[6px] text-text-3 hover:text-expense hover:bg-expense-soft transition-colors cursor-pointer"
+                  title="Reset semua filter ke kondisi default"
+                >
+                  <RotateCcw className="w-3.5 h-3.5" />
+                  <span>Reset Filter</span>
+                </button>
+              )}
+            </div>
+
+            {filterPanelOpen && (
+              <div className="p-4 border-b border-line">
+                <form method="GET" action="/pengeluaran" className="space-y-4">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-3">
+                    <div>
+                      <Select
+                        name="tahunAjaran"
+                        label="Tahun Ajaran"
+                        defaultValue={tahunAjaranId}
+                        options={tahunOptions}
+                      />
+                    </div>
+                    <div>
+                      <Select
+                        name="bulan"
+                        label="Bulan Transaksi"
+                        defaultValue={bulanNomor}
+                        options={BULAN_OPTIONS}
+                      />
+                    </div>
+                    <div>
+                      <label htmlFor="filter-dari-pengeluaran" className="block text-[12px] font-medium text-text-2 mb-1.5">
+                        Tanggal Mulai
+                      </label>
+                      <input
+                        id="filter-dari-pengeluaran"
+                        type="date"
+                        name="dari"
+                        defaultValue={dari}
+                        className="w-full bg-surface border border-line text-text text-[13px] px-3 py-2 rounded-[8px] focus:outline-none focus:ring-2 focus:ring-expense/20 focus:border-expense transition-colors"
+                      />
+                    </div>
+                    <div>
+                      <label htmlFor="filter-sampai-pengeluaran" className="block text-[12px] font-medium text-text-2 mb-1.5">
+                        Tanggal Akhir
+                      </label>
+                      <input
+                        id="filter-sampai-pengeluaran"
+                        type="date"
+                        name="sampai"
+                        defaultValue={sampai}
+                        className="w-full bg-surface border border-line text-text text-[13px] px-3 py-2 rounded-[8px] focus:outline-none focus:ring-2 focus:ring-expense/20 focus:border-expense transition-colors"
+                      />
+                    </div>
+                    <div>
+                      <Select
+                        name="jenis"
+                        label="Jenis Pengeluaran"
+                        defaultValue={jenis}
+                        options={jenisOptions}
+                      />
+                    </div>
+                  </div>
+
+                  <div className="flex flex-wrap items-center justify-between gap-3 pt-1">
+                    <p className="text-[11px] text-text-3">
+                      Catatan: Filter rentang tanggal bersifat inklusif terhadap tanggal transaksi.
+                    </p>
+                    <div className="flex items-center gap-2">
+                      <Button type="submit" variant="primary" size="md">
+                        Terapkan Filter
+                      </Button>
+                    </div>
+                  </div>
+                </form>
               </div>
-              <div className="pb-0.5">
-                <Button type="submit" variant="primary" size="md">
-                  Tampilkan Transaksi
-                </Button>
+            )}
+
+            {/* Chips filter aktif */}
+            {activeFiltersCount > 0 && (
+              <div className="px-4 py-2.5 bg-panel/20 flex flex-wrap items-center gap-2 text-[12px]">
+                <span className="text-text-3 font-medium">Filter Aktif:</span>
+
+                {tahunAjaranId && (
+                  <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-[6px] bg-surface border border-line text-text">
+                    <span>TA: {tahunAjaranList.find((t) => t.id === tahunAjaranId)?.nama}</span>
+                    <button
+                      type="button"
+                      onClick={() => removeFilter("tahunAjaran")}
+                      className="hover:text-expense cursor-pointer"
+                      aria-label="Hapus filter tahun ajaran"
+                    >
+                      <X className="w-3 h-3" />
+                    </button>
+                  </span>
+                )}
+
+                {bulanNomor && (
+                  <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-[6px] bg-surface border border-line text-text">
+                    <span>Bulan: {namaBulanTerpilih}</span>
+                    <button
+                      type="button"
+                      onClick={() => removeFilter("bulan")}
+                      className="hover:text-expense cursor-pointer"
+                      aria-label="Hapus filter bulan"
+                    >
+                      <X className="w-3 h-3" />
+                    </button>
+                  </span>
+                )}
+
+                {(dari || sampai) && (
+                  <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-[6px] bg-surface border border-line text-text">
+                    <span>
+                      Tanggal: {dari || "..."} s/d {sampai || "..."}
+                    </span>
+                    <button
+                      type="button"
+                      onClick={() => removeFilter("tanggal")}
+                      className="hover:text-expense cursor-pointer"
+                      aria-label="Hapus filter rentang tanggal"
+                    >
+                      <X className="w-3 h-3" />
+                    </button>
+                  </span>
+                )}
+
+                {jenis && (
+                  <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-[6px] bg-surface border border-line text-text">
+                    <span>Jenis: {jenis}</span>
+                    <button
+                      type="button"
+                      onClick={() => removeFilter("jenis")}
+                      className="hover:text-expense cursor-pointer"
+                      aria-label="Hapus filter jenis pengeluaran"
+                    >
+                      <X className="w-3 h-3" />
+                    </button>
+                  </span>
+                )}
               </div>
-            </form>
+            )}
           </div>
         </BlurReveal>
       )}
@@ -382,39 +621,39 @@ export function PengeluaranClient({
       {/* DataGrid dengan mode baca / edit dan paste Excel */}
       <BlurReveal blur={6} delay={0.18} duration={0.7}>
         <DataGrid<EditablePengeluaranRow>
-        columns={columns}
-        data={gridRows}
-        keyField={(row, idx) => row.id || `temp-${idx}`}
-        isEditing={isEditing}
-        onToggleEdit={() => setIsEditing(true)}
-        onCancelEdit={() => setIsEditing(false)}
-        onSave={handleSaveAll}
-        isSaving={isSaving}
-        showToolbar={isEditing}
-        enablePaste={true}
-        totals={{
-          nominal: totalNominalHalaman,
-        }}
-        createNewRow={() => ({
-          id: "",
-          tanggal: defaultTodayStr,
-          jenis: "",
-          nominal: "",
-          petugasNama: "Anda (saat simpan)",
-          catatan: "",
-        })}
-        emptyMessage={
-          bulanNomor
-            ? `Belum ada transaksi pengeluaran untuk periode ${BULAN_OPTIONS.find(b => b.value === bulanNomor)?.label ?? ""}. Klik tombol "Edit Data Pengeluaran" di atas untuk mulai mencatat transaksi.`
-            : 'Belum ada catatan pengeluaran untuk tahun ajaran ini. Klik tombol "Edit Data Pengeluaran" di atas untuk mulai mencatat transaksi.'
-        }
-      />
+          columns={columns}
+          data={gridRows}
+          keyField={(row, idx) => row.id || `temp-${idx}`}
+          isEditing={isEditing}
+          onToggleEdit={() => setIsEditing(true)}
+          onCancelEdit={() => setIsEditing(false)}
+          onSave={handleSaveAll}
+          isSaving={isSaving}
+          showToolbar={isEditing}
+          enablePaste={true}
+          totals={{
+            nominal: totalNominalHalaman,
+          }}
+          createNewRow={() => ({
+            id: "",
+            tanggal: defaultTodayStr,
+            jenis: "",
+            nominal: "",
+            petugasNama: "Anda (saat simpan)",
+            catatan: "",
+          })}
+          emptyMessage={
+            bulanNomor
+              ? `Belum ada transaksi pengeluaran untuk periode ${BULAN_OPTIONS.find((b) => b.value === bulanNomor)?.label ?? ""}. Klik tombol "Edit Data Pengeluaran" di atas untuk mulai mencatat transaksi.`
+              : 'Belum ada catatan pengeluaran untuk kriteria ini. Klik tombol "Edit Data Pengeluaran" di atas untuk mulai mencatat transaksi.'
+          }
+        />
       </BlurReveal>
 
       {/* Paginasi hanya jika tidak sedang edit */}
       {!isEditing && total > 50 && (
         <div className="flex items-center gap-4 text-[14px] text-text-3">
-          <span className="num">{total} baris</span>
+          <span className="num">{total} total baris</span>
           <div className="flex gap-2">
             <Button
               type="button"
