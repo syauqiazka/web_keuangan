@@ -157,3 +157,56 @@ export async function aktifkanAkunAction(
 
   return { success: true };
 }
+
+// ─── Hapus Akun ───────────────────────────────────────────────────
+
+export async function hapusAkunAction(
+  _prev: ActionState | null,
+  formData: FormData
+): Promise<ActionState> {
+  const admin = await requireAdmin().catch(() => null);
+  if (!admin) return { error: "Hanya admin yang dapat menghapus akun." };
+
+  const penggunaId = String(formData.get("penggunaId") ?? "");
+  if (!penggunaId) return { error: "ID akun tidak ditemukan." };
+
+  // Jangan hapus akun sendiri
+  if (penggunaId === admin.id) {
+    return { error: "Anda tidak dapat menghapus akun yang sedang Anda gunakan." };
+  }
+
+  const pengguna = await db.pengguna.findUnique({
+    where: { id: penggunaId },
+    include: {
+      _count: {
+        select: {
+          pembayaranSiswa: true,
+          pemasukanDana: true,
+          pengeluaran: true,
+        },
+      },
+    },
+  });
+
+  if (!pengguna) return { error: "Akun tidak ditemukan." };
+
+  const totalTransaksi =
+    pengguna._count.pembayaranSiswa +
+    pengguna._count.pemasukanDana +
+    pengguna._count.pengeluaran;
+
+  if (totalTransaksi > 0) {
+    return {
+      error: `Akun "${pengguna.nama}" memiliki ${totalTransaksi} riwayat pencatatan transaksi keuangan. Akun tidak dapat dihapus permanen demi menjaga keutuhan laporan audit sekolah. Silakan gunakan opsi Nonaktifkan Akun.`,
+    };
+  }
+
+  // Jika akun belum pernah mencatat transaksi, hapus sesi dan akun permanen
+  await db.$transaction([
+    db.sesi.deleteMany({ where: { penggunaId } }),
+    db.pengguna.delete({ where: { id: penggunaId } }),
+  ]);
+
+  return { success: true };
+}
+

@@ -457,22 +457,22 @@ export function TabDariSiswa({
         <table className="border-collapse text-[14px] w-full" style={{ minWidth: "1000px" }}>
           <thead>
             {/* Header Grup Pemasukan (Area Hijau) */}
-            <tr className="border-b border-income-border bg-income-soft text-income-text">
+            <tr className="border-b border-income-border bg-[#e8f5ee] dark:bg-[#193326] text-income-text">
               <th
                 rowSpan={2}
-                className="px-3 py-2.5 text-right font-semibold sticky left-0 bg-income-soft z-20 border-r border-income-border w-12 min-w-[48px]"
+                className="px-3 py-2.5 text-right font-semibold sticky left-0 bg-[#e8f5ee] dark:bg-[#193326] z-30 border-r border-income-border w-[50px] min-w-[50px] max-w-[50px]"
               >
                 No
               </th>
               <th
                 rowSpan={2}
-                className="px-3 py-2.5 text-left font-semibold sticky left-12 bg-income-soft z-20 border-r border-income-border min-w-[190px]"
+                className="px-3 py-2.5 text-left font-semibold sticky left-[50px] bg-[#e8f5ee] dark:bg-[#193326] z-30 border-r border-income-border w-[200px] min-w-[200px] max-w-[200px]"
               >
                 Nama Siswa
               </th>
               <th
                 rowSpan={2}
-                className="px-3 py-2.5 text-left font-semibold sticky left-[238px] bg-income-soft z-20 border-r border-income-border min-w-[120px]"
+                className="px-3 py-2.5 text-left font-semibold sticky left-[250px] bg-[#e8f5ee] dark:bg-[#193326] z-30 border-r-2 border-income-border w-[130px] min-w-[130px] max-w-[130px] shadow-[4px_0_6px_-2px_rgba(0,0,0,0.1)] dark:shadow-[4px_0_6px_-2px_rgba(0,0,0,0.4)]"
               >
                 Kode UID
               </th>
@@ -576,22 +576,36 @@ export function TabDariSiswa({
                 </td>
               </tr>
             ) : (
-              siswaRows.map((siswa, idx) => (
-                <tr
-                  key={siswa.penempatanId}
-                  className={`hover:bg-income-soft/50 transition-colors ${
-                    idx % 2 === 1 ? "bg-income-soft/20" : "bg-surface"
-                  }`}
-                >
-                  <td className="px-3 py-2.5 text-right text-text-3 num sticky left-0 bg-inherit z-10 border-r border-line">
-                    {idx + 1}
-                  </td>
-                  <td className="px-3 py-2.5 text-text sticky left-12 bg-inherit z-10 border-r border-line font-medium">
-                    {siswa.nama}
-                  </td>
-                  <td className="px-3 py-2.5 font-mono text-[13px] text-text-2 sticky left-[238px] bg-inherit z-10 border-r border-line">
-                    {siswa.uid}
-                  </td>
+              siswaRows.map((siswa, idx) => {
+                const isZebra = idx % 2 === 1;
+                const stickyBg = isZebra
+                  ? "bg-[#f4faf6] dark:bg-[#14231b]"
+                  : "bg-surface";
+
+                return (
+                  <tr
+                    key={siswa.penempatanId}
+                    className={`group ${
+                      isZebra ? "bg-[#f4faf6] dark:bg-[#14231b]" : "bg-surface"
+                    } hover:bg-[#ebf6f0] dark:hover:bg-[#193024] transition-colors`}
+                  >
+                    <td
+                      className={`px-3 py-2.5 text-right text-text-3 num sticky left-0 z-20 border-r border-line w-[50px] min-w-[50px] max-w-[50px] ${stickyBg} group-hover:bg-[#ebf6f0] dark:group-hover:bg-[#193024] transition-colors`}
+                    >
+                      {idx + 1}
+                    </td>
+                    <td
+                      className={`px-3 py-2.5 text-text sticky left-[50px] z-20 border-r border-line w-[200px] min-w-[200px] max-w-[200px] ${stickyBg} group-hover:bg-[#ebf6f0] dark:group-hover:bg-[#193024] transition-colors font-medium`}
+                    >
+                      <div className="truncate" title={siswa.nama}>
+                        {siswa.nama}
+                      </div>
+                    </td>
+                    <td
+                      className={`px-3 py-2.5 font-mono text-[13px] text-text-2 sticky left-[250px] z-20 border-r-2 border-line-strong w-[130px] min-w-[130px] max-w-[130px] shadow-[4px_0_6px_-2px_rgba(0,0,0,0.08)] dark:shadow-[4px_0_6px_-2px_rgba(0,0,0,0.35)] ${stickyBg} group-hover:bg-[#ebf6f0] dark:group-hover:bg-[#193024] transition-colors`}
+                    >
+                      <div className="truncate">{siswa.uid}</div>
+                    </td>
 
                   {sortedJenis.map((jenis) => {
                     const pembayaranList: PembayaranSel[] = siswa.pembayaran[jenis.id] ?? [];
@@ -825,8 +839,9 @@ export function TabDariSiswa({
                     </td>
                   )}
                 </tr>
-              ))
-            )}
+              );
+            })
+          )}
           </tbody>
         </table>
       </div>
