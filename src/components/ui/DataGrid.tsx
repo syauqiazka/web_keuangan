@@ -1,6 +1,7 @@
 "use client";
 
 import * as React from "react";
+import { motion, AnimatePresence } from "motion/react";
 import { Plus, Pencil, Check, X, AlertCircle, Info } from "lucide-react";
 import { formatRupiah } from "@/lib/money";
 import { parseTsv } from "@/lib/tsv-paste";
@@ -87,6 +88,8 @@ export function DataGrid<T>({
   const [unsavedRowIndices, setUnsavedRowIndices] = React.useState<Set<number>>(new Set());
   const [cellErrors, setCellErrors] = React.useState<Record<string, string>>({}); // key: `${rowIndex}_${colId}`
   const [focusedCell, setFocusedCell] = React.useState<{ row: number; col: number } | null>(null);
+  // Track indeks baris yang baru ditambahkan untuk animasi fade-in
+  const [newRowIndices, setNewRowIndices] = React.useState<Set<number>>(new Set());
 
   // Sync saat data berubah atau keluar dari mode edit
   const [prevData, setPrevData] = React.useState(initialData);
@@ -186,19 +189,33 @@ export function DataGrid<T>({
       newRowObj = {} as T;
     }
 
+    const newIdx = gridData.length;
     setGridData((prev) => [...prev, newRowObj]);
     setUnsavedRowIndices((prev) => {
       const next = new Set(prev);
-      next.add(gridData.length);
+      next.add(newIdx);
       return next;
     });
+    // Tandai baris baru untuk animasi; hapus tanda setelah animasi selesai
+    setNewRowIndices((prev) => {
+      const next = new Set(prev);
+      next.add(newIdx);
+      return next;
+    });
+    setTimeout(() => {
+      setNewRowIndices((prev) => {
+        const next = new Set(prev);
+        next.delete(newIdx);
+        return next;
+      });
+    }, 600);
 
     if (onAddRow) {
       onAddRow();
     }
 
     setTimeout(() => {
-      focusCell(gridData.length, focusColIdx);
+      focusCell(newIdx, focusColIdx);
     }, 50);
   };
 
@@ -294,15 +311,25 @@ export function DataGrid<T>({
 
   return (
     <div id={containerId} className={`w-full space-y-3 ${className}`}>
-      {/* Banner Mode Edit Aktif Emas-Lembut */}
-      {isEditing && (
-        <div className="p-3.5 rounded-[8px] bg-gold-soft border border-gold-border text-gold-text text-[13px] flex items-center gap-2.5 font-medium shadow-xs">
-          <Info className="w-4 h-4 shrink-0 text-gold-text" />
-          <span>
-            Mode edit aktif. Ubah data lalu klik <strong>Simpan Perubahan</strong> untuk menyimpan, atau <strong>Batal</strong> untuk membuang.
-          </span>
-        </div>
-      )}
+      {/* Banner Mode Edit Aktif — slide-down masuk, slide-up keluar */}
+      <AnimatePresence initial={false}>
+        {isEditing && (
+          <motion.div
+            key="edit-banner"
+            initial={{ opacity: 0, y: -8, scaleY: 0.92 }}
+            animate={{ opacity: 1, y: 0, scaleY: 1 }}
+            exit={{ opacity: 0, y: -6, scaleY: 0.95 }}
+            transition={{ duration: 0.22, ease: [0.25, 0.46, 0.45, 0.94] }}
+            style={{ transformOrigin: "top" }}
+            className="p-3.5 rounded-[8px] bg-gold-soft border border-gold-border text-gold-text text-[13px] flex items-center gap-2.5 font-medium shadow-xs"
+          >
+            <Info className="w-4 h-4 shrink-0 text-gold-text" />
+            <span>
+              Mode edit aktif. Ubah data lalu klik <strong>Simpan Perubahan</strong> untuk menyimpan, atau <strong>Batal</strong> untuk membuang.
+            </span>
+          </motion.div>
+        )}
+      </AnimatePresence>
 
       {/* Toolbar Grid (Aksi Tambah Baris, Status Perubahan, Batal, Simpan) */}
       {showToolbar && (
@@ -486,9 +513,14 @@ export function DataGrid<T>({
                     ? "bg-expense-soft/25"
                     : "bg-surface";
 
+                const isNewRow = newRowIndices.has(rowIndex);
+
                 return (
-                  <tr
+                  <motion.tr
                     key={keyField(row, rowIndex)}
+                    initial={isNewRow ? { opacity: 0, y: -10 } : false}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={isNewRow ? { duration: 0.28, ease: "easeOut" } : undefined}
                     className={`h-11 transition-colors ${
                       isUnsaved
                         ? "bg-gold-soft/60"
@@ -613,7 +645,7 @@ export function DataGrid<T>({
                         )}
                       </td>
                     )}
-                  </tr>
+                  </motion.tr>
                 );
               })
             )}

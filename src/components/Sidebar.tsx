@@ -4,6 +4,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useState, useEffect, useRef } from "react";
+import { motion, AnimatePresence } from "motion/react";
 import {
   LayoutDashboard,
   Users,
@@ -36,6 +37,7 @@ const MENU_ITEMS: MenuItem[] = [
  * NavLink — Green and Gold sidebar navigation item.
  * Active  : subtle gold-tinted active background, gold indicator bar, gold text & icon.
  * Inactive: soft sage muted text, smooth hover state with crisp contrast.
+ * Motion  : hover background glides with spring, active pill slides in with AnimatePresence.
  */
 function NavLink({
   item,
@@ -49,33 +51,81 @@ function NavLink({
     pathname === item.href ||
     (item.href !== "/dashboard" && pathname.startsWith(`${item.href}/`));
   const Icon = item.icon;
+  const [isHovered, setIsHovered] = useState(false);
 
   return (
     <Link
       href={item.href}
       onClick={onClick}
-      className={`group relative flex items-center gap-3 px-3 py-2.5 text-[13px] rounded-[8px] transition-all duration-150 ${
+      onMouseEnter={() => setIsHovered(true)}
+      onMouseLeave={() => setIsHovered(false)}
+      className={`group relative flex items-center gap-3 px-3 py-2.5 text-[13px] rounded-[8px] ${
         isActive
-          ? "bg-sidebar-active-bg text-sidebar-active-text font-semibold border border-sidebar-active-border shadow-xs"
-          : "text-sidebar-text-muted font-medium hover:text-sidebar-hover-text hover:bg-sidebar-hover-bg border border-transparent"
+          ? "text-sidebar-active-text font-semibold border border-sidebar-active-border shadow-xs"
+          : "text-sidebar-text-muted font-medium border border-transparent"
       }`}
     >
+      {/* Animated background pill — active bg atau hover bg */}
+      <AnimatePresence>
+        {isActive && (
+          <motion.span
+            key="active-bg"
+            layoutId={`sidebar-active-bg-${item.href}`}
+            className="absolute inset-0 bg-sidebar-active-bg rounded-[8px]"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            transition={{ type: "spring", stiffness: 400, damping: 35 }}
+            aria-hidden="true"
+          />
+        )}
+        {!isActive && isHovered && (
+          <motion.span
+            key="hover-bg"
+            className="absolute inset-0 bg-sidebar-hover-bg rounded-[8px]"
+            initial={{ opacity: 0, scale: 0.97 }}
+            animate={{ opacity: 1, scale: 1 }}
+            exit={{ opacity: 0, scale: 0.97 }}
+            transition={{ duration: 0.15, ease: "easeOut" }}
+            aria-hidden="true"
+          />
+        )}
+      </AnimatePresence>
+
       {/* Gold indicator bar for active item */}
-      {isActive && (
-        <span
-          className="absolute left-0 top-2 bottom-2 w-1 bg-sidebar-gold rounded-r"
-          aria-hidden="true"
+      <AnimatePresence>
+        {isActive && (
+          <motion.span
+            key="indicator"
+            className="absolute left-0 top-2 bottom-2 w-1 bg-sidebar-gold rounded-r"
+            initial={{ scaleY: 0, opacity: 0 }}
+            animate={{ scaleY: 1, opacity: 1 }}
+            exit={{ scaleY: 0, opacity: 0 }}
+            transition={{ type: "spring", stiffness: 500, damping: 40 }}
+            style={{ transformOrigin: "center" }}
+            aria-hidden="true"
+          />
+        )}
+      </AnimatePresence>
+
+      <motion.span
+        whileHover={{ scale: 1.12 }}
+        whileTap={{ scale: 0.92 }}
+        transition={{ type: "spring", stiffness: 500, damping: 30 }}
+        className="relative z-10 shrink-0"
+      >
+        <Icon
+          className={`w-4 h-4 transition-colors ${
+            isActive
+              ? "text-sidebar-gold"
+              : "text-sidebar-text-muted group-hover:text-sidebar-hover-text"
+          }`}
+          strokeWidth={isActive ? 2.25 : 1.75}
         />
-      )}
-      <Icon
-        className={`w-4 h-4 shrink-0 transition-colors ${
-          isActive
-            ? "text-sidebar-gold"
-            : "text-sidebar-text-muted group-hover:text-sidebar-hover-text"
-        }`}
-        strokeWidth={isActive ? 2.25 : 1.75}
-      />
-      <span>{item.name}</span>
+      </motion.span>
+      <span className={`relative z-10 transition-colors ${
+        !isActive && isHovered ? "text-sidebar-hover-text" : ""
+      }`}>{item.name}</span>
     </Link>
   );
 }
