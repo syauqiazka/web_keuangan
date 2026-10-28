@@ -460,19 +460,19 @@ export function TabDariSiswa({
             <tr className="border-b border-income-border bg-income-soft text-income-text">
               <th
                 rowSpan={2}
-                className="px-3 py-2.5 text-right font-semibold border-r border-income-border w-12 min-w-[48px]"
+                className="px-3 py-2.5 text-right font-semibold border-r border-income-border w-[48px] min-w-[48px] max-w-[48px] sticky left-0 bg-income-soft z-20"
               >
                 No
               </th>
               <th
                 rowSpan={2}
-                className="px-3 py-2.5 text-left font-semibold border-r border-income-border min-w-[180px]"
+                className="px-3 py-2.5 text-left font-semibold border-r border-income-border w-[180px] min-w-[180px] max-w-[180px] sticky left-[48px] bg-income-soft z-20"
               >
                 Nama Siswa
               </th>
               <th
                 rowSpan={2}
-                className="px-3 py-2.5 text-left font-semibold border-r border-income-border min-w-[120px]"
+                className="px-3 py-2.5 text-left font-semibold border-r-2 border-income-border w-[120px] min-w-[120px] max-w-[120px] sticky left-[228px] bg-income-soft z-20 shadow-[2px_0_4px_-1px_rgba(0,0,0,0.06)]"
               >
                 Kode UID
               </th>
@@ -579,18 +579,18 @@ export function TabDariSiswa({
               siswaRows.map((siswa, idx) => (
                 <tr
                   key={siswa.penempatanId}
-                  className={`hover:bg-income-soft/30 transition-colors ${
-                    idx % 2 === 1 ? "bg-panel/30" : "bg-surface"
-                  }`}
+                  className="border-b border-line bg-surface"
                 >
-                  <td className="px-3 py-2.5 text-right text-text-3 num border-r border-line">
+                  <td className="px-3 py-2.5 text-right text-text-3 num border-r border-line w-[48px] min-w-[48px] max-w-[48px] sticky left-0 bg-surface z-10">
                     {idx + 1}
                   </td>
-                  <td className="px-3 py-2.5 text-text border-r border-line font-medium whitespace-nowrap">
-                    {siswa.nama}
+                  <td className="px-3 py-2.5 text-text border-r border-line font-medium w-[180px] min-w-[180px] max-w-[180px] sticky left-[48px] bg-surface z-10">
+                    <div className="truncate" title={siswa.nama}>
+                      {siswa.nama}
+                    </div>
                   </td>
-                  <td className="px-3 py-2.5 font-mono text-[13px] text-text-2 border-r border-line whitespace-nowrap">
-                    {siswa.uid}
+                  <td className="px-3 py-2.5 font-mono text-[13px] text-text-2 border-r-2 border-line-strong w-[120px] min-w-[120px] max-w-[120px] sticky left-[228px] bg-surface z-10 shadow-[2px_0_4px_-1px_rgba(0,0,0,0.06)]">
+                    <div className="truncate">{siswa.uid}</div>
                   </td>
 
 
