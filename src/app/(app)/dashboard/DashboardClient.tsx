@@ -68,20 +68,20 @@ export function DashboardClient({
 
       {/* Tiga kartu ringkasan keuangan: Saldo → Pemasukan → Pengeluaran */}
       <StaggerGroup blur={8} duration={0.75} className="grid grid-cols-1 sm:grid-cols-3 gap-4" staggerDelay={0.08}>
-        {/* Total Saldo */}
+        {/* Total Saldo (Area Emas) */}
         <StaggerItem>
-          <div className="bg-surface p-5 lg:p-6 border border-line rounded-[12px] shadow-xs relative overflow-hidden flex flex-col justify-between h-full">
+          <div className="bg-balance-soft p-5 lg:p-6 border border-balance-border rounded-[12px] shadow-xs relative overflow-hidden flex flex-col justify-between h-full">
             <div className="absolute top-0 left-0 right-0 h-[3px] bg-balance" />
             <div>
               <div className="flex items-center justify-between mb-3">
-                <span className="text-[12px] font-medium text-text-3 uppercase tracking-wider">
+                <span className="text-[12px] font-semibold text-balance-text uppercase tracking-wider">
                   Total Saldo Sekolah
                 </span>
-                <div className="w-8 h-8 rounded-[8px] bg-balance-soft text-balance flex items-center justify-center border border-balance-border">
+                <div className="w-8 h-8 rounded-[8px] bg-balance text-[#151515] flex items-center justify-center shadow-xs">
                   <Wallet className="w-4 h-4" />
                 </div>
               </div>
-              <div className="text-[26px] lg:text-[32px] font-semibold text-text leading-tight tracking-tight num">
+              <div className="text-[26px] lg:text-[32px] font-semibold text-balance-text leading-tight tracking-tight num">
                 <AnimatedNumber
                   value={ringkasan.totalSaldo}
                   format={formatRupiah}
@@ -89,27 +89,27 @@ export function DashboardClient({
                 />
               </div>
             </div>
-            <div className="mt-4 pt-3 border-t border-line flex items-center justify-between text-[12px] text-text-3">
+            <div className="mt-4 pt-3 border-t border-balance-border/70 bg-balance-border/20 -mx-5 lg:-mx-6 -mb-5 lg:-mb-6 px-5 lg:px-6 py-2.5 flex items-center justify-between text-[12px] text-balance-text">
               <span>Pemasukan − Pengeluaran</span>
-              <span className="font-semibold text-balance">Tahun {tahun}</span>
+              <span className="font-semibold text-balance-text">Tahun {tahun}</span>
             </div>
           </div>
         </StaggerItem>
 
-        {/* Pemasukan */}
+        {/* Pemasukan (Area Hijau) */}
         <StaggerItem>
-          <div className="bg-surface p-5 lg:p-6 border border-line rounded-[12px] shadow-xs relative overflow-hidden flex flex-col justify-between h-full">
+          <div className="bg-income-soft p-5 lg:p-6 border border-income-border rounded-[12px] shadow-xs relative overflow-hidden flex flex-col justify-between h-full">
             <div className="absolute top-0 left-0 right-0 h-[3px] bg-income" />
             <div>
               <div className="flex items-center justify-between mb-3">
-                <span className="text-[12px] font-medium text-text-3 uppercase tracking-wider">
+                <span className="text-[12px] font-semibold text-income-text uppercase tracking-wider">
                   Total Pemasukan
                 </span>
-                <div className="w-8 h-8 rounded-[8px] bg-income-soft text-income flex items-center justify-center border border-income-border">
+                <div className="w-8 h-8 rounded-[8px] bg-income text-white flex items-center justify-center shadow-xs">
                   <TrendingUp className="w-4 h-4" />
                 </div>
               </div>
-              <div className="text-[26px] lg:text-[30px] font-semibold text-text leading-tight tracking-tight num">
+              <div className="text-[26px] lg:text-[30px] font-semibold text-income-text leading-tight tracking-tight num">
                 <AnimatedNumber
                   value={ringkasan.totalPemasukan}
                   format={formatRupiah}
@@ -117,27 +117,27 @@ export function DashboardClient({
                 />
               </div>
             </div>
-            <div className="mt-4 pt-3 border-t border-line flex items-center justify-between text-[12px] text-text-3">
+            <div className="mt-4 pt-3 border-t border-income-border/70 bg-income-border/20 -mx-5 lg:-mx-6 -mb-5 lg:-mb-6 px-5 lg:px-6 py-2.5 flex items-center justify-between text-[12px] text-income-text">
               <span>Siswa + Bantuan + Donatur</span>
-              <span className="font-semibold text-income">Tahun {tahun}</span>
+              <span className="font-semibold text-income-text">Tahun {tahun}</span>
             </div>
           </div>
         </StaggerItem>
 
-        {/* Pengeluaran */}
+        {/* Pengeluaran (Area Merah) */}
         <StaggerItem>
-          <div className="bg-surface p-5 lg:p-6 border border-line rounded-[12px] shadow-xs relative overflow-hidden flex flex-col justify-between h-full">
+          <div className="bg-expense-soft p-5 lg:p-6 border border-expense-border rounded-[12px] shadow-xs relative overflow-hidden flex flex-col justify-between h-full">
             <div className="absolute top-0 left-0 right-0 h-[3px] bg-expense" />
             <div>
               <div className="flex items-center justify-between mb-3">
-                <span className="text-[12px] font-medium text-text-3 uppercase tracking-wider">
+                <span className="text-[12px] font-semibold text-expense-text uppercase tracking-wider">
                   Total Pengeluaran
                 </span>
-                <div className="w-8 h-8 rounded-[8px] bg-expense-soft text-expense flex items-center justify-center border border-expense-border">
+                <div className="w-8 h-8 rounded-[8px] bg-expense text-white flex items-center justify-center shadow-xs">
                   <TrendingDown className="w-4 h-4" />
                 </div>
               </div>
-              <div className="text-[26px] lg:text-[30px] font-semibold text-text leading-tight tracking-tight num">
+              <div className="text-[26px] lg:text-[30px] font-semibold text-expense-text leading-tight tracking-tight num">
                 <AnimatedNumber
                   value={ringkasan.totalPengeluaran}
                   format={formatRupiah}
@@ -145,9 +145,9 @@ export function DashboardClient({
                 />
               </div>
             </div>
-            <div className="mt-4 pt-3 border-t border-line flex items-center justify-between text-[12px] text-text-3">
+            <div className="mt-4 pt-3 border-t border-expense-border/70 bg-expense-border/20 -mx-5 lg:-mx-6 -mb-5 lg:-mb-6 px-5 lg:px-6 py-2.5 flex items-center justify-between text-[12px] text-expense-text">
               <span>Operasional & Gaji Guru</span>
-              <span className="font-semibold text-expense">Tahun {tahun}</span>
+              <span className="font-semibold text-expense-text">Tahun {tahun}</span>
             </div>
           </div>
         </StaggerItem>
@@ -166,16 +166,16 @@ export function DashboardClient({
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 pt-1">
           <Link
             href="/pemasukan"
-            className="flex items-center gap-3 p-3 rounded-[8px] border border-line hover:border-income/50 hover:bg-income-soft transition-all group"
+            className="flex items-center gap-3 p-3 rounded-[8px] border border-income-border bg-income-soft hover:border-income transition-all group"
           >
-            <div className="w-8 h-8 rounded-[6px] bg-income-soft text-income flex items-center justify-center shrink-0 border border-income-border group-hover:bg-income group-hover:text-white transition-colors">
+            <div className="w-8 h-8 rounded-[6px] bg-income text-white flex items-center justify-center shrink-0 shadow-xs">
               <TrendingUp className="w-4 h-4" />
             </div>
             <div className="min-w-0">
-              <div className="text-[13px] font-medium text-text group-hover:text-income transition-colors">
+              <div className="text-[13px] font-semibold text-income-text group-hover:underline transition-all">
                 Catat Pemasukan
               </div>
-              <div className="text-[11px] text-text-3 truncate">
+              <div className="text-[11px] text-income-text/80 truncate">
                 SPP, bantuan & donatur
               </div>
             </div>
@@ -183,16 +183,16 @@ export function DashboardClient({
 
           <Link
             href="/pengeluaran"
-            className="flex items-center gap-3 p-3 rounded-[8px] border border-line hover:border-expense/50 hover:bg-expense-soft transition-all group"
+            className="flex items-center gap-3 p-3 rounded-[8px] border border-expense-border bg-expense-soft hover:border-expense transition-all group"
           >
-            <div className="w-8 h-8 rounded-[6px] bg-expense-soft text-expense flex items-center justify-center shrink-0 border border-expense-border group-hover:bg-expense group-hover:text-white transition-colors">
+            <div className="w-8 h-8 rounded-[6px] bg-expense text-white flex items-center justify-center shrink-0 shadow-xs">
               <TrendingDown className="w-4 h-4" />
             </div>
             <div className="min-w-0">
-              <div className="text-[13px] font-medium text-text group-hover:text-expense transition-colors">
+              <div className="text-[13px] font-semibold text-expense-text group-hover:underline transition-all">
                 Catat Pengeluaran
               </div>
-              <div className="text-[11px] text-text-3 truncate">
+              <div className="text-[11px] text-expense-text/80 truncate">
                 Gaji & operasional kas
               </div>
             </div>
@@ -200,16 +200,16 @@ export function DashboardClient({
 
           <Link
             href="/data-siswa-guru"
-            className="flex items-center gap-3 p-3 rounded-[8px] border border-line hover:border-gold-border hover:bg-gold-soft transition-all group"
+            className="flex items-center gap-3 p-3 rounded-[8px] border border-gold-border bg-gold-soft hover:border-gold transition-all group"
           >
-            <div className="w-8 h-8 rounded-[6px] bg-gold-soft text-gold-text flex items-center justify-center shrink-0 border border-gold-border group-hover:bg-gold group-hover:text-[#151515] transition-colors">
+            <div className="w-8 h-8 rounded-[6px] bg-gold text-[#151515] flex items-center justify-center shrink-0 shadow-xs">
               <Users className="w-4 h-4" />
             </div>
             <div className="min-w-0">
-              <div className="text-[13px] font-medium text-text group-hover:text-gold-text transition-colors">
+              <div className="text-[13px] font-semibold text-gold-text group-hover:underline transition-all">
                 Kelola Siswa & Guru
               </div>
-              <div className="text-[11px] text-text-3 truncate">
+              <div className="text-[11px] text-gold-text/80 truncate">
                 Daftar kelas & data UID
               </div>
             </div>
@@ -217,13 +217,13 @@ export function DashboardClient({
 
           <Link
             href="/pengaturan"
-            className="flex items-center gap-3 p-3 rounded-[8px] border border-line hover:border-line-strong hover:bg-panel transition-all group"
+            className="flex items-center gap-3 p-3 rounded-[8px] border border-line bg-panel hover:border-line-strong transition-all group"
           >
-            <div className="w-8 h-8 rounded-[6px] bg-panel text-text-2 flex items-center justify-center shrink-0 border border-line/60 group-hover:bg-text-2 group-hover:text-white transition-colors">
+            <div className="w-8 h-8 rounded-[6px] bg-text-2 text-white flex items-center justify-center shrink-0 shadow-xs">
               <Settings className="w-4 h-4" />
             </div>
             <div className="min-w-0">
-              <div className="text-[13px] font-medium text-text group-hover:text-text transition-colors">
+              <div className="text-[13px] font-medium text-text group-hover:underline transition-all">
                 Pengaturan Sistem
               </div>
               <div className="text-[11px] text-text-3 truncate">

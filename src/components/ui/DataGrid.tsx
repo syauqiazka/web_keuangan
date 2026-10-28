@@ -57,6 +57,7 @@ export interface DataGridProps<T> {
   isSaving?: boolean;
   showToolbar?: boolean;
   toolbarExtra?: React.ReactNode;
+  areaTheme?: "income" | "expense" | "neutral";
 }
 
 export function DataGrid<T>({
@@ -77,6 +78,7 @@ export function DataGrid<T>({
   isSaving = false,
   showToolbar = false,
   toolbarExtra,
+  areaTheme = "neutral",
 }: DataGridProps<T>) {
   const containerId = React.useId();
 
@@ -404,7 +406,15 @@ export function DataGrid<T>({
 
           {/* Header Kolom */}
           <thead>
-            <tr className="border-b border-line bg-panel/50 text-text-2">
+            <tr
+              className={`border-b ${
+                areaTheme === "income"
+                  ? "border-income-border bg-income-soft text-income-text"
+                  : areaTheme === "expense"
+                  ? "border-expense-border bg-expense-soft text-expense-text"
+                  : "border-line bg-panel/50 text-text-2"
+              }`}
+            >
               {columns.map((col) => {
                 const alignClass =
                   col.align === "right"
@@ -414,7 +424,13 @@ export function DataGrid<T>({
                     : "text-left";
 
                 const stickyClass = col.sticky
-                  ? "sticky left-0 bg-surface z-10"
+                  ? `sticky left-0 z-10 ${
+                      areaTheme === "income"
+                        ? "bg-income-soft text-income-text"
+                        : areaTheme === "expense"
+                        ? "bg-expense-soft text-expense-text"
+                        : "bg-surface"
+                    }`
                   : "";
 
                 return (
@@ -434,7 +450,15 @@ export function DataGrid<T>({
                 );
               })}
               {isEditing && (
-                <th className="px-3 py-2.5 h-10 text-right font-semibold text-text-2 w-28 whitespace-nowrap">
+                <th
+                  className={`px-3 py-2.5 h-10 text-right font-semibold w-28 whitespace-nowrap ${
+                    areaTheme === "income"
+                      ? "text-income-text"
+                      : areaTheme === "expense"
+                      ? "text-expense-text"
+                      : "text-text-2"
+                  }`}
+                >
                   Status
                 </th>
               )}
@@ -455,12 +479,24 @@ export function DataGrid<T>({
             ) : (
               displayData.map((row, rowIndex) => {
                 const isUnsaved = unsavedRowIndices.has(rowIndex);
+                const zebraBg =
+                  areaTheme === "income" && rowIndex % 2 === 1
+                    ? "bg-income-soft/20"
+                    : areaTheme === "expense" && rowIndex % 2 === 1
+                    ? "bg-expense-soft/25"
+                    : "bg-surface";
 
                 return (
                   <tr
                     key={keyField(row, rowIndex)}
                     className={`h-11 transition-colors ${
-                      isUnsaved ? "bg-gold-soft/60" : "hover:bg-panel/40"
+                      isUnsaved
+                        ? "bg-gold-soft/60"
+                        : areaTheme === "income"
+                        ? `hover:bg-income-soft/40 ${zebraBg}`
+                        : areaTheme === "expense"
+                        ? `hover:bg-expense-soft/40 ${zebraBg}`
+                        : "hover:bg-panel/40"
                     }`}
                   >
                     {columns.map((col, colIndex) => {
@@ -586,7 +622,15 @@ export function DataGrid<T>({
           {/* Baris Total di Kaki Tabel Jika Ada */}
           {totals && (
             <tfoot>
-              <tr className="border-t-2 border-line bg-panel/60 h-10 font-semibold">
+              <tr
+                className={`border-t-2 h-10 font-semibold ${
+                  areaTheme === "income"
+                    ? "border-income-border bg-income-soft text-income-text"
+                    : areaTheme === "expense"
+                    ? "border-expense-border bg-expense-soft text-expense-text"
+                    : "border-line bg-panel/60 text-text"
+                }`}
+              >
                 {columns.map((col, idx) => {
                   const val = totals[col.id];
                   const alignClass =
@@ -597,13 +641,13 @@ export function DataGrid<T>({
                       : "text-left";
 
                   const stickyClass = col.sticky
-                    ? "sticky left-0 bg-surface z-10"
+                    ? "sticky left-0 bg-inherit z-10"
                     : "";
 
                   return (
                     <td
                       key={`total-${col.id}`}
-                      className={`px-3 py-2 whitespace-nowrap text-text ${alignClass} ${stickyClass} num`}
+                      className={`px-3 py-2 whitespace-nowrap ${alignClass} ${stickyClass} num font-semibold`}
                     >
                       {idx === 0 && val === undefined
                         ? "Total"

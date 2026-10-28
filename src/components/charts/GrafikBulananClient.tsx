@@ -153,13 +153,17 @@ export function GrafikBulananClient({ data, tahun }: GrafikBulananClientProps) {
           </span>
         </div>
 
-        {/* Hover detail pill */}
+        {/* Hover detail pill with area -soft styling */}
         <div className="h-6 flex items-center">
           {hoveredData ? (
-            <div className="text-[12px] flex items-center gap-3 px-2.5 py-1 rounded-[6px] bg-surface-soft border border-line text-text animate-in fade-in zoom-in-95 duration-150">
-              <span className="font-semibold text-text">{BULAN_LENGKAP[hoveredData.bulan - 1]}</span>
-              <span className="text-series-in font-medium num">Masuk: {formatRupiah(hoveredData.pemasukan)}</span>
-              <span className="text-series-out font-medium num">Keluar: {formatRupiah(hoveredData.pengeluaran)}</span>
+            <div className="text-[12px] flex items-center gap-2 px-2.5 py-1 rounded-[6px] bg-panel border border-line text-text animate-in fade-in zoom-in-95 duration-150">
+              <span className="font-semibold text-text">{BULAN_LENGKAP[hoveredData.bulan - 1]}:</span>
+              <span className="px-2 py-0.5 rounded bg-income-soft text-income-text border border-income-border font-medium num">
+                Masuk: {formatRupiah(hoveredData.pemasukan)}
+              </span>
+              <span className="px-2 py-0.5 rounded bg-expense-soft text-expense-text border border-expense-border font-medium num">
+                Keluar: {formatRupiah(hoveredData.pengeluaran)}
+              </span>
             </div>
           ) : (
             <span className="text-[12px] text-text-3 font-normal">Arahkan kursor pada batang untuk rincian nominal</span>

@@ -289,7 +289,7 @@ export function PengeluaranClient({
         }
       },
       render: (row) => (
-        <span className="num font-semibold text-expense">
+        <span className="num font-semibold text-expense-text">
           {typeof row.nominal === "number"
             ? formatRupiah(row.nominal)
             : row.nominal}
@@ -386,16 +386,16 @@ export function PengeluaranClient({
         </div>
       </BlurReveal>
 
-      {/* Ringkasan Pengeluaran: Periode Terpilih & Total Per Tahun (Merah Bata) */}
+      {/* Ringkasan Pengeluaran: Periode Terpilih & Total Per Tahun (Area Merah) */}
       <StaggerGroup blur={8} duration={0.75} className="grid grid-cols-1 sm:grid-cols-2 gap-4" staggerDelay={0.08}>
         <StaggerItem>
-          <div className="bg-surface p-5 lg:p-6 border border-line rounded-[12px] shadow-xs relative overflow-hidden flex flex-col justify-between h-full">
+          <div className="bg-expense-soft p-5 lg:p-6 border border-expense-border rounded-[12px] shadow-xs relative overflow-hidden flex flex-col justify-between h-full">
             <div className="absolute top-0 left-0 right-0 h-[3px] bg-expense" />
             <div>
-              <p className="text-[12px] font-medium text-text-3 uppercase tracking-wider mb-2">
+              <p className="text-[12px] font-semibold text-expense-text uppercase tracking-wider mb-2">
                 {labelPeriode}
               </p>
-              <div className="text-[26px] lg:text-[30px] font-semibold text-text num tabular-nums">
+              <div className="text-[26px] lg:text-[30px] font-semibold text-expense-text num tabular-nums">
                 <AnimatedNumber
                   value={ringkasan.jumlahBulanIni}
                   format={formatRupiah}
@@ -403,19 +403,19 @@ export function PengeluaranClient({
                 />
               </div>
             </div>
-            <div className="mt-3 text-[12px] text-text-3">
+            <div className="mt-4 pt-3 border-t border-expense-border/70 bg-expense-border/20 -mx-5 lg:-mx-6 -mb-5 lg:-mb-6 px-5 lg:px-6 py-2.5 text-[12px] text-expense-text">
               Total beban kas hasil penyaringan kriteria filter aktif
             </div>
           </div>
         </StaggerItem>
         <StaggerItem>
-          <div className="bg-surface p-5 lg:p-6 border border-line rounded-[12px] shadow-xs relative overflow-hidden flex flex-col justify-between h-full">
-            <div className="absolute top-0 left-0 right-0 h-[3px] bg-series-out" />
+          <div className="bg-expense-soft p-5 lg:p-6 border border-expense-border rounded-[12px] shadow-xs relative overflow-hidden flex flex-col justify-between h-full">
+            <div className="absolute top-0 left-0 right-0 h-[3px] bg-expense" />
             <div>
-              <p className="text-[12px] font-medium text-text-3 uppercase tracking-wider mb-2">
+              <p className="text-[12px] font-semibold text-expense-text uppercase tracking-wider mb-2">
                 Total Pengeluaran Per Tahun (Seluruh Beban)
               </p>
-              <div className="text-[26px] lg:text-[30px] font-semibold text-text num tabular-nums">
+              <div className="text-[26px] lg:text-[30px] font-semibold text-expense-text num tabular-nums">
                 <AnimatedNumber
                   value={ringkasan.totalPerTahun}
                   format={formatRupiah}
@@ -423,7 +423,7 @@ export function PengeluaranClient({
                 />
               </div>
             </div>
-            <div className="mt-3 text-[12px] text-text-3">
+            <div className="mt-4 pt-3 border-t border-expense-border/70 bg-expense-border/20 -mx-5 lg:-mx-6 -mb-5 lg:-mb-6 px-5 lg:px-6 py-2.5 text-[12px] text-expense-text">
               Akumulasi seluruh pengeluaran tahun ajaran berjalan (identik dengan Dashboard)
             </div>
           </div>
@@ -625,6 +625,7 @@ export function PengeluaranClient({
           isSaving={isSaving}
           showToolbar={isEditing}
           enablePaste={true}
+          areaTheme="expense"
           totals={{
             nominal: totalNominalHalaman,
           }}

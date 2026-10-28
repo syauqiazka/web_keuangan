@@ -237,8 +237,8 @@ export function Sidebar({ user }: { user?: SessionUser | null }) {
       {/* ── Desktop Sidebar (>= 1024px) ── */}
       <aside className="hidden lg:flex flex-col w-[240px] shrink-0 min-h-screen bg-sidebar-bg sticky top-0 h-screen select-none border-r border-sidebar-border shadow-xs">
         {/* Brand header */}
-        <div className="px-4 py-5 border-b border-sidebar-border flex items-center gap-3">
-          <div className="w-9 h-9 rounded-[10px] bg-surface flex items-center justify-center shrink-0 border border-sidebar-border p-1">
+        <div className="px-4 py-5 border-b border-sidebar-divider flex items-center gap-3">
+          <div className="w-9 h-9 rounded-[10px] bg-surface flex items-center justify-center shrink-0 border border-sidebar-divider p-1">
             <Image
               src="/logo-bank-saku-digital.jpeg"
               alt="Logo Bank Saku Digital"
@@ -249,7 +249,7 @@ export function Sidebar({ user }: { user?: SessionUser | null }) {
             />
           </div>
           <div className="min-w-0">
-            <h1 className="text-[13px] font-semibold text-white leading-tight truncate">
+            <h1 className="text-[13px] font-semibold text-sidebar-text leading-tight truncate">
               Pencatatan Keuangan
             </h1>
             <p className="text-[11px] text-sidebar-text-muted leading-tight truncate">
@@ -267,17 +267,17 @@ export function Sidebar({ user }: { user?: SessionUser | null }) {
 
         {/* User profile footer */}
         {user && (
-          <div className="px-3.5 py-4 border-t border-sidebar-border">
+          <div className="px-3.5 py-4 border-t border-sidebar-divider">
             <div className="flex items-center gap-2.5">
               <div className="w-8 h-8 rounded-[8px] bg-sidebar-active-bg text-sidebar-gold font-semibold text-[12px] flex items-center justify-center shrink-0 border border-sidebar-active-border">
                 {initials}
               </div>
               <div className="min-w-0 flex-1">
-                <div className="text-[13px] font-medium text-white truncate leading-tight">
+                <div className="text-[13px] font-medium text-sidebar-text truncate leading-tight">
                   {user.nama}
                 </div>
                 <div className="flex items-center gap-1.5 mt-0.5">
-                  <span className="inline-block text-[10px] font-mono uppercase px-1.5 py-0.5 rounded-[4px] bg-sidebar-hover-bg text-sidebar-gold leading-none border border-sidebar-border">
+                  <span className="inline-block text-[10px] font-mono uppercase px-1.5 py-0.5 rounded-[4px] bg-sidebar-hover-bg text-sidebar-gold leading-none border border-sidebar-divider">
                     {user.peran}
                   </span>
                 </div>

@@ -65,31 +65,32 @@
   --gold-border: #ecd48a;
   --gold-text: #7a5600;
 
-  /* Finansial: Pemasukan (Hijau), Pengeluaran (Biru), Saldo (Emas) */
-  --income: #29735c;
-  --income-soft: #eaf1ed;
-  --income-border: #b6d5ca;
-  --income-text: #215e4b;
+  /* Finansial: Pemasukan (Hijau), Pengeluaran (Merah), Saldo (Emas) */
+  --income: #146340;
+  --income-soft: #eef9f2;
+  --income-border: #a9d9bf;
+  --income-text: #146340;
 
-  --expense: #25619c;
-  --expense-soft: #f0f6fc;
-  --expense-border: #c2d9f2;
-  --expense-text: #25619c;
+  --expense: #e0604f;
+  --expense-soft: #fdf3f2;
+  --expense-border: #e8a49c;
+  --expense-text: #9a2c20;
 
   --balance: var(--gold);
   --balance-soft: var(--gold-soft);
   --balance-border: var(--gold-border);
   --balance-text: var(--gold-text);
 
-  --series-in: #29735c;
-  --series-out: #4f86c0;
+  --series-in: #146340;
+  --series-out: #e0604f;
   --warning: #a96d19;
   --danger: #b42318;
   --label: #595959;
 
-  /* Sidebar Hijau Tua & Gold */
+  /* Sidebar Hijau Tua & Gold (Tema Terang) */
   --sidebar-bg: #12382b;
   --sidebar-border: #1a4c3b;
+  --sidebar-divider: #2a5a47;
   --sidebar-text: #ffffff;
   --sidebar-text-muted: #b2cfc3;
   --sidebar-hover-bg: #1a4c3b;
@@ -100,7 +101,7 @@
   --sidebar-gold: #d4a338;
 }
 
-/* Tema gelap yang tenang dan tidak menyilaukan */
+/* Tema gelap yang tenang dan kontras tinggi */
 :root[data-theme="dark"] {
   --canvas: #111413;
   --surface: #181d1a;
@@ -126,39 +127,40 @@
   --gold-border: #4a3818;
   --gold-text: #f0c25a;
 
-  /* Finansial Dark Mode: Pengeluaran BIRU */
-  --income: #3ec08d;
+  /* Finansial Dark Mode: Pemasukan Hijau Terang, Pengeluaran Merah */
+  --income: #3dc08f;
   --income-soft: #142920;
-  --income-border: #1d4233;
+  --income-border: #2a6a50;
   --income-text: #5ce0ad;
 
-  --expense: #6ba1db;
-  --expense-soft: #132438;
-  --expense-border: #234368;
-  --expense-text: #89bdf5;
+  --expense: #c4453b;
+  --expense-soft: #301a18;
+  --expense-border: #7a3a33;
+  --expense-text: #f28f85;
 
   --balance: var(--gold);
   --balance-soft: var(--gold-soft);
   --balance-border: var(--gold-border);
   --balance-text: var(--gold-text);
 
-  --series-in: #3ec08d;
-  --series-out: #6ba1db;
+  --series-in: #3dc08f;
+  --series-out: #c4453b;
   --warning: #d48e24;
   --danger: #ef6b61;
   --label: #999999;
 
-  /* Sidebar Dark Mode */
-  --sidebar-bg: #0b1a14;
-  --sidebar-border: #152920;
-  --sidebar-text: #ffffff;
-  --sidebar-text-muted: #9ec4b5;
-  --sidebar-hover-bg: #152e23;
+  /* Sidebar Dark Mode (KOREKSI 1: Hijau Hutan #17402f terpisah jelas dari canvas #111413) */
+  --sidebar-bg: #17402f;
+  --sidebar-border: #3a7a62;
+  --sidebar-divider: #2a5a47;
+  --sidebar-text: #d6e8df;
+  --sidebar-text-muted: #9fc4b3;
+  --sidebar-hover-bg: #1e4f3b;
   --sidebar-hover-text: #ffffff;
-  --sidebar-active-bg: rgba(240, 180, 65, 0.16);
-  --sidebar-active-border: rgba(240, 180, 65, 0.4);
-  --sidebar-active-text: #ffd97d;
-  --sidebar-gold: #e5a93c;
+  --sidebar-active-bg: #2a200f;
+  --sidebar-active-border: #4a3818;
+  --sidebar-active-text: #f0c25a;
+  --sidebar-gold: #f0c25a;
 }
 
 @media (prefers-color-scheme: dark) {
@@ -186,37 +188,38 @@
     --gold-border: #4a3818;
     --gold-text: #f0c25a;
 
-    --income: #3ec08d;
+    --income: #3dc08f;
     --income-soft: #142920;
-    --income-border: #1d4233;
+    --income-border: #2a6a50;
     --income-text: #5ce0ad;
 
-    --expense: #6ba1db;
-    --expense-soft: #132438;
-    --expense-border: #234368;
-    --expense-text: #89bdf5;
+    --expense: #c4453b;
+    --expense-soft: #301a18;
+    --expense-border: #7a3a33;
+    --expense-text: #f28f85;
 
     --balance: var(--gold);
     --balance-soft: var(--gold-soft);
     --balance-border: var(--gold-border);
     --balance-text: var(--gold-text);
 
-    --series-in: #3ec08d;
-    --series-out: #6ba1db;
+    --series-in: #3dc08f;
+    --series-out: #c4453b;
     --warning: #d48e24;
     --danger: #ef6b61;
     --label: #999999;
 
-    --sidebar-bg: #0b1a14;
-    --sidebar-border: #152920;
-    --sidebar-text: #ffffff;
-    --sidebar-text-muted: #9ec4b5;
-    --sidebar-hover-bg: #152e23;
+    --sidebar-bg: #17402f;
+    --sidebar-border: #3a7a62;
+    --sidebar-divider: #2a5a47;
+    --sidebar-text: #d6e8df;
+    --sidebar-text-muted: #9fc4b3;
+    --sidebar-hover-bg: #1e4f3b;
     --sidebar-hover-text: #ffffff;
-    --sidebar-active-bg: rgba(240, 180, 65, 0.16);
-    --sidebar-active-border: rgba(240, 180, 65, 0.4);
-    --sidebar-active-text: #ffd97d;
-    --sidebar-gold: #e5a93c;
+    --sidebar-active-bg: #2a200f;
+    --sidebar-active-border: #4a3818;
+    --sidebar-active-text: #f0c25a;
+    --sidebar-gold: #f0c25a;
   }
 }
 
@@ -267,6 +270,7 @@
 
   --color-sidebar-bg: var(--sidebar-bg);
   --color-sidebar-border: var(--sidebar-border);
+  --color-sidebar-divider: var(--sidebar-divider);
   --color-sidebar-text: var(--sidebar-text);
   --color-sidebar-text-muted: var(--sidebar-text-muted);
   --color-sidebar-hover-bg: var(--sidebar-hover-bg);

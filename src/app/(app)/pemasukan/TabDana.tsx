@@ -202,7 +202,7 @@ export function TabDana({
         }
       },
       render: (row) => (
-        <span className="num font-semibold text-text">
+        <span className="num font-semibold text-income-text">
           {typeof row.nominal === "number" ? formatRupiah(row.nominal) : row.nominal}
         </span>
       ),
@@ -253,6 +253,7 @@ export function TabDana({
         onSave={handleSaveAll}
         isSaving={isSaving}
         showToolbar={isEditing}
+        areaTheme="income"
         toolbarExtra={
           <Button
             type="button"

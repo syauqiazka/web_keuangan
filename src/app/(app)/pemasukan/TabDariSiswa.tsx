@@ -456,23 +456,23 @@ export function TabDariSiswa({
       >
         <table className="border-collapse text-[14px] w-full" style={{ minWidth: "1000px" }}>
           <thead>
-            {/* Header Grup Pemasukan */}
-            <tr className="border-b border-line bg-panel/70 text-text">
+            {/* Header Grup Pemasukan (Area Hijau) */}
+            <tr className="border-b border-income-border bg-income-soft text-income-text">
               <th
                 rowSpan={2}
-                className="px-3 py-2.5 text-right font-semibold sticky left-0 bg-surface z-20 border-r border-line w-12 min-w-[48px]"
+                className="px-3 py-2.5 text-right font-semibold sticky left-0 bg-income-soft z-20 border-r border-income-border w-12 min-w-[48px]"
               >
                 No
               </th>
               <th
                 rowSpan={2}
-                className="px-3 py-2.5 text-left font-semibold sticky left-12 bg-surface z-20 border-r border-line min-w-[190px]"
+                className="px-3 py-2.5 text-left font-semibold sticky left-12 bg-income-soft z-20 border-r border-income-border min-w-[190px]"
               >
                 Nama Siswa
               </th>
               <th
                 rowSpan={2}
-                className="px-3 py-2.5 text-left font-semibold sticky left-[238px] bg-surface z-20 border-r border-line min-w-[120px]"
+                className="px-3 py-2.5 text-left font-semibold sticky left-[238px] bg-income-soft z-20 border-r border-income-border min-w-[120px]"
               >
                 Kode UID
               </th>
@@ -485,7 +485,7 @@ export function TabDariSiswa({
                   <th
                     key={jenis.id}
                     colSpan={colSpanCount}
-                    className="px-3 py-2 text-center font-semibold border-r border-line last:border-r-0"
+                    className="px-3 py-2 text-center font-semibold border-r border-income-border last:border-r-0"
                   >
                     <div className="font-semibold text-[14px]">
                       {jenis.nama}
@@ -502,11 +502,11 @@ export function TabDariSiswa({
                       />
                     )}
                     {jenis.nominalStandar !== null ? (
-                      <div className="text-[12px] font-normal text-text-3 font-mono mt-0.5">
+                      <div className="text-[12px] font-normal text-income-text/80 font-mono mt-0.5">
                         Standar: {formatRupiah(jenis.nominalStandar)}
                       </div>
                     ) : (
-                      <div className="text-[12px] font-normal text-text-3 italic mt-0.5">
+                      <div className="text-[12px] font-normal text-income-text/70 italic mt-0.5">
                         Tanpa patokan lunas
                       </div>
                     )}
@@ -517,7 +517,7 @@ export function TabDariSiswa({
               {isEditing && (
                 <th
                   rowSpan={2}
-                  className="px-3 py-2 text-center font-semibold text-text-2 border-l border-line min-w-[130px]"
+                  className="px-3 py-2 text-center font-semibold text-income-text border-l border-income-border min-w-[130px]"
                 >
                   Aksi
                 </th>
@@ -525,12 +525,12 @@ export function TabDariSiswa({
             </tr>
 
             {/* Sub-Header Kolom */}
-            <tr className="border-b border-line bg-panel/50 text-text-3">
+            <tr className="border-b border-income-border bg-income-soft/60 text-income-text">
               {sortedJenis.map((jenis) =>
                 jenis.bulanan ? (
                   // SPP: 4 sub-kolom
                   <React.Fragment key={`${jenis.id}-subheaders`}>
-                    <th className="px-3 py-2 text-[12px] font-medium text-left border-r border-line min-w-[120px]">
+                    <th className="px-3 py-2 text-[12px] font-semibold text-left border-r border-income-border/70 min-w-[120px]">
                       Tgl. Transaksi
                     </th>
                     <th className="px-3 py-2 text-[12px] font-medium text-left border-r border-line min-w-[130px]">
@@ -579,15 +579,17 @@ export function TabDariSiswa({
               siswaRows.map((siswa, idx) => (
                 <tr
                   key={siswa.penempatanId}
-                  className="hover:bg-panel/40 transition-colors"
+                  className={`hover:bg-income-soft/50 transition-colors ${
+                    idx % 2 === 1 ? "bg-income-soft/20" : "bg-surface"
+                  }`}
                 >
-                  <td className="px-3 py-2.5 text-right text-text-3 num sticky left-0 bg-surface z-10 border-r border-line">
+                  <td className="px-3 py-2.5 text-right text-text-3 num sticky left-0 bg-inherit z-10 border-r border-line">
                     {idx + 1}
                   </td>
-                  <td className="px-3 py-2.5 text-text sticky left-12 bg-surface z-10 border-r border-line font-medium">
+                  <td className="px-3 py-2.5 text-text sticky left-12 bg-inherit z-10 border-r border-line font-medium">
                     {siswa.nama}
                   </td>
-                  <td className="px-3 py-2.5 font-mono text-[13px] text-text-2 sticky left-[238px] bg-surface z-10 border-r border-line">
+                  <td className="px-3 py-2.5 font-mono text-[13px] text-text-2 sticky left-[238px] bg-inherit z-10 border-r border-line">
                     {siswa.uid}
                   </td>
 

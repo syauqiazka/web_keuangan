@@ -223,13 +223,13 @@ export function PemasukanClient({
       <div className="space-y-3">
         <StaggerGroup blur={8} duration={0.75} className="grid grid-cols-1 sm:grid-cols-2 gap-4" staggerDelay={0.08}>
           <StaggerItem>
-            <div className="bg-surface p-5 lg:p-6 border border-line rounded-[12px] shadow-xs relative overflow-hidden flex flex-col justify-between h-full">
+            <div className="bg-income-soft p-5 lg:p-6 border border-income-border rounded-[12px] shadow-xs relative overflow-hidden flex flex-col justify-between h-full">
               <div className="absolute top-0 left-0 right-0 h-[3px] bg-income" />
               <div>
-                <div className="text-[12px] font-medium text-text-3 uppercase tracking-wider mb-2">
+                <div className="text-[12px] font-semibold text-income-text uppercase tracking-wider mb-2">
                   {labelPeriode}
                 </div>
-                <div className="text-[26px] lg:text-[30px] font-semibold text-text leading-tight num">
+                <div className="text-[26px] lg:text-[30px] font-semibold text-income-text leading-tight num">
                   <AnimatedNumber
                     value={ringkasan.jumlahBulanIni}
                     format={formatRupiah}
@@ -237,19 +237,19 @@ export function PemasukanClient({
                   />
                 </div>
               </div>
-              <div className="mt-3 text-[12px] text-text-3">
+              <div className="mt-4 pt-3 border-t border-income-border/70 bg-income-border/20 -mx-5 lg:-mx-6 -mb-5 lg:-mb-6 px-5 lg:px-6 py-2.5 text-[12px] text-income-text">
                 Kumulatif penerimaan seluruh sumber yang cocok dengan kriteria filter aktif
               </div>
             </div>
           </StaggerItem>
           <StaggerItem>
-            <div className="bg-surface p-5 lg:p-6 border border-line rounded-[12px] shadow-xs relative overflow-hidden flex flex-col justify-between h-full">
-              <div className="absolute top-0 left-0 right-0 h-[3px] bg-brand" />
+            <div className="bg-income-soft p-5 lg:p-6 border border-income-border rounded-[12px] shadow-xs relative overflow-hidden flex flex-col justify-between h-full">
+              <div className="absolute top-0 left-0 right-0 h-[3px] bg-income" />
               <div>
-                <div className="text-[12px] font-medium text-text-3 uppercase tracking-wider mb-2">
+                <div className="text-[12px] font-semibold text-income-text uppercase tracking-wider mb-2">
                   Total Pemasukan Per Tahun (Seluruh Sumber)
                 </div>
-                <div className="text-[26px] lg:text-[30px] font-semibold text-text leading-tight num">
+                <div className="text-[26px] lg:text-[30px] font-semibold text-income-text leading-tight num">
                   <AnimatedNumber
                     value={ringkasan.totalPerTahun}
                     format={formatRupiah}
@@ -257,7 +257,7 @@ export function PemasukanClient({
                   />
                 </div>
               </div>
-              <div className="mt-3 text-[12px] text-text-3">
+              <div className="mt-4 pt-3 border-t border-income-border/70 bg-income-border/20 -mx-5 lg:-mx-6 -mb-5 lg:-mb-6 px-5 lg:px-6 py-2.5 text-[12px] text-income-text">
                 Total penerimaan sekolah satu tahun ajaran penuh (identik dengan Dashboard)
               </div>
             </div>
@@ -267,15 +267,15 @@ export function PemasukanClient({
         {/* Baris rincian per jenis */}
         {ringkasan.perJenis.length > 0 && (
           <BlurReveal blur={6} delay={0.1} duration={0.6}>
-            <div className="bg-surface border border-line rounded-[12px] px-4 py-3 shadow-xs">
+            <div className="bg-income-soft border border-income-border rounded-[12px] px-4 py-3 shadow-xs">
               <div className="flex flex-wrap items-center gap-x-5 gap-y-2 text-[13px]">
-                <span className="font-mono text-[11px] font-medium text-text-3 uppercase tracking-wider">
+                <span className="font-mono text-[11px] font-semibold text-income-text uppercase tracking-wider">
                   Rincian Jenis:
                 </span>
                 {ringkasan.perJenis.map((item) => (
-                  <span key={item.nama} className="flex gap-1.5 items-center px-2.5 py-1 rounded-[6px] bg-income-soft border border-income-border text-[12px]">
-                    <span className="text-text-3 font-normal">{item.nama}:</span>
-                    <span className="font-semibold text-income num">{item.totalFormatted}</span>
+                  <span key={item.nama} className="flex gap-1.5 items-center px-2.5 py-1 rounded-[6px] bg-surface border border-income-border/80 text-[12px]">
+                    <span className="text-text-2 font-medium">{item.nama}:</span>
+                    <span className="font-semibold text-income-text num">{item.totalFormatted}</span>
                   </span>
                 ))}
               </div>
@@ -526,9 +526,9 @@ export function PemasukanClient({
                   sp.delete("jenis");
                   router.push(`/pemasukan?${sp.toString()}`);
                 }}
-                className={`px-4 py-2.5 text-[13px] font-medium border-b-2 -mb-px transition-colors cursor-pointer ${
+                className={`px-4 py-2.5 text-[13px] font-medium border-b-[3px] -mb-px transition-colors cursor-pointer ${
                   tab === t.key
-                    ? "border-income text-income font-semibold"
+                    ? "border-income text-income-text font-semibold"
                     : "border-transparent text-text-3 hover:text-text hover:border-line-strong"
                 }`}
               >

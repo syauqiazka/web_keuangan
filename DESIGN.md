@@ -31,33 +31,38 @@ Identitas merek: **HIJAU + EMAS**. Setiap tombol dan status memiliki peranan fun
 
 | Nama Token | Hex Terang | Hex Gelap | Peran di aplikasi |
 |---|---|---|---|
-| `--brand` | `#29735c` | `#2a7059` | Aksi utama simpan / selesai, seri Pemasukan di grafik |
+| `--brand` | `#29735c` | `#2a7059` | Aksi utama simpan / selesai |
 | `--brand-hover` | `#215e4b` | `#2f7d65` | Hover tombol utama hijau |
-| `--gold` | `#d4a338` | `#e5a93c` | Aksen merek, mode edit ("Input / Edit Pembayaran"), Saldo card |
-| `--gold-hover` | `#c99a2e` | `#d89d31` | Hover tombol aksen emas |
+| `--gold` | `#d4a338` | `#e5a93c` | Aksen merek, mode edit ("Input / Edit"), Saldo card |
+| `--gold-hover` | `#c99a2e` | `#d49930` | Hover tombol aksen emas |
 | `--gold-soft` | `#fbf3dc` | `#2a200f` | Latar banner mode edit, sel yang belum disimpan |
 | `--gold-border` | `#ecd48a` | `#4a3818` | Garis batas banner edit, outline tabel edit |
-| `--gold-text` | `#7a5600` | `#f0c25a` | Teks status "Belum disimpan", teks penjelas emas di atas latar terang |
-| `--expense` | `#25619c` | `#6ba1db` | Pengeluaran kas sekolah (teks, ikon, kartu ringkasan) |
-| `--series-out` | `#4f86c0` | `#6ba1db` | Batang Pengeluaran pada grafik bulanan |
-| `--danger` | `#b42318` | `#ef6b61` | Hapus baris, nonaktifkan akun, pesan galat, tunggakan belum lunas |
+| `--gold-text` | `#7a5600` | `#f0c25a` | Teks status "Belum disimpan", teks emas di atas latar terang |
+| `--income` | `#146340` | `#3dc08f` | Batang/ikon pemasukan kas sekolah |
+| `--income-text` | `#146340` | `#5ce0ad` | Teks nominal & label area pemasukan |
+| `--income-soft` | `#eef9f2` | `#142920` | Permukaan kartu, header tabel, chip pemasukan |
+| `--income-border`| `#a9d9bf` | `#2a6a50` | Garis tepi area pemasukan |
+| `--expense` | `#e0604f` | `#c4453b` | Batang/ikon pengeluaran kas sekolah (MERAH) |
+| `--expense-text` | `#9a2c20` | `#f28f85` | Teks nominal & label area pengeluaran |
+| `--expense-soft` | `#fdf3f2` | `#301a18` | Permukaan kartu, header tabel, chip pengeluaran |
+| `--expense-border`| `#e8a49c` | `#7a3a33` | Garis tepi area pengeluaran |
+| `--danger` | `#b42318` | `#ef6b61` | Hapus baris, nonaktifkan akun, galat validasi, tunggakan belum lunas |
 | `--canvas` | `#f7f8fa` | `#111413` | Kanvas latar belakang utama aplikasi |
 | `--surface` | `#ffffff` | `#181d1a` | Latar kartu, modal dialog, formulir, dan tabel |
 | `--panel` | `#f0f2f5` | `#202723` | Latar kontrol sekunder, bar navigasi sub-menu |
-| `--text` | `#151515` | `#f5f5f5` | Teks judul, label penting, dan angka nominal |
-| `--text-2` | `#383838` | `#cccccc` | Teks label input dan header tabel |
+| `--text` | `#151515` | `#f5f5f5` | Teks judul, label penting, dan angka nominal umum |
+| `--text-2` | `#383838` | `#cccccc` | Teks label input dan header tabel netral |
 | `--text-3` | `#595959` | `#999999` | Teks pendukung, metadata, subtitle |
 | `--line` | `#dcdcdc` | `#2b3530` | Garis batas tipis (border kartu, divider, garis tabel) |
-| `--line-strong` | `#a3a3a3` | `#4a5750` | Border input dan kontrol fokus aktif (kontras >= 3:1) |
+| `--line-strong` | `#a3a3a3` | `#4d5b54` | Border input dan kontrol fokus aktif (kontras >= 3:1) |
 
-### Aturan Kontras & Penggunaan Warna
+### Aturan Kontras & Tema Area
 
-1. **Aturan Emas:** Teks di atas latar emas (`--gold`) WAJIB teks gelap (`#151515`, rasio 7,9:1). Dilarang teks putih di atas emas. Teks emas di atas latar putih/terang wajib menggunakan `--gold-text` (rasio 4,8:1), bukan `--gold`.
-2. **Aturan Hijau Gelap:** Latar tombol hijau di tema gelap menggunakan `#2a7059` dengan teks putih (rasio 5,9:1) dan hover `#2f7d65` (4,95:1).
-3. **Aturan Pengeluaran:** Pengeluaran sekolah menggunakan warna **Biru** (`--expense` / `--series-out`), bukan merah bata.
-4. **Aturan Bahaya:** Merah (`--danger`) HANYA untuk aksi hapus, nonaktifkan akun, status belum lunas, dan pesan galat validasi.
-5. **Aksen Saldo:** Kartu Total Saldo menggunakan aksen emas (garis atas dan ikon emas), angka tetap warna tinta.
-6. **Sidebar:** Hijau tua pekat dengan teks putih (`#ffffff`, 12,8:1) dan item aktif aksen emas (`--sidebar-gold`).
+1. **Tema Area Menyebar:** Warna area (Hijau = Pemasukan, Merah = Pengeluaran, Emas = Saldo/Edit) diterapkan ke SELURUH permukaan area tersebut (kartu ringkasan latar `-soft`, border `-border`, angka besar `-text`, header tabel `-soft`, chip rincian, dan batang grafik).
+2. **Pemisahan Warna Area vs Tombol Aksi:** Warna tombol tetap mengikuti MAKNA di seluruh halaman. Mode edit = EMAS `accent`, Simpan Perubahan = HIJAU solid `primary`, Batal = netral `secondary`, Hapus = merah garis `danger` + `Trash2`. Tombol Simpan tidak boleh diwarnai merah di halaman Pengeluaran.
+3. **Pengeluaran Kembali MERAH:** Pengeluaran menggunakan palet merah fungsional (`--expense` `#e0604f` / `#c4453b`). Merah bahaya (`--danger`) HANYA untuk tombol Hapus/Nonaktifkan, dialog konfirmasi, dan chip tunggakan `KURANG`.
+4. **Sidebar Mode Gelap Kontras:** Latar sidebar gelap menggunakan hijau hutan `#17402f` (terang dari kanvas `#111413`, rasio 1,60:1) dengan garis kanan 1px `#3a7a62` (3,65:1), teks `#d6e8df` (9,1:1), dan divider `#2a5a47`.
+5. **Aksesibilitas Buta Warna (Red-Green Contrast):** Tingkat terang batang Pemasukan dan Pengeluaran memiliki perbedaan rasio terang >= 2:1 di kedua tema. Teks pada latar `-soft` memenuhi rasio >= 4,5:1.
 
 ---
 
