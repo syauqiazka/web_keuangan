@@ -105,11 +105,12 @@ export function GrafikBulanan({ data, tahun }: GrafikBulananProps) {
                   strokeWidth={1}
                 />
                 <text
-                  x={PADDING_LEFT - 6}
+                  x={PADDING_LEFT - 8}
                   y={y + 4}
                   textAnchor="end"
-                  fontSize={10}
+                  fontSize={12}
                   fill="var(--text-3)"
+                  className="font-mono"
                 >
                   {tick}
                 </text>
@@ -119,12 +120,13 @@ export function GrafikBulanan({ data, tahun }: GrafikBulananProps) {
 
           {/* Label sumbu Y */}
           <text
-            x={8}
+            x={12}
             y={PADDING_TOP + chartH / 2}
-            fontSize={10}
+            fontSize={12}
             fill="var(--text-3)"
             textAnchor="middle"
-            transform={`rotate(-90, 8, ${PADDING_TOP + chartH / 2})`}
+            transform={`rotate(-90, 12, ${PADDING_TOP + chartH / 2})`}
+            className="font-mono uppercase tracking-wider font-semibold"
           >
             Juta Rp
           </text>
@@ -158,10 +160,11 @@ export function GrafikBulanan({ data, tahun }: GrafikBulananProps) {
                 {/* Label bulan di sumbu X */}
                 <text
                   x={midX}
-                  y={HEIGHT - 8}
+                  y={HEIGHT - 10}
                   textAnchor="middle"
-                  fontSize={10}
+                  fontSize={12}
                   fill="var(--text-3)"
+                  className="font-medium"
                 >
                   {BULAN_SINGKAT[d.bulan - 1]}
                 </text>

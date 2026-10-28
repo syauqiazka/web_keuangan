@@ -2,6 +2,15 @@
 
 import * as React from "react";
 import { useState, useActionState } from "react";
+import {
+  Pencil,
+  Check,
+  Plus,
+  Trash2,
+  CheckCircle2,
+  AlertCircle,
+  Info,
+} from "lucide-react";
 import { hitungStatusLunas } from "@/lib/status-lunas";
 import { formatRupiah } from "@/lib/money";
 import { Button } from "@/components/ui/Button";
@@ -276,13 +285,14 @@ function TombolHapusPembayaran({
       <button
         type="submit"
         disabled={isPending}
-        className="text-[11px] px-1 py-0.5 rounded text-danger hover:bg-danger/10 disabled:opacity-40 font-medium transition-colors"
+        className="inline-flex items-center gap-1 text-[12px] px-1.5 py-0.5 rounded-[4px] border border-danger/40 text-danger hover:bg-danger/10 disabled:opacity-40 font-medium transition-colors cursor-pointer"
         title="Hapus catatan pembayaran ini"
         aria-label="Hapus pembayaran"
       >
-        {isPending ? "…" : "Hapus"}
+        <Trash2 className="w-3 h-3 text-danger" />
+        <span>{isPending ? "…" : "Hapus"}</span>
       </button>
-      {state?.error && <span className="text-[11px] text-danger">{state.error}</span>}
+      {state?.error && <span className="text-[12px] text-danger">{state.error}</span>}
     </form>
   );
 }
@@ -298,14 +308,15 @@ function TombolHapusJenisPembayaran({ id, nama, onSuccess }: { id: string; nama:
     null
   );
   return (
-    <form action={formAction} className="mt-1" onSubmit={(e) => {
+    <form action={formAction} className="mt-1.5" onSubmit={(e) => {
       if (!window.confirm(`Hapus jenis pembayaran "${nama}"? Jenis ini akan disembunyikan dari tahun ajaran aktif; riwayat transaksinya tetap tersimpan.`)) e.preventDefault();
     }}>
       <input type="hidden" name="id" value={id} />
-      <button type="submit" disabled={isPending} className="text-[10px] px-2 py-1 rounded border border-danger/30 text-danger hover:bg-danger/10 disabled:opacity-40 font-medium transition-colors">
-        {isPending ? "Menghapus…" : "Hapus jenis"}
+      <button type="submit" disabled={isPending} className="inline-flex items-center gap-1 text-[11px] px-2 py-0.5 rounded-[4px] border border-danger/40 text-danger hover:bg-danger/10 disabled:opacity-40 font-medium transition-colors cursor-pointer">
+        <Trash2 className="w-3 h-3 text-danger" />
+        <span>{isPending ? "Menghapus…" : "Hapus jenis"}</span>
       </button>
-      {state?.error && <p className="mt-1 max-w-[150px] text-[10px] text-danger font-normal">{state.error}</p>}
+      {state?.error && <p className="mt-1 max-w-[150px] text-[11px] text-danger font-normal">{state.error}</p>}
     </form>
   );
 }
@@ -342,11 +353,12 @@ export function TabDariSiswa({
         </p>
         <Button
           type="button"
-          variant="primary"
+          variant="outline-brand"
           size="sm"
           onClick={() => setDialogKolomOpen(true)}
         >
-          + Tambah Jenis Pembayaran Pertama
+          <Plus className="w-4 h-4" />
+          <span>Tambah Jenis Pembayaran Pertama</span>
         </Button>
         {dialogKolomOpen && !!tahunAjaranId && (
           <DialogTambahKolom
@@ -362,74 +374,111 @@ export function TabDariSiswa({
 
   return (
     <div className="space-y-4">
+      {/* Banner Mode Edit Aktif Emas-Lembut */}
+      {isEditing && (
+        <div className="p-3.5 rounded-[8px] bg-gold-soft border border-gold-border text-gold-text text-[13px] flex items-center gap-2.5 font-medium shadow-xs">
+          <Info className="w-4 h-4 shrink-0 text-gold-text" />
+          <span>
+            Mode edit aktif. Catat transaksi pembayaran siswa atau tambah jenis pembayaran baru. Klik <strong>Simpan Perubahan</strong> untuk selesai.
+          </span>
+        </div>
+      )}
+
       {/* Toolbar Aksi Tab */}
       <div className="flex flex-wrap items-center justify-between gap-3 pb-3 border-b border-line">
         <div className="flex items-center gap-2">
-          <Button
-            type="button"
-            variant={isEditing ? "secondary" : "primary"}
-            size="sm"
-            onClick={() => tahunAjaranId && setIsEditing((prev) => !prev)}
-          >
-            {!tahunAjaranId ? "Pilih tahun ajaran untuk mengedit" : isEditing ? "Selesai Edit" : "Edit Pembayaran Siswa"}
-          </Button>
-
-          {isEditing && !!tahunAjaranId && (
+          {!isEditing ? (
             <Button
               type="button"
-              variant="secondary"
+              variant="accent"
               size="sm"
-              onClick={() => setDialogKolomOpen(true)}
+              disabled={!tahunAjaranId}
+              onClick={() => tahunAjaranId && setIsEditing(true)}
             >
-              + Tambah Jenis Pembayaran (Kolom Baru)
+              <Pencil className="w-4 h-4" />
+              <span>{!tahunAjaranId ? "Pilih tahun ajaran untuk mengedit" : "Edit Pembayaran Siswa"}</span>
             </Button>
+          ) : (
+            <>
+              <Button
+                type="button"
+                variant="primary"
+                size="sm"
+                onClick={() => {
+                  setIsEditing(false);
+                  showToast("Perubahan tersimpan", "success");
+                }}
+              >
+                <Check className="w-4 h-4" />
+                <span>Simpan Perubahan</span>
+              </Button>
+
+              {!!tahunAjaranId && (
+                <Button
+                  type="button"
+                  variant="outline-brand"
+                  size="sm"
+                  onClick={() => setDialogKolomOpen(true)}
+                >
+                  <Plus className="w-4 h-4" />
+                  <span>Tambah Jenis Pembayaran</span>
+                </Button>
+              )}
+            </>
           )}
         </div>
 
-        <div className="flex items-center gap-4 text-[12px] text-text-3">
+        <div className="flex flex-wrap items-center gap-4 text-[12px] text-text-3 font-medium">
           <span className="flex items-center gap-1.5">
-            <span className="w-2 h-2 rounded-full bg-series-in inline-block" />
-            <span className="text-text font-medium">✓ Lunas</span> = mencapai patokan standar
+            <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded-[4px] bg-income-soft text-income border border-income-border text-[11px] font-semibold tracking-wide">
+              <CheckCircle2 className="w-3.5 h-3.5 text-income shrink-0" />
+              <span>LUNAS</span>
+            </span>
+            <span>= mencapai patokan standar</span>
           </span>
           <span className="flex items-center gap-1.5">
-            <span className="w-2 h-2 rounded-full bg-danger inline-block" />
-            <span className="text-danger font-medium">⚠️ Kurang</span> = di bawah patokan
+            <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded-[4px] bg-danger/10 text-danger border border-danger/25 text-[11px] font-semibold tracking-wide">
+              <AlertCircle className="w-3.5 h-3.5 text-danger shrink-0" />
+              <span>KURANG</span>
+            </span>
+            <span>= di bawah patokan</span>
           </span>
         </div>
       </div>
 
-      {/* Grid Tabel Lebar */}
-      <div className="w-full overflow-x-auto border border-line bg-surface rounded-[12px] shadow-xs">
-        <table className="border-collapse text-[13px] w-full" style={{ minWidth: "900px" }}>
+      {/* Grid Tabel Lebar dengan Garis Emas saat Mode Edit */}
+      <div
+        className={`w-full overflow-x-auto bg-surface rounded-[12px] shadow-xs transition-all ${
+          isEditing
+            ? "border border-gold-border ring-1 ring-gold-border"
+            : "border border-line"
+        }`}
+      >
+        <table className="border-collapse text-[14px] w-full" style={{ minWidth: "1000px" }}>
           <thead>
             {/* Header Grup Pemasukan */}
             <tr className="border-b border-line bg-panel/70 text-text">
               <th
                 rowSpan={2}
-                className="px-3 py-2.5 text-right font-semibold sticky left-0 bg-surface z-20 border-r border-line"
-                style={{ width: "48px" }}
+                className="px-3 py-2.5 text-right font-semibold sticky left-0 bg-surface z-20 border-r border-line w-12 min-w-[48px]"
               >
                 No
               </th>
               <th
                 rowSpan={2}
-                className="px-3 py-2.5 text-left font-semibold sticky left-12 bg-surface z-20 border-r border-line"
-                style={{ minWidth: "160px" }}
+                className="px-3 py-2.5 text-left font-semibold sticky left-12 bg-surface z-20 border-r border-line min-w-[190px]"
               >
                 Nama Siswa
               </th>
               <th
                 rowSpan={2}
-                className="px-3 py-2.5 text-left font-semibold sticky left-[208px] bg-surface z-20 border-r border-line"
-                style={{ width: "110px" }}
+                className="px-3 py-2.5 text-left font-semibold sticky left-[238px] bg-surface z-20 border-r border-line min-w-[120px]"
               >
                 Kode UID
               </th>
 
               {/* Kolom Grup Jenis Pemasukan */}
               {sortedJenis.map((jenis) => {
-                // SPP: 4 sub-kolom (Tanggal Transaksi, Bulan Terbayar, Metode, Petugas/Nominal)
-                // Jenis lain: 3 sub-kolom (Tanggal Transaksi, Metode, Petugas/Nominal)
                 const colSpanCount = jenis.bulanan ? 4 : 3;
 
                 return (
@@ -438,16 +487,26 @@ export function TabDariSiswa({
                     colSpan={colSpanCount}
                     className="px-3 py-2 text-center font-semibold border-r border-line last:border-r-0"
                   >
-                    <div className="font-semibold text-[13px]">{jenis.nama}{!tahunAjaranId && jenis.tahunAjaranNama ? ` · ${jenis.tahunAjaranNama}` : ""}</div>
+                    <div className="font-semibold text-[14px]">
+                      {jenis.nama}
+                      {!tahunAjaranId && jenis.tahunAjaranNama ? ` · ${jenis.tahunAjaranNama}` : ""}
+                    </div>
                     {isEditing && !!tahunAjaranId && (
-                      <TombolHapusJenisPembayaran id={jenis.id} nama={jenis.nama} onSuccess={() => { showToast("Jenis pembayaran berhasil dihapus.", "success"); onRefresh(); }} />
+                      <TombolHapusJenisPembayaran
+                        id={jenis.id}
+                        nama={jenis.nama}
+                        onSuccess={() => {
+                          showToast("Jenis pembayaran berhasil dihapus.", "success");
+                          onRefresh();
+                        }}
+                      />
                     )}
                     {jenis.nominalStandar !== null ? (
-                      <div className="text-[11px] font-normal text-text-3 font-mono mt-0.5">
+                      <div className="text-[12px] font-normal text-text-3 font-mono mt-0.5">
                         Standar: {formatRupiah(jenis.nominalStandar)}
                       </div>
                     ) : (
-                      <div className="text-[11px] font-normal text-text-3 italic mt-0.5">
+                      <div className="text-[12px] font-normal text-text-3 italic mt-0.5">
                         Tanpa patokan lunas
                       </div>
                     )}
@@ -458,8 +517,7 @@ export function TabDariSiswa({
               {isEditing && (
                 <th
                   rowSpan={2}
-                  className="px-3 py-2 text-center font-semibold text-text-2 border-l border-line"
-                  style={{ width: "100px" }}
+                  className="px-3 py-2 text-center font-semibold text-text-2 border-l border-line min-w-[130px]"
                 >
                   Aksi
                 </th>
@@ -472,29 +530,29 @@ export function TabDariSiswa({
                 jenis.bulanan ? (
                   // SPP: 4 sub-kolom
                   <React.Fragment key={`${jenis.id}-subheaders`}>
-                    <th className="px-2 py-1.5 text-[11px] font-medium text-left border-r border-line">
+                    <th className="px-3 py-2 text-[12px] font-medium text-left border-r border-line min-w-[120px]">
                       Tgl. Transaksi
                     </th>
-                    <th className="px-2 py-1.5 text-[11px] font-medium text-left border-r border-line">
+                    <th className="px-3 py-2 text-[12px] font-medium text-left border-r border-line min-w-[130px]">
                       Bulan Terbayar
                     </th>
-                    <th className="px-2 py-1.5 text-[11px] font-medium text-center border-r border-line w-16">
+                    <th className="px-3 py-2 text-[12px] font-medium text-center border-r border-line min-w-[80px]">
                       Metode
                     </th>
-                    <th className="px-2 py-1.5 text-[11px] font-medium text-right border-r border-line">
+                    <th className="px-3 py-2 text-[12px] font-medium text-right border-r border-line min-w-[240px] whitespace-nowrap">
                       Nominal & Petugas
                     </th>
                   </React.Fragment>
                 ) : (
                   // Jenis lain: 3 sub-kolom
                   <React.Fragment key={`${jenis.id}-subheaders`}>
-                    <th className="px-2 py-1.5 text-[11px] font-medium text-left border-r border-line">
+                    <th className="px-3 py-2 text-[12px] font-medium text-left border-r border-line min-w-[120px]">
                       Tanggal
                     </th>
-                    <th className="px-2 py-1.5 text-[11px] font-medium text-center border-r border-line w-16">
+                    <th className="px-3 py-2 text-[12px] font-medium text-center border-r border-line min-w-[80px]">
                       Metode
                     </th>
-                    <th className="px-2 py-1.5 text-[11px] font-medium text-right border-r border-line">
+                    <th className="px-3 py-2 text-[12px] font-medium text-right border-r border-line min-w-[240px] whitespace-nowrap">
                       Nominal & Petugas
                     </th>
                   </React.Fragment>
@@ -523,13 +581,13 @@ export function TabDariSiswa({
                   key={siswa.penempatanId}
                   className="hover:bg-panel/40 transition-colors"
                 >
-                  <td className="px-3 py-2 text-right text-text-3 num sticky left-0 bg-surface z-10 border-r border-line">
+                  <td className="px-3 py-2.5 text-right text-text-3 num sticky left-0 bg-surface z-10 border-r border-line">
                     {idx + 1}
                   </td>
-                  <td className="px-3 py-2 text-text sticky left-12 bg-surface z-10 border-r border-line font-medium">
+                  <td className="px-3 py-2.5 text-text sticky left-12 bg-surface z-10 border-r border-line font-medium">
                     {siswa.nama}
                   </td>
-                  <td className="px-3 py-2 font-mono text-[12px] text-text-2 sticky left-[208px] bg-surface z-10 border-r border-line">
+                  <td className="px-3 py-2.5 font-mono text-[13px] text-text-2 sticky left-[238px] bg-surface z-10 border-r border-line">
                     {siswa.uid}
                   </td>
 
@@ -547,74 +605,100 @@ export function TabDariSiswa({
                       // SPP: 4 sub-kolom
                       return (
                         <React.Fragment key={`${siswa.penempatanId}-${jenis.id}`}>
-                          <td className="px-2 py-2 text-text-2 num border-r border-line text-left">
+                          <td className="px-3 py-2.5 text-text-2 num border-r border-line text-left">
                             {pembayaranList.length ? (
                               <div className="space-y-1">
                                 {pembayaranList.map((p) => (
-                                  <div key={p.id} className="inline-block rounded-md border border-line bg-panel/60 px-1.5 py-1 text-[11px] leading-none whitespace-nowrap tabular-nums">{formatTanggal(p.tanggal)}</div>
+                                  <div
+                                    key={p.id}
+                                    className="inline-block rounded-[4px] border border-line bg-panel px-1.5 py-0.5 text-[12px] leading-tight whitespace-nowrap tabular-nums"
+                                  >
+                                    {formatTanggal(p.tanggal)}
+                                  </div>
                                 ))}
                               </div>
-                            ) : "—"}
+                            ) : (
+                              "—"
+                            )}
                           </td>
-                          <td className="px-2 py-2 text-text-2 border-r border-line text-left">
+                          <td className="px-3 py-2.5 text-text-2 border-r border-line text-left">
                             {pembayaranList.length ? (
                               <div className="space-y-1">
                                 {pembayaranList.map((p) => (
-                                  <div key={p.id} className="whitespace-nowrap">{p.bulanTerbayar ? formatBulan(p.bulanTerbayar) : "—"}</div>
+                                  <div key={p.id} className="whitespace-nowrap text-[13px]">
+                                    {p.bulanTerbayar ? formatBulan(p.bulanTerbayar) : "—"}
+                                  </div>
                                 ))}
                               </div>
-                            ) : "—"}
+                            ) : (
+                              "—"
+                            )}
                           </td>
-                          <td className="px-2 py-2 text-center text-text-2 border-r border-line font-mono text-[12px]">
+                          <td className="px-3 py-2.5 text-center text-text-2 border-r border-line font-mono text-[13px]">
                             {pembayaranList.length ? (
                               <div className="space-y-1">
                                 {pembayaranList.map((p) => (
                                   <div key={p.id}>{p.metode === "TRANSFER" ? "TF" : "ST"}</div>
                                 ))}
                               </div>
-                            ) : "—"}
+                            ) : (
+                              "—"
+                            )}
                           </td>
-                          <td className="px-2 py-2 text-right border-r border-line-strong">
+                          <td className="px-3 py-2.5 text-right border-r border-line-strong">
                             {pembayaranList.length === 0 && !jenis.bulanan ? (
                               <span className="text-text-3">—</span>
                             ) : (
                               <div>
-                                <div
-                                  className={`num font-semibold flex items-center justify-end gap-1 ${
-                                    isBelumLunas ? "text-danger" : "text-text"
-                                  }`}
-                                >
-                                  <span>{formatRupiah(status.totalTerbayar)}</span>
+                                {/* Satu baris nominal + chip status kecil */}
+                                <div className="flex items-center justify-end gap-2 flex-wrap sm:flex-nowrap">
+                                  <span
+                                    className={`num font-semibold text-[14px] ${
+                                      isBelumLunas ? "text-danger" : "text-text"
+                                    }`}
+                                  >
+                                    {formatRupiah(status.totalTerbayar)}
+                                  </span>
+
+                                  {jenis.nominalStandar !== null && (
+                                    status.lunas ? (
+                                      <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded-[4px] bg-income-soft text-income border border-income-border text-[11px] font-semibold tracking-wide whitespace-nowrap">
+                                        <CheckCircle2 className="w-3.5 h-3.5 text-income shrink-0" />
+                                        <span>LUNAS</span>
+                                      </span>
+                                    ) : (
+                                      <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded-[4px] bg-danger/10 text-danger border border-danger/25 text-[11px] font-semibold tracking-wide whitespace-nowrap">
+                                        <AlertCircle className="w-3.5 h-3.5 text-danger shrink-0" />
+                                        <span>KURANG {formatRupiah(status.kekurangan)}</span>
+                                      </span>
+                                    )
+                                  )}
+
                                   {isEditing && !!tahunAjaranId && last && (
                                     <TombolHapusPembayaran id={last.id} onSuccess={onRefresh} />
                                   )}
                                 </div>
-                                {jenis.nominalStandar && status.lunas && (
-                                  <div className="text-[10px] font-medium text-series-in mt-0.5">
-                                    ✓ Lunas
-                                  </div>
-                                )}
-                                {jenis.bulanan && jenis.nominalStandar && pembayaranList.length === 0 && (
-                                  <div className="text-[10px] font-medium text-danger mt-0.5">
-                                    Belum Dibayar
-                                  </div>
-                                )}
-                                {isBelumLunas && status.teksKekurangan && (
-                                  <div className="text-[11px] font-[400] text-danger mt-0.5">
-                                    ⚠️ {status.teksKekurangan}
-                                  </div>
-                                )}
+
+                                {/* Rincian pembayaran */}
                                 {pembayaranList.map((p) => (
-                                  <div key={p.id} className="mt-1.5 border-t border-line/50 pt-1.5 text-[10px] leading-tight text-text-3">
-                                    <div className="flex items-center justify-between gap-2">
-                                      <span className="font-medium text-text-2">{formatRupiah(p.nominal)} · {p.metode === "TRANSFER" ? "TF" : "ST"}</span>
-                                      <span className="shrink-0 rounded bg-panel px-1 py-0.5 text-[9px] tabular-nums">{formatTanggal(p.tanggal)}</span>
+                                  <div
+                                    key={p.id}
+                                    className="mt-1.5 border-t border-line/50 pt-1 text-[12px] leading-tight text-text-3"
+                                  >
+                                    <div className="flex items-center justify-end gap-1.5">
+                                      <span className="font-medium text-text-2">
+                                        {formatRupiah(p.nominal)} ({p.metode === "TRANSFER" ? "TF" : "ST"})
+                                      </span>
+                                      <span className="text-text-3">· {formatTanggal(p.tanggal)}</span>
                                     </div>
-                                    <div className="mt-0.5">oleh {p.petugasNama}</div>
+                                    <div className="text-[12px] text-text-3 mt-0.5">
+                                      oleh {p.petugasNama}
+                                    </div>
                                   </div>
                                 ))}
+
                                 {status.isCicilan && (
-                                  <div className="text-[10px] text-label font-mono">
+                                  <div className="text-[12px] text-text-3 font-mono mt-0.5">
                                     Total {pembayaranList.length} transaksi
                                   </div>
                                 )}
@@ -628,62 +712,87 @@ export function TabDariSiswa({
                     // Jenis Lain: 3 sub-kolom
                     return (
                       <React.Fragment key={`${siswa.penempatanId}-${jenis.id}`}>
-                        <td className="px-2 py-2 text-text-2 num border-r border-line text-left">
+                        <td className="px-3 py-2.5 text-text-2 num border-r border-line text-left">
                           {pembayaranList.length ? (
                             <div className="space-y-1">
                               {pembayaranList.map((p) => (
-                                <div key={p.id} className="inline-block rounded-md border border-line bg-panel/60 px-1.5 py-1 text-[11px] leading-none whitespace-nowrap tabular-nums">{formatTanggal(p.tanggal)}</div>
+                                <div
+                                  key={p.id}
+                                  className="inline-block rounded-[4px] border border-line bg-panel px-1.5 py-0.5 text-[12px] leading-tight whitespace-nowrap tabular-nums"
+                                >
+                                  {formatTanggal(p.tanggal)}
+                                </div>
                               ))}
                             </div>
-                          ) : "—"}
+                          ) : (
+                            "—"
+                          )}
                         </td>
-                        <td className="px-2 py-2 text-center text-text-2 border-r border-line font-mono text-[12px]">
+                        <td className="px-3 py-2.5 text-center text-text-2 border-r border-line font-mono text-[13px]">
                           {pembayaranList.length ? (
                             <div className="space-y-1">
                               {pembayaranList.map((p) => (
                                 <div key={p.id}>{p.metode === "TRANSFER" ? "TF" : "ST"}</div>
                               ))}
                             </div>
-                          ) : "—"}
+                          ) : (
+                            "—"
+                          )}
                         </td>
-                        <td className="px-2 py-2 text-right border-r border-line-strong">
+                        <td className="px-3 py-2.5 text-right border-r border-line-strong">
                           {pembayaranList.length === 0 && !jenis.nominalStandar ? (
                             <span className="text-text-3">—</span>
                           ) : (
                             <div>
-                              <div
-                                className={`num font-semibold flex items-center justify-end gap-1 ${
-                                  isBelumLunas ? "text-danger" : "text-text"
-                                }`}
-                              >
-                                <span>{formatRupiah(status.totalTerbayar)}</span>
+                              {/* Satu baris nominal + chip status kecil */}
+                              <div className="flex items-center justify-end gap-2 flex-wrap sm:flex-nowrap">
+                                <span
+                                  className={`num font-semibold text-[14px] ${
+                                    isBelumLunas ? "text-danger" : "text-text"
+                                  }`}
+                                >
+                                  {formatRupiah(status.totalTerbayar)}
+                                </span>
+
+                                {jenis.nominalStandar !== null && (
+                                  status.lunas ? (
+                                    <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded-[4px] bg-income-soft text-income border border-income-border text-[11px] font-semibold tracking-wide whitespace-nowrap">
+                                      <CheckCircle2 className="w-3.5 h-3.5 text-income shrink-0" />
+                                      <span>LUNAS</span>
+                                    </span>
+                                  ) : (
+                                    <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded-[4px] bg-danger/10 text-danger border border-danger/25 text-[11px] font-semibold tracking-wide whitespace-nowrap">
+                                      <AlertCircle className="w-3.5 h-3.5 text-danger shrink-0" />
+                                      <span>KURANG {formatRupiah(status.kekurangan)}</span>
+                                    </span>
+                                  )
+                                )}
+
                                 {isEditing && last && (
                                   <TombolHapusPembayaran id={last.id} onSuccess={onRefresh} />
                                 )}
                               </div>
-                              {jenis.nominalStandar && status.lunas && (
-                                <div className="text-[10px] font-medium text-series-in mt-0.5">
-                                  ✓ Lunas
-                                </div>
-                              )}
-                              {jenis.nominalStandar && pembayaranList.length === 0 && (
-                                <div className="text-[10px] font-medium text-danger mt-0.5">
-                                  Belum Dibayar
-                                </div>
-                              )}
-                              {isBelumLunas && status.teksKekurangan && (
-                                <div className="text-[11px] font-[400] text-danger mt-0.5">
-                                  ⚠️ {status.teksKekurangan}
-                                </div>
-                              )}
+
+                              {/* Rincian pembayaran */}
                               {pembayaranList.map((p) => (
-                                <div key={p.id} className="mt-1 border-t border-line/70 pt-1 text-[10px] text-text-3">
-                                  <div>{formatRupiah(p.nominal)} · {p.metode === "TRANSFER" ? "TF" : "ST"}</div>
-                                  <div>oleh {p.petugasNama}</div>
+                                <div
+                                  key={p.id}
+                                  className="mt-1.5 border-t border-line/50 pt-1 text-[12px] leading-tight text-text-3"
+                                >
+                                  <div className="flex items-center justify-end gap-1.5">
+                                    <span className="font-medium text-text-2">
+                                      {formatRupiah(p.nominal)} ({p.metode === "TRANSFER" ? "TF" : "ST"})
+                                    </span>
+                                    <span className="text-text-3">· {formatTanggal(p.tanggal)}</span>
+                                  </div>
+                                  <div className="text-[12px] text-text-3 mt-0.5">
+                                    oleh {p.petugasNama}
+                                  </div>
                                 </div>
                               ))}
+
                               {status.isCicilan && (
-                                <div className="text-[10px] text-label font-mono">
+                                <div className="text-[12px] text-text-3 font-mono mt-0.5">
                                   Total {pembayaranList.length} transaksi
                                 </div>
                               )}
@@ -695,10 +804,10 @@ export function TabDariSiswa({
                   })}
 
                   {isEditing && (
-                    <td className="px-2 py-2 text-center border-l border-line-strong">
+                    <td className="px-3 py-2.5 text-center border-l border-line-strong">
                       <Button
                         type="button"
-                        variant="secondary"
+                        variant="outline-brand"
                         size="sm"
                         onClick={() =>
                           setDialogBayarState({
@@ -708,7 +817,8 @@ export function TabDariSiswa({
                           })
                         }
                       >
-                        + Catat Bayar
+                        <Plus className="w-4 h-4" />
+                        <span>Catat Bayar</span>
                       </Button>
                     </td>
                   )}

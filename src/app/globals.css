@@ -20,6 +20,11 @@
   --color-alert: #b42318;
   --color-network-green: #29735c;
   --color-ledger-blue: #4f86c0;
+  --color-gold: #d4a338;
+  --color-gold-hover: #c99a2e;
+  --color-gold-soft: #fbf3dc;
+  --color-gold-border: #ecd48a;
+  --color-gold-text: #7a5600;
 
   --radius-button: 8px;
   --radius-control: 8px;
@@ -47,39 +52,46 @@
   --text-2: #383838;
   --text-3: #595959;
   --line: #dcdcdc;
-  --line-strong: #cbcac8;
+  --line-strong: #a3a3a3;
   --on-ink: #ffffff;
   --accent: #29735c;
   --accent-hover: #215e4b;
   --accent-text: #29735c;
 
-  /* Finansial: Pemasukan (Hijau), Pengeluaran (Merah Bata), Saldo (Emas/Amber) */
-  --income: #18794e;
-  --income-soft: #eef9f2;
-  --income-border: #b6e3cc;
-  --income-text: #146340;
+  /* EMAS (aksen merek + mode edit / perhatian) */
+  --gold: #d4a338;
+  --gold-hover: #c99a2e;
+  --gold-soft: #fbf3dc;
+  --gold-border: #ecd48a;
+  --gold-text: #7a5600;
 
-  --expense: #c0392b;
-  --expense-soft: #fdf3f2;
-  --expense-border: #f3c6c2;
-  --expense-text: #9a2c20;
+  /* Finansial: Pemasukan (Hijau), Pengeluaran (Biru), Saldo (Emas) */
+  --income: #29735c;
+  --income-soft: #eaf1ed;
+  --income-border: #b6d5ca;
+  --income-text: #215e4b;
 
-  --balance: #c68406;
-  --balance-soft: #fdf8ea;
-  --balance-border: #f7dfa5;
-  --balance-text: #8e5c00;
+  --expense: #25619c;
+  --expense-soft: #f0f6fc;
+  --expense-border: #c2d9f2;
+  --expense-text: #25619c;
 
-  --series-in: var(--income);
-  --series-out: var(--expense);
+  --balance: var(--gold);
+  --balance-soft: var(--gold-soft);
+  --balance-border: var(--gold-border);
+  --balance-text: var(--gold-text);
+
+  --series-in: #29735c;
+  --series-out: #4f86c0;
   --warning: #a96d19;
   --danger: #b42318;
   --label: #595959;
 
-  /* Sidebar Hijau & Gold */
+  /* Sidebar Hijau Tua & Gold */
   --sidebar-bg: #12382b;
   --sidebar-border: #1a4c3b;
-  --sidebar-text: #d6e8df;
-  --sidebar-text-muted: #8dafa1;
+  --sidebar-text: #ffffff;
+  --sidebar-text-muted: #b2cfc3;
   --sidebar-hover-bg: #1a4c3b;
   --sidebar-hover-text: #ffffff;
   --sidebar-active-bg: rgba(212, 163, 56, 0.15);
@@ -94,48 +106,55 @@
   --surface: #181d1a;
   --panel: #202723;
   --surface-soft: #243029;
-  --brand: #368a70;
-  --brand-secondary: #429f82;
-  --brand-hover: #429f82;
+  --brand: #2a7059;
+  --brand-secondary: #2f7d65;
+  --brand-hover: #2f7d65;
   --text: #f5f5f5;
   --text-2: #cccccc;
   --text-3: #999999;
   --line: #2b3530;
-  --line-strong: #38453f;
+  --line-strong: #4d5b54;
   --on-ink: #ffffff;
-  --accent: #368a70;
-  --accent-hover: #429f82;
+  --accent: #2a7059;
+  --accent-hover: #2f7d65;
   --accent-text: #5ec2a3;
 
-  /* Finansial Dark Mode */
+  /* EMAS Dark Mode */
+  --gold: #e5a93c;
+  --gold-hover: #d49930;
+  --gold-soft: #2a200f;
+  --gold-border: #4a3818;
+  --gold-text: #f0c25a;
+
+  /* Finansial Dark Mode: Pengeluaran BIRU */
   --income: #3ec08d;
   --income-soft: #142920;
   --income-border: #1d4233;
   --income-text: #5ce0ad;
 
-  --expense: #e26559;
-  --expense-soft: #301a18;
-  --expense-border: #4f2622;
-  --expense-text: #f28f85;
+  --expense: #6ba1db;
+  --expense-soft: #132438;
+  --expense-border: #234368;
+  --expense-text: #89bdf5;
 
-  --balance: #f0b441;
-  --balance-soft: #2a200f;
-  --balance-border: #4a3818;
-  --balance-text: #f7c667;
+  --balance: var(--gold);
+  --balance-soft: var(--gold-soft);
+  --balance-border: var(--gold-border);
+  --balance-text: var(--gold-text);
 
-  --series-in: var(--income);
-  --series-out: var(--expense);
+  --series-in: #3ec08d;
+  --series-out: #6ba1db;
   --warning: #d48e24;
-  --danger: #d9453b;
+  --danger: #ef6b61;
   --label: #999999;
 
   /* Sidebar Dark Mode */
   --sidebar-bg: #0b1a14;
   --sidebar-border: #152920;
-  --sidebar-text: #c7ded4;
-  --sidebar-text-muted: #719485;
+  --sidebar-text: #ffffff;
+  --sidebar-text-muted: #9ec4b5;
   --sidebar-hover-bg: #152e23;
-  --sidebar-hover-text: #f0f7f3;
+  --sidebar-hover-text: #ffffff;
   --sidebar-active-bg: rgba(240, 180, 65, 0.16);
   --sidebar-active-border: rgba(240, 180, 65, 0.4);
   --sidebar-active-text: #ffd97d;
@@ -148,46 +167,52 @@
     --surface: #181d1a;
     --panel: #202723;
     --surface-soft: #243029;
-    --brand: #368a70;
-    --brand-secondary: #429f82;
-    --brand-hover: #429f82;
+    --brand: #2a7059;
+    --brand-secondary: #2f7d65;
+    --brand-hover: #2f7d65;
     --text: #f5f5f5;
     --text-2: #cccccc;
     --text-3: #999999;
     --line: #2b3530;
-    --line-strong: #38453f;
+    --line-strong: #4d5b54;
     --on-ink: #ffffff;
-    --accent: #368a70;
-    --accent-hover: #429f82;
+    --accent: #2a7059;
+    --accent-hover: #2f7d65;
     --accent-text: #5ec2a3;
+
+    --gold: #e5a93c;
+    --gold-hover: #d49930;
+    --gold-soft: #2a200f;
+    --gold-border: #4a3818;
+    --gold-text: #f0c25a;
 
     --income: #3ec08d;
     --income-soft: #142920;
     --income-border: #1d4233;
     --income-text: #5ce0ad;
 
-    --expense: #e26559;
-    --expense-soft: #301a18;
-    --expense-border: #4f2622;
-    --expense-text: #f28f85;
+    --expense: #6ba1db;
+    --expense-soft: #132438;
+    --expense-border: #234368;
+    --expense-text: #89bdf5;
 
-    --balance: #f0b441;
-    --balance-soft: #2a200f;
-    --balance-border: #4a3818;
-    --balance-text: #f7c667;
+    --balance: var(--gold);
+    --balance-soft: var(--gold-soft);
+    --balance-border: var(--gold-border);
+    --balance-text: var(--gold-text);
 
-    --series-in: var(--income);
-    --series-out: var(--expense);
+    --series-in: #3ec08d;
+    --series-out: #6ba1db;
     --warning: #d48e24;
-    --danger: #d9453b;
+    --danger: #ef6b61;
     --label: #999999;
 
     --sidebar-bg: #0b1a14;
     --sidebar-border: #152920;
-    --sidebar-text: #c7ded4;
-    --sidebar-text-muted: #719485;
+    --sidebar-text: #ffffff;
+    --sidebar-text-muted: #9ec4b5;
     --sidebar-hover-bg: #152e23;
-    --sidebar-hover-text: #f0f7f3;
+    --sidebar-hover-text: #ffffff;
     --sidebar-active-bg: rgba(240, 180, 65, 0.16);
     --sidebar-active-border: rgba(240, 180, 65, 0.4);
     --sidebar-active-text: #ffd97d;
@@ -218,6 +243,12 @@
   --color-warning: var(--warning);
   --color-danger: var(--danger);
   --color-label: var(--label);
+
+  --color-gold: var(--gold);
+  --color-gold-hover: var(--gold-hover);
+  --color-gold-soft: var(--gold-soft);
+  --color-gold-border: var(--gold-border);
+  --color-gold-text: var(--gold-text);
 
   --color-income: var(--income);
   --color-income-soft: var(--income-soft);

@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useTransition } from "react";
+import { Pencil, Plus } from "lucide-react";
 import { Button } from "@/components/ui/Button";
 import { DataGrid, type ColumnDef } from "@/components/ui/DataGrid";
 import { Dialog } from "@/components/ui/Dialog";
@@ -99,7 +100,7 @@ export function TabDana({
       if (!res.success) {
         showToast(res.error ?? "Gagal menyimpan data.", "error");
       } else {
-        showToast("Semua data berhasil disimpan.", "success");
+        showToast("Perubahan tersimpan", "success");
         setIsEditing(false);
         onRefresh();
       }
@@ -226,15 +227,16 @@ export function TabDana({
           {!isEditing ? (
             <Button
               type="button"
-              variant="primary"
+              variant="accent"
               size="sm"
               onClick={() => setIsEditing(true)}
             >
-              Edit Data {labelKolom}
+              <Pencil className="w-4 h-4" />
+              <span>Edit Data {labelKolom}</span>
             </Button>
           ) : (
-            <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-[8px] bg-surface-soft border border-brand/30 text-brand text-[13px] font-medium">
-              <span className="w-2 h-2 rounded-full bg-brand animate-pulse" />
+            <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-[8px] bg-gold-soft border border-gold-border text-gold-text text-[13px] font-semibold">
+              <span className="w-2 h-2 rounded-full bg-gold animate-pulse" />
               Mode Edit Aktif
             </span>
           )}
@@ -254,11 +256,12 @@ export function TabDana({
         toolbarExtra={
           <Button
             type="button"
-            variant="secondary"
+            variant="outline-brand"
             size="sm"
             onClick={() => setShowTambahSumber(true)}
           >
-            + Tambah {labelKolom} Baru
+            <Plus className="w-4 h-4" />
+            <span>Tambah {labelKolom} Baru</span>
           </Button>
         }
         enablePaste={true}

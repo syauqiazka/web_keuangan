@@ -12,7 +12,7 @@ import { TabDariSiswa } from "@/app/(app)/pemasukan/TabDariSiswa";
 import { TabDana } from "@/app/(app)/pemasukan/TabDana";
 import { FilterIcon } from "@/components/ui/FilterIcon";
 import { ExportExcelButton } from "@/components/ui/ExportExcelButton";
-import { CheckCircle2, RotateCcw, X, ChevronDown, ChevronUp } from "lucide-react";
+import { CheckCircle2, RotateCcw, X, ChevronDown, ChevronUp, Filter } from "lucide-react";
 import type {
   JenisPemasukanOption,
   SiswaSel,
@@ -318,15 +318,16 @@ export function PemasukanClient({
 
             <div className="flex items-center gap-2">
               {activeFiltersCount > 0 && (
-                <button
+                <Button
                   type="button"
+                  variant="ghost"
+                  size="sm"
                   onClick={handleResetFilter}
-                  className="inline-flex items-center gap-1.5 px-3 py-1.5 text-[12px] font-medium rounded-[6px] text-text-3 hover:text-expense hover:bg-expense-soft transition-colors cursor-pointer"
                   title="Reset semua filter ke kondisi awal"
                 >
                   <RotateCcw className="w-3.5 h-3.5" />
                   <span>Reset Filter</span>
-                </button>
+                </Button>
               )}
             </div>
           </div>
@@ -419,8 +420,9 @@ export function PemasukanClient({
                     Catatan: Filter rentang tanggal inklusif dan memfilter transaksi berdasarkan tanggal transaksi.
                   </p>
                   <div className="flex items-center gap-2">
-                    <Button type="submit" variant="primary" size="md">
-                      Terapkan Filter
+                    <Button type="submit" variant="outline-brand" size="md">
+                      <Filter className="w-4 h-4" />
+                      <span>Terapkan Filter</span>
                     </Button>
                   </div>
                 </div>

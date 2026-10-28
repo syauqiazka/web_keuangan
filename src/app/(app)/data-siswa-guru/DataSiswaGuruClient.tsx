@@ -16,7 +16,7 @@ import {
   prosesKenaikanKelasAction,
   type BatchAnggotaInput,
 } from "@/server/actions/anggota";
-import { GraduationCap, CheckCircle2, AlertCircle } from "lucide-react";
+import { GraduationCap, CheckCircle2, AlertCircle, Pencil, Filter } from "lucide-react";
 
 interface DataSiswaGuruClientProps {
   rows: AnggotaRow[];
@@ -118,7 +118,7 @@ export function DataSiswaGuruClient({
       if (!res.success) {
         showToast(res.error ?? "Gagal menyimpan data.", "error");
       } else {
-        showToast("Semua perubahan berhasil disimpan.", "success");
+        showToast("Perubahan tersimpan", "success");
         setIsEditing(false);
         router.refresh();
       }
@@ -276,32 +276,23 @@ export function DataSiswaGuruClient({
                 )}
                 <Button
                   type="button"
-                  variant="primary"
+                  variant="accent"
                   size="md"
                   onClick={() => setIsEditing(true)}
                 >
-                  Edit Data Siswa
+                  <Pencil className="w-4 h-4" />
+                  <span>Edit Data Siswa</span>
                 </Button>
               </>
             ) : (
-              <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-[8px] bg-surface-soft border border-brand/30 text-brand text-[13px] font-medium">
-                <span className="w-2 h-2 rounded-full bg-brand animate-pulse" />
+              <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-[8px] bg-gold-soft border border-gold-border text-gold-text text-[13px] font-semibold">
+                <span className="w-2 h-2 rounded-full bg-gold animate-pulse" />
                 Mode Edit Aktif
               </span>
             )}
           </div>
         </div>
       </BlurReveal>
-
-      {/* Mode Edit Banner Edukatif */}
-      {isEditing && (
-        <div className="p-3.5 rounded-[8px] bg-surface-soft border border-brand/30 text-text text-[13px] flex items-center gap-2.5">
-          <span className="w-2 h-2 rounded-full bg-brand shrink-0 animate-pulse" />
-          <span>
-            <strong>Mode Edit Data Aktif:</strong> Anda dapat mengedit sel langsung, klik <strong>&ldquo;+ Tambah Baris Baru&rdquo;</strong>, atau menempel (paste) data daftar nama dari Microsoft Excel. Klik <strong>&ldquo;Simpan Perubahan&rdquo;</strong> di toolbar tabel untuk menyimpan ke database.
-          </span>
-        </div>
-      )}
 
       {/* Form Filter (GET) – Tampilkan Data Siswa */}
       {!isEditing && (
@@ -329,8 +320,9 @@ export function DataSiswaGuruClient({
                 />
               </div>
               <div className="pb-0.5">
-                <Button type="submit" variant="primary" size="md">
-                  Tampilkan Data Siswa
+                <Button type="submit" variant="outline-brand" size="md">
+                  <Filter className="w-4 h-4" />
+                  <span>Tampilkan Data Siswa</span>
                 </Button>
               </div>
             </form>

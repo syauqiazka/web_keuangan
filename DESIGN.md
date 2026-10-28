@@ -27,79 +27,62 @@ Hero 71px, carousel, newsletter, dan footer hijau dari situs sumber **tidak dipa
 
 ### Token Utama Bank Saku Digital
 
-| Nama | Hex | Peran di aplikasi |
-|---|---|---|
-| Canvas | `#f7f8fa` | Kanvas latar belakang utama aplikasi |
-| Surface / Paper | `#ffffff` | Latar kartu, modal dialog, formulir, dan tabel |
-| Surface Soft | `#eaf1ed` | Latar baris aktif, banner edukatif, dan badge mode edit |
-| Ink (Teks Utama) | `#151515` | Teks judul, label penting, dan angka nominal |
-| Steel (Teks Sekunder) | `#595959` | Teks pendukung, metadata, subtitle, dan header sekunder |
-| Rule Gray | `#dcdcdc` | Garis batas tipis (border kartu, divider, garis tabel) |
-| Brand Green | `#29735c` | Aksi utama (tombol primary), ringkasan saldo, seri Pemasukan di grafik |
-| Brand Hover | `#215e4b` | State hover aksi utama |
-| Ledger Blue | `#4f86c0` | Seri Pengeluaran pada grafik bulanan |
-| Alert Red | `#b42318` | Status tunggakan/belum lunas dan pesan galat validasi |
+Identitas merek: **HIJAU + EMAS**. Setiap tombol dan status memiliki peranan fungsional yang jelas (affordance tinggi) sehingga pengguna non-teknis (guru/bendahara) langsung memahami fungsinya.
 
-Alert Red dipakai **hanya** untuk dua hal: nominal kurang bayar dan galat validasi. Selalu disertai teks ("Belum lunas", pesan galat), tidak mengandalkan warna saja.
-
-### Aturan warna
-
-- Dilarang: teks isi berwarna hijau atau cokelat. Hijau/cokelat bukan warna paragraf.
-- Dilarang: gradien berlebihan atau dekorasi neon tanpa fungsi.
-- Grafik batang: **Pemasukan = Brand Green (hijau)**, **Pengeluaran = Ledger Blue (biru)**, sesuai permintaan pemilik.
-
-## 3. Tipografi
-
-| Peran | Font | Bobot | Catatan |
+| Nama Token | Hex Terang | Hex Gelap | Peran di aplikasi |
 |---|---|---|---|
-| Display / judul | Manrope | **600 / 700** | Judul halaman dan angka ringkasan |
-| Isi, tabel, tombol, navigasi | Inter | 400 isi, 500 navigasi, 600 kontrol | Teks antarmuka |
-| Label teknis, Kode UID | IBM Plex Mono | 500 | Format kode UID dan nilai tabular |
+| `--brand` | `#29735c` | `#2a7059` | Aksi utama simpan / selesai, seri Pemasukan di grafik |
+| `--brand-hover` | `#215e4b` | `#2f7d65` | Hover tombol utama hijau |
+| `--gold` | `#d4a338` | `#e5a93c` | Aksen merek, mode edit ("Input / Edit Pembayaran"), Saldo card |
+| `--gold-hover` | `#c99a2e` | `#d89d31` | Hover tombol aksen emas |
+| `--gold-soft` | `#fbf3dc` | `#2a200f` | Latar banner mode edit, sel yang belum disimpan |
+| `--gold-border` | `#ecd48a` | `#4a3818` | Garis batas banner edit, outline tabel edit |
+| `--gold-text` | `#7a5600` | `#f0c25a` | Teks status "Belum disimpan", teks penjelas emas di atas latar terang |
+| `--expense` | `#25619c` | `#6ba1db` | Pengeluaran kas sekolah (teks, ikon, kartu ringkasan) |
+| `--series-out` | `#4f86c0` | `#6ba1db` | Batang Pengeluaran pada grafik bulanan |
+| `--danger` | `#b42318` | `#ef6b61` | Hapus baris, nonaktifkan akun, pesan galat, tunggakan belum lunas |
+| `--canvas` | `#f7f8fa` | `#111413` | Kanvas latar belakang utama aplikasi |
+| `--surface` | `#ffffff` | `#181d1a` | Latar kartu, modal dialog, formulir, dan tabel |
+| `--panel` | `#f0f2f5` | `#202723` | Latar kontrol sekunder, bar navigasi sub-menu |
+| `--text` | `#151515` | `#f5f5f5` | Teks judul, label penting, dan angka nominal |
+| `--text-2` | `#383838` | `#cccccc` | Teks label input dan header tabel |
+| `--text-3` | `#595959` | `#999999` | Teks pendukung, metadata, subtitle |
+| `--line` | `#dcdcdc` | `#2b3530` | Garis batas tipis (border kartu, divider, garis tabel) |
+| `--line-strong` | `#a3a3a3` | `#4a5750` | Border input dan kontrol fokus aktif (kontras >= 3:1) |
 
-Semua angka uang memakai `font-variant-numeric: tabular-nums`.
+### Aturan Kontras & Penggunaan Warna
 
-## 4. Ruang dan bentuk
+1. **Aturan Emas:** Teks di atas latar emas (`--gold`) WAJIB teks gelap (`#151515`, rasio 7,9:1). Dilarang teks putih di atas emas. Teks emas di atas latar putih/terang wajib menggunakan `--gold-text` (rasio 4,8:1), bukan `--gold`.
+2. **Aturan Hijau Gelap:** Latar tombol hijau di tema gelap menggunakan `#2a7059` dengan teks putih (rasio 5,9:1) dan hover `#2f7d65` (4,95:1).
+3. **Aturan Pengeluaran:** Pengeluaran sekolah menggunakan warna **Biru** (`--expense` / `--series-out`), bukan merah bata.
+4. **Aturan Bahaya:** Merah (`--danger`) HANYA untuk aksi hapus, nonaktifkan akun, status belum lunas, dan pesan galat validasi.
+5. **Aksen Saldo:** Kartu Total Saldo menggunakan aksen emas (garis atas dan ikon emas), angka tetap warna tinta.
+6. **Sidebar:** Hijau tua pekat dengan teks putih (`#ffffff`, 12,8:1) dan item aktif aksen emas (`--sidebar-gold`).
 
-- Satuan dasar 4px (skala spacing Tailwind).
-- Lebar konten maksimum **1280px** untuk Dashboard dan formulir. Tabel data boleh selebar area konten dan bergulir horizontal.
-- Jarak antar-bagian 24px–48px, padding kartu 20px–24px.
-- Radius: kartu **12px**, tombol **8px**, kontrol navigasi **8px**, input **8px**.
-- Bayangan: bayangan lembut `shadow-xs` dan `shadow-card` pada kartu kerja untuk kedalaman visual yang tenang.
+---
 
-## 5. Kerangka aplikasi [Turunan]
+## 6. Komponen Tombol Bermakna
 
-```
-┌──────────────┬───────────────────────────────────────────────┐
-│ [logo]       │  Judul halaman                 Tahun / Filter │
-│ Pencatatan   │───────────────────────────────────────────────│
-│ Keuangan     │                                               │
-│ Sekolah      │   isi halaman (maks 1280px, kecuali tabel)    │
-│ Bank Saku    │                                               │
-│ Digital      │                                               │
-│──────────────│                                               │
-│ Dashboard    │                                               │
-│ Data Siswa & │                                               │
-│  Guru        │                                               │
-│ Pemasukan    │                                               │
-│ Pengeluaran  │                                               │
-│ Pengaturan   │                                               │
-└──────────────┴───────────────────────────────────────────────┘
-```
+Setiap tombol aksi WAJIB memiliki **ikon Lucide 16px + label teks eksplisit** agar pengguna non-teknis langsung memahami maksud tindakan.
 
-- Sidebar 256px, latar Surface, garis kanan 1px Rule Gray. Urutan menu: **Dashboard, Data Siswa & Guru, Pemasukan, Pengeluaran, Pengaturan**.
-- Blok atas sidebar: logo Bank Saku Digital dengan judul aplikasi dan institusi.
+### Varian Tombol (`Button.tsx`)
 
-## 6. Komponen
+| Varian | Tampilan Visual | Penggunaan Wajib |
+|---|---|---|
+| `primary` | Latar hijau solid (`--brand`), teks putih | Simpan Perubahan / Selesai edit (`Check`), Buat Akun (`Check`/`Plus`) |
+| `accent` | Latar emas solid (`--gold`), teks gelap (`#151515`) | Masuk mode edit ("Edit Pembayaran Siswa", "Input", "Edit") (`Pencil`) |
+| `outline-brand` | Garis tepi hijau (`--brand`), teks hijau | Tambah Baris / Kolom (`Plus`), Terapkan Filter (`Filter`), Aktifkan Akun (`UserCheck`) |
+| `secondary` | Latar surface netral, garis netral, teks gelap | Batal edit (`X`), Export Excel (`FileSpreadsheet` hijau) |
+| `danger` | Garis tepi merah (`--danger`), teks merah | Tombol Hapus pada baris (`Trash2`), Nonaktifkan Akun (`UserX`) |
+| `danger-solid` | Latar merah solid (`--danger`), teks putih | Tombol konfirmasi final dalam modal dialog bahaya |
+| `ghost` | Tanpa border, hover lembut | Reset filter (`RotateCcw`), aksi baris sekunder |
 
-**Tombol utama (primary)** — latar Brand Green `#29735c`, teks putih, hover `#215e4b`, radius 8px, border `#29735c`. Dipakai untuk Simpan Perubahan dan Aksi Utama.
-**Tombol sekunder (secondary)** — latar Surface `#ffffff`, teks Ink `#151515`, border 1px Rule Gray `#dcdcdc`, radius 8px, hover `#eaf1ed`. Dipakai untuk Batal Edit, Tambah Baris Baru, dan Aksi filter.
-**Tombol bahaya (danger)** — latar Surface, teks dan outline Alert Red `#b42318`, radius 8px, hover latar merah transparan. Hanya untuk aksi penghapusan dan penonaktifan akun dengan dialog konfirmasi.
-**Input / select** — latar Surface, border 1px Rule Gray `#dcdcdc`, radius 8px, padding 8px 12px. Fokus: ring 2px Brand Green. Galat: border Alert Red + pesan di bawah input.
-**Tab** — baris tombol tab dengan indikator aktif yang kontras dan jelas.
-**Blok ringkasan** — kartu Surface putih bergaris border tipis `#dcdcdc`, radius 12px, aksen garis warna di sisi atas (Brand Green untuk saldo/pemasukan, Ledger Blue untuk pengeluaran).
-**Tabel data** — lihat bagian 7.
-**Dialog** — Surface putih, border 1px Rule Gray, radius 12px, shadow modal overlay, tombol aksi di kanan bawah.
-**Toast** — notifikasi di sudut layar dengan status sukses (hijau) atau gagal (merah) yang jelas.
+**Aturan Hirarki Tombol:** Maksimal **SATU** tombol solid per area kerja.
+- Saat mode lihat: tombol solid adalah EMAS `accent` ("Edit Pembayaran Siswa" / "Input").
+- Saat mode edit: tombol solid adalah HIJAU `primary` ("Simpan Perubahan"). Tombol Input berubah menjadi `secondary` netral ("Batal").
+- Tinggi tombol `sm` minimal 40px pada target sentuh mobile / layar sentuh. Prop `aria-*`, `title`, dan `tabIndex` diteruskan seutuhnya. Efek `scale` dihilangkan.
+
+---
 
 ## 7. Tabel data dan grid entri [Turunan]
 
@@ -282,22 +265,22 @@ Nilai tema gelap adalah turunan saya dari palet sumber (hijau diterangkan agar t
 Visual
 - [ ] Tidak ada gradien (latar, teks, border, tombol).
 - [ ] Tidak ada glassmorphism, `backdrop-blur`, glow, bayangan berwarna, blob/orb/mesh.
-- [ ] Tidak ada ungu, indigo, violet, biru-neon. Tidak ada warna di luar bagian 2.
-- [ ] Tidak ada radius di atas 8px, tidak ada `rounded-full`, tidak ada `rounded-xl/2xl/3xl`.
-- [ ] Tidak ada kartu dengan border kiri berwarna sebagai penanda.
-- [ ] Tidak ada ikon di lingkaran berwarna, tidak ada ikon "sparkles", tidak ada emoji sebagai ikon.
+- [ ] Tidak ada ungu, indigo, violet, biru-neon. Warna dibatasi pada palet resmi di Bagian 2 (Hijau, Emas, Ledger Blue, Alert Red, Netral).
+- [ ] Tombol berwarna diperbolehkan HANYA sesuai varian semantik Bagian 6 (solid hijau untuk primary/simpan, solid emas untuk accent/edit, border merah untuk danger). Dilarang tombol berwarna di luar peran fungsional tersebut.
+- [ ] Tidak ada kartu dengan border kiri berwarna tebal sebagai penanda visual acak.
+- [ ] Tidak ada ikon di lingkaran berwarna-warni tanpa arti, tidak ada ikon "sparkles", tidak ada emoji sebagai ikon (wajib Lucide 16px).
 - [ ] Tidak ada ilustrasi 3D/isometrik/stok, foto stok, atau gambar latar.
-- [ ] Tidak ada animasi hitung naik, efek mengangkat saat hover (`-translate-y`, `scale`), shimmer, atau parallax. Satu-satunya transisi: warna 120ms.
-- [ ] Tidak ada tata letak bento, tidak ada kartu KPI dengan panah tren dan persentase karangan.
-- [ ] Tidak ada komponen shadcn/ui yang disalin mentah dengan gaya bawaannya. Radix Primitives boleh dipakai sebagai perilaku, gayanya dari token di sini.
+- [ ] Tidak ada animasi angkat hover berlebihan (`-translate-y`, `scale`). Transisi fokus pada warna & opacity.
+- [ ] Tidak ada komponen shadcn/ui yang disalin mentah dengan gaya bawaannya.
 
 Isi
 - [ ] Tidak ada data contoh di halaman produksi: tidak ada "Lorem ipsum", "John Doe", angka karangan, testimoni.
-- [ ] Tidak ada kata pemasaran ("powerful", "seamless", "revolusioner", "all-in-one") dan tidak ada sapaan "Selamat datang kembali 👋".
+- [ ] Tidak ada kata pemasaran ("powerful", "seamless", "revolusioner", "all-in-one").
 - [ ] Setiap angka di layar berasal dari database.
 
 Aksesibilitas
-- [ ] Kontras teks minimal 4,5:1, elemen grafis minimal 3:1, di kedua tema.
-- [ ] Semua kontrol bisa dioperasikan dengan keyboard; fokus selalu terlihat.
-- [ ] Warna tidak pernah menjadi satu-satunya pembeda (belum lunas = merah **dan** teks "kurang Rp ...").
+- [ ] Kontras teks minimal 4,5:1, elemen grafis & batas input minimal 3:1, di kedua tema.
+- [ ] Teks di atas latar emas WAJIB gelap (`#151515`). Dilarang teks putih di atas emas.
+- [ ] Semua kontrol bisa dioperasikan dengan keyboard; fokus selalu terlihat (ring 2px).
+- [ ] Warna tidak pernah menjadi satu-satunya pembeda (setiap status wajib memiliki ikon + teks).
 - [ ] Target sentuh minimal 40px tingginya di layar sentuh.

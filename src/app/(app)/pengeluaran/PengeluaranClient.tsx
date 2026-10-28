@@ -14,7 +14,7 @@ import { StaggerGroup, StaggerItem } from "@/components/motion/StaggerGroup";
 import { AnimatedNumber } from "@/components/motion/AnimatedNumber";
 import { FilterIcon } from "@/components/ui/FilterIcon";
 import { ExportExcelButton } from "@/components/ui/ExportExcelButton";
-import { RotateCcw, X, ChevronDown, ChevronUp } from "lucide-react";
+import { RotateCcw, X, ChevronDown, ChevronUp, Pencil, Trash2, Filter } from "lucide-react";
 import {
   hapusPengeluaranAction,
   simpanBatchPengeluaranAction,
@@ -201,7 +201,7 @@ export function PengeluaranClient({
       if (!res.success) {
         showToast(res.error ?? "Gagal menyimpan pengeluaran.", "error");
       } else {
-        showToast("Semua pengeluaran berhasil disimpan.", "success");
+        showToast("Perubahan tersimpan", "success");
         setIsEditing(false);
         router.refresh();
       }
@@ -318,17 +318,18 @@ export function PengeluaranClient({
     {
       id: "aksi",
       header: "Aksi",
-      width: "100px",
+      width: "110px",
       editable: false,
       render: (row) => (
         <Button
           type="button"
-          variant="secondary"
+          variant="danger"
           size="sm"
           disabled={isEditing || isSaving || !row.id}
           onClick={() => void handleDelete(row)}
         >
-          Hapus
+          <Trash2 className="w-3.5 h-3.5" />
+          <span>Hapus</span>
         </Button>
       ),
     },
@@ -368,31 +369,22 @@ export function PengeluaranClient({
             {!isEditing ? (
               <Button
                 type="button"
-                variant="primary"
+                variant="accent"
                 size="md"
                 onClick={() => setIsEditing(true)}
               >
-                Edit Data Pengeluaran
+                <Pencil className="w-4 h-4" />
+                <span>Edit Data Pengeluaran</span>
               </Button>
             ) : (
-              <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-[8px] bg-expense-soft border border-expense-border text-expense text-[13px] font-medium">
-                <span className="w-2 h-2 rounded-full bg-expense animate-pulse" />
+              <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-[8px] bg-gold-soft border border-gold-border text-gold-text text-[13px] font-semibold">
+                <span className="w-2 h-2 rounded-full bg-gold animate-pulse" />
                 Mode Edit Aktif
               </span>
             )}
           </div>
         </div>
       </BlurReveal>
-
-      {/* Mode Edit Banner Edukatif */}
-      {isEditing && (
-        <div className="p-3.5 rounded-[8px] bg-surface-soft border border-brand/30 text-text text-[13px] flex items-center gap-2.5">
-          <span className="w-2 h-2 rounded-full bg-brand shrink-0 animate-pulse" />
-          <span>
-            <strong>Mode Edit Aktif:</strong> Anda dapat mengubah data sel secara langsung, klik <strong>&ldquo;+ Tambah Baris Baru&rdquo;</strong>, atau menempel (paste) data dari Excel. Klik <strong>&ldquo;Simpan Perubahan&rdquo;</strong> di toolbar tabel untuk menyimpan ke database.
-          </span>
-        </div>
-      )}
 
       {/* Ringkasan Pengeluaran: Periode Terpilih & Total Per Tahun (Merah Bata) */}
       <StaggerGroup blur={8} duration={0.75} className="grid grid-cols-1 sm:grid-cols-2 gap-4" staggerDelay={0.08}>
@@ -470,15 +462,16 @@ export function PengeluaranClient({
               </div>
 
               {activeFiltersCount > 0 && (
-                <button
+                <Button
                   type="button"
+                  variant="ghost"
+                  size="sm"
                   onClick={handleResetFilter}
-                  className="inline-flex items-center gap-1.5 px-3 py-1.5 text-[12px] font-medium rounded-[6px] text-text-3 hover:text-expense hover:bg-expense-soft transition-colors cursor-pointer"
                   title="Reset semua filter ke kondisi default"
                 >
                   <RotateCcw className="w-3.5 h-3.5" />
                   <span>Reset Filter</span>
-                </button>
+                </Button>
               )}
             </div>
 
@@ -511,7 +504,7 @@ export function PengeluaranClient({
                         type="date"
                         name="dari"
                         defaultValue={dari}
-                        className="w-full bg-surface border border-line text-text text-[13px] px-3 py-2 rounded-[8px] focus:outline-none focus:ring-2 focus:ring-expense/20 focus:border-expense transition-colors"
+                        className="w-full bg-surface border border-line-strong text-text text-[13px] px-3 py-2 rounded-[8px] focus:outline-none focus:ring-2 focus:ring-brand/20 focus:border-brand transition-colors"
                       />
                     </div>
                     <div>
@@ -523,7 +516,7 @@ export function PengeluaranClient({
                         type="date"
                         name="sampai"
                         defaultValue={sampai}
-                        className="w-full bg-surface border border-line text-text text-[13px] px-3 py-2 rounded-[8px] focus:outline-none focus:ring-2 focus:ring-expense/20 focus:border-expense transition-colors"
+                        className="w-full bg-surface border border-line-strong text-text text-[13px] px-3 py-2 rounded-[8px] focus:outline-none focus:ring-2 focus:ring-brand/20 focus:border-brand transition-colors"
                       />
                     </div>
                     <div>
@@ -541,8 +534,9 @@ export function PengeluaranClient({
                       Catatan: Filter rentang tanggal bersifat inklusif terhadap tanggal transaksi.
                     </p>
                     <div className="flex items-center gap-2">
-                      <Button type="submit" variant="primary" size="md">
-                        Terapkan Filter
+                      <Button type="submit" variant="outline-brand" size="md">
+                        <Filter className="w-4 h-4" />
+                        <span>Terapkan Filter</span>
                       </Button>
                     </div>
                   </div>

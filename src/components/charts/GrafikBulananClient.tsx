@@ -193,12 +193,12 @@ export function GrafikBulananClient({ data, tahun }: GrafikBulananClientProps) {
                   strokeWidth={1}
                 />
                 <text
-                  x={PADDING_LEFT - 8}
-                  y={y + 3.5}
+                  x={PADDING_LEFT - 10}
+                  y={y + 4}
                   textAnchor="end"
-                  fontSize={10}
+                  fontSize={12}
                   fill="var(--text-3)"
-                  className="font-mono"
+                  className="font-mono font-medium"
                 >
                   {tick}
                 </text>
@@ -208,13 +208,13 @@ export function GrafikBulananClient({ data, tahun }: GrafikBulananClientProps) {
 
           {/* Label sumbu Y */}
           <text
-            x={10}
+            x={14}
             y={PADDING_TOP + chartH / 2}
-            fontSize={10}
+            fontSize={12}
             fill="var(--text-3)"
             textAnchor="middle"
-            transform={`rotate(-90, 10, ${PADDING_TOP + chartH / 2})`}
-            className="font-mono uppercase tracking-wider"
+            transform={`rotate(-90, 14, ${PADDING_TOP + chartH / 2})`}
+            className="font-mono uppercase tracking-wider font-semibold"
           >
             Juta Rp
           </text>
@@ -225,8 +225,12 @@ export function GrafikBulananClient({ data, tahun }: GrafikBulananClientProps) {
             const outH = Math.max(0, barHeight(d.pengeluaran));
             const inX = xPos(d.bulan, false);
             const outX = xPos(d.bulan, true);
+            const inY = barY(d.pemasukan);
+            const outY = barY(d.pengeluaran);
             const midX = PADDING_LEFT + (d.bulan - 0.5) * colW;
             const isHovered = hoveredBulan === d.bulan;
+            const inJuta = (d.pemasukan / 1_000_000);
+            const outJuta = (d.pengeluaran / 1_000_000);
 
             return (
               <g
@@ -250,7 +254,7 @@ export function GrafikBulananClient({ data, tahun }: GrafikBulananClientProps) {
                 <rect
                   className="chart-bar-in"
                   x={inX}
-                  y={barY(d.pemasukan)}
+                  y={inY}
                   width={BAR_W}
                   height={inH}
                   rx={2}
@@ -260,12 +264,26 @@ export function GrafikBulananClient({ data, tahun }: GrafikBulananClientProps) {
                     transformOrigin: `${inX + BAR_W / 2}px ${PADDING_TOP + chartH}px`,
                   }}
                 />
+                {/* Tampilkan nilai di atas batang bila muat */}
+                {inH >= 20 && (
+                  <text
+                    x={inX + BAR_W / 2}
+                    y={Math.max(PADDING_TOP + 10, inY - 4)}
+                    textAnchor="middle"
+                    fontSize={11}
+                    fontWeight={600}
+                    fill="var(--series-in)"
+                    className="font-mono select-none"
+                  >
+                    {inJuta >= 10 ? Math.round(inJuta) : inJuta.toFixed(1)}
+                  </text>
+                )}
 
                 {/* Batang Pengeluaran */}
                 <rect
                   className="chart-bar-out"
                   x={outX}
-                  y={barY(d.pengeluaran)}
+                  y={outY}
                   width={BAR_W}
                   height={outH}
                   rx={2}
@@ -275,16 +293,30 @@ export function GrafikBulananClient({ data, tahun }: GrafikBulananClientProps) {
                     transformOrigin: `${outX + BAR_W / 2}px ${PADDING_TOP + chartH}px`,
                   }}
                 />
+                {/* Tampilkan nilai di atas batang pengeluaran bila muat */}
+                {outH >= 20 && (
+                  <text
+                    x={outX + BAR_W / 2}
+                    y={Math.max(PADDING_TOP + 10, outY - 4)}
+                    textAnchor="middle"
+                    fontSize={11}
+                    fontWeight={600}
+                    fill="var(--series-out)"
+                    className="font-mono select-none"
+                  >
+                    {outJuta >= 10 ? Math.round(outJuta) : outJuta.toFixed(1)}
+                  </text>
+                )}
 
                 {/* Label bulan di sumbu X */}
                 <text
                   x={midX}
                   y={HEIGHT - 12}
                   textAnchor="middle"
-                  fontSize={11}
-                  fontWeight={isHovered ? 600 : 400}
+                  fontSize={12}
+                  fontWeight={isHovered ? 600 : 500}
                   fill={isHovered ? "var(--text)" : "var(--text-3)"}
-                  className="transition-colors"
+                  className="transition-colors font-medium"
                 >
                   {BULAN_SINGKAT[d.bulan - 1]}
                 </text>

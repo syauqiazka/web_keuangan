@@ -8,6 +8,7 @@ import { Input } from "@/components/ui/Input";
 import { Select } from "@/components/ui/Select";
 import { Dialog } from "@/components/ui/Dialog";
 import { BlurReveal } from "@/components/motion/BlurReveal";
+import { Plus, KeyRound, UserX, UserCheck } from "lucide-react";
 import {
   buatAkunAction,
   resetPasswordAction,
@@ -218,38 +219,50 @@ function BahanAkun({
       </td>
       <td className="px-4 py-2">
         <div className="flex items-center gap-2 flex-wrap">
-          <button
+          <Button
             type="button"
+            variant="ghost"
+            size="sm"
             onClick={() => setDialogResetOpen(true)}
-            className="text-[12px] text-brand hover:underline font-medium"
+            className="text-[12px] text-brand"
           >
-            Reset Sandi
-          </button>
+            <KeyRound className="w-3.5 h-3.5" />
+            <span>Reset Sandi</span>
+          </Button>
           {!isCurrentUser && (
-            <>
-              <span className="text-line-strong">•</span>
-              <form
-                action={toggleAction}
-                className="inline"
-                onSubmit={(e) => {
-                  const aksi = akun.aktif ? "menonaktifkan" : "mengaktifkan kembali";
-                  if (!window.confirm(`Apakah Anda yakin ingin ${aksi} akun petugas "${akun.nama}" (${akun.kode})?`)) {
-                    e.preventDefault();
-                  }
-                }}
-              >
-                <input type="hidden" name="penggunaId" value={akun.id} />
-                <button
+            <form
+              action={toggleAction}
+              className="inline"
+              onSubmit={(e) => {
+                const aksi = akun.aktif ? "menonaktifkan" : "mengaktifkan kembali";
+                if (!window.confirm(`Apakah Anda yakin ingin ${aksi} akun petugas "${akun.nama}" (${akun.kode})?`)) {
+                  e.preventDefault();
+                }
+              }}
+            >
+              <input type="hidden" name="penggunaId" value={akun.id} />
+              {akun.aktif ? (
+                <Button
                   type="submit"
+                  variant="danger"
+                  size="sm"
                   disabled={isPendingToggle}
-                  className={`text-[12px] font-medium hover:underline disabled:opacity-40 ${
-                    akun.aktif ? "text-danger" : "text-series-in"
-                  }`}
                 >
-                  {isPendingToggle ? "Memproses…" : (akun.aktif ? "Nonaktifkan Akun" : "Aktifkan Akun")}
-                </button>
-              </form>
-            </>
+                  <UserX className="w-3.5 h-3.5" />
+                  <span>{isPendingToggle ? "Memproses…" : "Nonaktifkan Akun"}</span>
+                </Button>
+              ) : (
+                <Button
+                  type="submit"
+                  variant="outline-brand"
+                  size="sm"
+                  disabled={isPendingToggle}
+                >
+                  <UserCheck className="w-3.5 h-3.5" />
+                  <span>{isPendingToggle ? "Memproses…" : "Aktifkan Akun"}</span>
+                </Button>
+              )}
+            </form>
           )}
           {stateToggle?.error && (
             <span className="text-[11px] text-danger">{stateToggle.error}</span>
@@ -298,11 +311,12 @@ export function KelolaAkunClient({
           </div>
           <Button
             type="button"
-            variant="primary"
+            variant="outline-brand"
             size="md"
             onClick={() => setDialogBuatOpen(true)}
           >
-            + Buat Akun Baru
+            <Plus className="w-4 h-4" />
+            <span>Buat Akun Baru</span>
           </Button>
         </div>
       </BlurReveal>

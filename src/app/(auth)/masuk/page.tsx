@@ -111,7 +111,9 @@ export default function MasukPage() {
           <div className="hero-item">
             <h1 className="text-[32px] xl:text-[38px] font-display font-medium text-white leading-[1.2] tracking-tight">
               Keuangan sekolah yang{" "}
-              <span className="text-surface-soft font-semibold">tertata,</span>{" "}
+              <span className="text-gold font-semibold underline decoration-gold/60 underline-offset-4">
+                tertata,
+              </span>{" "}
               akurat, dan transparan.
             </h1>
             <p className="mt-4 text-[15px] text-white/90 leading-relaxed max-w-sm">
@@ -141,7 +143,7 @@ export default function MasukPage() {
             ].map(({ icon: Icon, title, desc }) => (
               <div
                 key={title}
-                className="hero-item flex items-start gap-3 p-3.5 rounded-[12px] bg-white/10 border border-white/20"
+                className="hero-item flex items-start gap-3 p-3.5 rounded-[12px] bg-white/10 border border-white/20 hover:border-gold/40 transition-colors"
               >
                 <div className="w-8 h-8 rounded-[8px] bg-white/20 flex items-center justify-center shrink-0">
                   <Icon className="w-4 h-4 text-white" strokeWidth={2} />
@@ -160,8 +162,9 @@ export default function MasukPage() {
         </div>
 
         {/* Footer label */}
-        <div className="hero-item text-[11px] text-white/70 font-mono uppercase tracking-wider">
-          Sistem Internal — Hanya untuk Petugas Resmi
+        <div className="hero-item text-[11px] text-white/70 font-mono uppercase tracking-wider flex items-center gap-2">
+          <span className="w-2 h-2 rounded-full bg-gold" />
+          <span>Sistem Internal — Hanya untuk Petugas Resmi</span>
         </div>
       </div>
 
@@ -189,18 +192,21 @@ export default function MasukPage() {
           </div>
         </div>
 
-        {/* Form card */}
+        {/* Form card with subtle gold top accent */}
         <div
           ref={formRef}
-          className="w-full max-w-[420px] bg-surface border border-line rounded-[14px] p-7 sm:p-9 shadow-card"
+          className="w-full max-w-[420px] bg-surface border border-line rounded-[14px] p-7 sm:p-9 shadow-card relative overflow-hidden"
         >
+          {/* Subtle gold line accent */}
+          <div className="absolute top-0 left-0 right-0 h-[3px] bg-gold" />
+
           {/* Heading */}
-          <div className="mb-7">
+          <div className="mb-7 pt-1">
             <div className="flex items-center gap-2 mb-3">
-              <div className="w-8 h-8 rounded-[8px] bg-brand/10 flex items-center justify-center">
-                <LockKeyhole className="w-4 h-4 text-brand" strokeWidth={2} />
+              <div className="w-8 h-8 rounded-[8px] bg-gold-soft border border-gold-border flex items-center justify-center">
+                <LockKeyhole className="w-4 h-4 text-gold-text" strokeWidth={2} />
               </div>
-              <span className="text-[12px] font-mono font-medium text-brand uppercase tracking-wider">
+              <span className="text-[12px] font-mono font-medium text-gold-text uppercase tracking-wider">
                 Masuk ke Sistem
               </span>
             </div>

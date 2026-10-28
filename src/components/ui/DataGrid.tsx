@@ -1,6 +1,7 @@
 "use client";
 
 import * as React from "react";
+import { Plus, Pencil, Check, X, AlertCircle, Info } from "lucide-react";
 import { formatRupiah } from "@/lib/money";
 import { parseTsv } from "@/lib/tsv-paste";
 import { Button } from "./Button";
@@ -291,6 +292,16 @@ export function DataGrid<T>({
 
   return (
     <div id={containerId} className={`w-full space-y-3 ${className}`}>
+      {/* Banner Mode Edit Aktif Emas-Lembut */}
+      {isEditing && (
+        <div className="p-3.5 rounded-[8px] bg-gold-soft border border-gold-border text-gold-text text-[13px] flex items-center gap-2.5 font-medium shadow-xs">
+          <Info className="w-4 h-4 shrink-0 text-gold-text" />
+          <span>
+            Mode edit aktif. Ubah data lalu klik <strong>Simpan Perubahan</strong> untuk menyimpan, atau <strong>Batal</strong> untuk membuang.
+          </span>
+        </div>
+      )}
+
       {/* Toolbar Grid (Aksi Tambah Baris, Status Perubahan, Batal, Simpan) */}
       {showToolbar && (
         <div className="flex flex-wrap items-center justify-between gap-3 pb-2">
@@ -299,11 +310,12 @@ export function DataGrid<T>({
               <>
                 <Button
                   type="button"
-                  variant="secondary"
+                  variant="outline-brand"
                   size="sm"
                   onClick={() => handleTambahBaris(0)}
                 >
-                  + Tambah Baris Baru
+                  <Plus className="w-4 h-4" />
+                  <span>Tambah Baris Baru</span>
                 </Button>
                 {toolbarExtra}
               </>
@@ -311,11 +323,12 @@ export function DataGrid<T>({
               onToggleEdit && (
                 <Button
                   type="button"
-                  variant="primary"
+                  variant="accent"
                   size="sm"
                   onClick={onToggleEdit}
                 >
-                  Mulai Edit Data
+                  <Pencil className="w-4 h-4" />
+                  <span>Mulai Edit Data</span>
                 </Button>
               )
             )}
@@ -324,13 +337,15 @@ export function DataGrid<T>({
           {isEditing && (
             <div className="flex flex-wrap items-center gap-2.5">
               {unsavedRowIndices.size > 0 && (
-                <span className="text-[12px] text-text-3 font-medium">
-                  <span className="text-warning font-semibold">{unsavedRowIndices.size} baris</span> belum disimpan
+                <span className="text-[12px] font-medium text-gold-text flex items-center gap-1.5 bg-gold-soft px-2.5 py-1 rounded-[6px] border border-gold-border">
+                  <span className="w-1.5 h-1.5 rounded-full bg-gold" />
+                  <span className="font-bold">{unsavedRowIndices.size} baris</span> belum disimpan
                 </span>
               )}
               {hasErrors && (
-                <span className="text-[12px] text-danger font-medium">
-                  Periksa sel bertanda merah
+                <span className="text-[12px] text-danger font-medium flex items-center gap-1">
+                  <AlertCircle className="w-3.5 h-3.5" />
+                  <span>Periksa sel bertanda merah</span>
                 </span>
               )}
               <Button
@@ -340,7 +355,8 @@ export function DataGrid<T>({
                 disabled={isSaving}
                 onClick={handleCancel}
               >
-                Batal Edit
+                <X className="w-4 h-4" />
+                <span>Batal Edit</span>
               </Button>
               {onSave && (
                 <Button
@@ -350,7 +366,8 @@ export function DataGrid<T>({
                   disabled={isSaving || hasErrors}
                   onClick={handleSave}
                 >
-                  {isSaving ? "Menyimpan perubahan…" : "Simpan Perubahan"}
+                  <Check className="w-4 h-4" />
+                  <span>{isSaving ? "Menyimpan perubahan…" : "Simpan Perubahan"}</span>
                 </Button>
               )}
             </div>
@@ -358,9 +375,15 @@ export function DataGrid<T>({
         </div>
       )}
 
-      {/* Tabel Data Asli */}
-      <div className="w-full overflow-x-auto border border-line bg-surface rounded-[12px] shadow-xs">
-        <table className="w-full border-collapse text-[13px]">
+      {/* Tabel Data Asli dengan Garis Tepi Emas Tipis saat Mode Edit */}
+      <div
+        className={`w-full overflow-x-auto bg-surface rounded-[12px] shadow-xs transition-all ${
+          isEditing
+            ? "border border-gold-border ring-1 ring-gold-border"
+            : "border border-line"
+        }`}
+      >
+        <table className="w-full border-collapse text-[14px]">
           {/* Header Grup Jika Ada */}
           {columnGroups && columnGroups.length > 0 && (
             <thead>
@@ -436,8 +459,8 @@ export function DataGrid<T>({
                 return (
                   <tr
                     key={keyField(row, rowIndex)}
-                    className={`h-10 transition-colors ${
-                      isUnsaved ? "bg-surface-soft/60" : "hover:bg-panel/40"
+                    className={`h-11 transition-colors ${
+                      isUnsaved ? "bg-gold-soft/60" : "hover:bg-panel/40"
                     }`}
                   >
                     {columns.map((col, colIndex) => {
@@ -459,7 +482,7 @@ export function DataGrid<T>({
                       const cellError = cellErrors[errKey];
 
                       const cellEditingClass = isCellFocused
-                        ? "bg-surface-soft ring-1 ring-brand"
+                        ? "bg-gold-soft ring-1 ring-gold"
                         : "";
 
                       const cellErrorClass = cellError
@@ -521,10 +544,10 @@ export function DataGrid<T>({
                                   onFocus={() =>
                                     setFocusedCell({ row: rowIndex, col: colIndex })
                                   }
-                                  className={`w-full bg-surface text-[13px] px-2 py-1 border border-line rounded-[6px] outline-none focus:ring-2 focus:ring-brand/20 focus:border-brand text-inherit ${alignClass}`}
+                                  className={`w-full bg-surface text-[14px] px-2.5 py-1.5 border border-line-strong rounded-[6px] outline-none focus:ring-2 focus:ring-gold/30 focus:border-gold text-inherit ${alignClass}`}
                                 />
                                 {cellError && (
-                                  <span className="block text-[11px] text-danger mt-0.5">
+                                  <span className="block text-[12px] text-danger mt-0.5">
                                     {cellError}
                                   </span>
                                 )}
@@ -548,7 +571,7 @@ export function DataGrid<T>({
                     {isEditing && (
                       <td className="px-3 py-2 text-right whitespace-nowrap">
                         {isUnsaved && (
-                          <span className="font-mono text-[11px] text-label font-medium bg-label/10 px-1.5 py-0.5 rounded">
+                          <span className="font-mono text-[11px] font-semibold text-gold-text bg-gold-soft border border-gold-border px-2 py-0.5 rounded">
                             Belum disimpan
                           </span>
                         )}
@@ -598,6 +621,42 @@ export function DataGrid<T>({
           )}
         </table>
       </div>
+
+      {/* Floating Bottom Action Bar saat Mode Edit memiliki Perubahan Belum Disimpan */}
+      {isEditing && unsavedRowIndices.size > 0 && (
+        <div className="fixed bottom-6 left-1/2 -translate-x-1/2 z-50 bg-surface border border-gold-border shadow-overlay rounded-[12px] px-5 py-3 flex items-center gap-4 animate-in fade-in slide-in-from-bottom-2 duration-150">
+          <div className="text-[13px] font-medium text-text flex items-center gap-2 whitespace-nowrap">
+            <span className="w-2.5 h-2.5 rounded-full bg-gold animate-pulse shrink-0" />
+            <span>
+              <strong className="text-gold-text font-bold">{unsavedRowIndices.size}</strong> perubahan belum disimpan
+            </span>
+          </div>
+          <div className="flex items-center gap-2 shrink-0">
+            <Button
+              type="button"
+              variant="secondary"
+              size="sm"
+              disabled={isSaving}
+              onClick={handleCancel}
+            >
+              <X className="w-4 h-4" />
+              <span>Batal</span>
+            </Button>
+            {onSave && (
+              <Button
+                type="button"
+                variant="primary"
+                size="sm"
+                disabled={isSaving || hasErrors}
+                onClick={handleSave}
+              >
+                <Check className="w-4 h-4" />
+                <span>{isSaving ? "Menyimpan…" : "Simpan Perubahan"}</span>
+              </Button>
+            )}
+          </div>
+        </div>
+      )}
     </div>
   );
 }

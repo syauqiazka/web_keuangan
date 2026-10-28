@@ -1,6 +1,7 @@
 "use client";
 
 import * as React from "react";
+import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { AnimatedNumber } from "@/components/motion/AnimatedNumber";
 import { StaggerGroup, StaggerItem } from "@/components/motion/StaggerGroup";
@@ -8,7 +9,7 @@ import { BlurReveal } from "@/components/motion/BlurReveal";
 import { Reveal } from "@/components/motion/Reveal";
 import { formatRupiah } from "@/lib/money";
 import type { DashboardRingkasan } from "@/server/queries/dashboard";
-import { TrendingUp, TrendingDown, Wallet, Calendar } from "lucide-react";
+import { TrendingUp, TrendingDown, Wallet, Calendar, Users, Settings } from "lucide-react";
 
 interface DashboardClientProps {
   tahun: number;
@@ -163,7 +164,7 @@ export function DashboardClient({
           </p>
         </div>
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 pt-1">
-          <a
+          <Link
             href="/pemasukan"
             className="flex items-center gap-3 p-3 rounded-[8px] border border-line hover:border-income/50 hover:bg-income-soft transition-all group"
           >
@@ -178,9 +179,9 @@ export function DashboardClient({
                 SPP, bantuan & donatur
               </div>
             </div>
-          </a>
+          </Link>
 
-          <a
+          <Link
             href="/pengeluaran"
             className="flex items-center gap-3 p-3 rounded-[8px] border border-line hover:border-expense/50 hover:bg-expense-soft transition-all group"
           >
@@ -195,31 +196,31 @@ export function DashboardClient({
                 Gaji & operasional kas
               </div>
             </div>
-          </a>
+          </Link>
 
-          <a
+          <Link
             href="/data-siswa-guru"
-            className="flex items-center gap-3 p-3 rounded-[8px] border border-line hover:border-balance/50 hover:bg-balance-soft transition-all group"
+            className="flex items-center gap-3 p-3 rounded-[8px] border border-line hover:border-gold-border hover:bg-gold-soft transition-all group"
           >
-            <div className="w-8 h-8 rounded-[6px] bg-balance-soft text-balance flex items-center justify-center shrink-0 border border-balance-border group-hover:bg-balance group-hover:text-white transition-colors">
-              <Wallet className="w-4 h-4" />
+            <div className="w-8 h-8 rounded-[6px] bg-gold-soft text-gold-text flex items-center justify-center shrink-0 border border-gold-border group-hover:bg-gold group-hover:text-[#151515] transition-colors">
+              <Users className="w-4 h-4" />
             </div>
             <div className="min-w-0">
-              <div className="text-[13px] font-medium text-text group-hover:text-balance transition-colors">
+              <div className="text-[13px] font-medium text-text group-hover:text-gold-text transition-colors">
                 Kelola Siswa & Guru
               </div>
               <div className="text-[11px] text-text-3 truncate">
                 Daftar kelas & data UID
               </div>
             </div>
-          </a>
+          </Link>
 
-          <a
+          <Link
             href="/pengaturan"
             className="flex items-center gap-3 p-3 rounded-[8px] border border-line hover:border-line-strong hover:bg-panel transition-all group"
           >
             <div className="w-8 h-8 rounded-[6px] bg-panel text-text-2 flex items-center justify-center shrink-0 border border-line/60 group-hover:bg-text-2 group-hover:text-white transition-colors">
-              <Calendar className="w-4 h-4" />
+              <Settings className="w-4 h-4" />
             </div>
             <div className="min-w-0">
               <div className="text-[13px] font-medium text-text group-hover:text-text transition-colors">
@@ -229,7 +230,7 @@ export function DashboardClient({
                 Akun petugas & sandi
               </div>
             </div>
-          </a>
+          </Link>
         </div>
       </div>
 
