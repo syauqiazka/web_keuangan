@@ -218,7 +218,7 @@ export function GrafikBulananClient({ data, tahun }: GrafikBulananClientProps) {
             fill="var(--text-3)"
             textAnchor="middle"
             transform={`rotate(-90, 14, ${PADDING_TOP + chartH / 2})`}
-            className="font-mono uppercase tracking-wider font-semibold"
+            className="uppercase tracking-wider font-semibold"
           >
             Juta Rp
           </text>

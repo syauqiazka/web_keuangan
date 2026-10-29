@@ -219,11 +219,11 @@ export function DashboardClient({
             href="/pengaturan"
             className="flex items-center gap-3 p-3 rounded-[8px] border border-line bg-panel hover:border-line-strong transition-all group"
           >
-            <div className="w-8 h-8 rounded-[6px] bg-text-2 text-white flex items-center justify-center shrink-0 shadow-xs">
+            <div className="w-8 h-8 rounded-[6px] bg-brand text-white flex items-center justify-center shrink-0 shadow-xs">
               <Settings className="w-4 h-4" />
             </div>
             <div className="min-w-0">
-              <div className="text-[13px] font-medium text-text group-hover:underline transition-all">
+              <div className="text-[13px] font-semibold text-text group-hover:underline transition-all">
                 Pengaturan Sistem
               </div>
               <div className="text-[11px] text-text-3 truncate">

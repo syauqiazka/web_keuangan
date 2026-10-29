@@ -269,7 +269,7 @@ export function PemasukanClient({
           <BlurReveal blur={6} delay={0.1} duration={0.6}>
             <div className="bg-income-soft border border-income-border rounded-[12px] px-4 py-3 shadow-xs">
               <div className="flex flex-wrap items-center gap-x-5 gap-y-2 text-[13px]">
-                <span className="font-mono text-[11px] font-semibold text-income-text uppercase tracking-wider">
+                <span className="text-[11px] font-semibold text-income-text uppercase tracking-[0.06em]">
                   Rincian Jenis:
                 </span>
                 {ringkasan.perJenis.map((item) => (

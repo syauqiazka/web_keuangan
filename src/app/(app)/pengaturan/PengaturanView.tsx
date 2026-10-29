@@ -151,7 +151,7 @@ export function PengaturanView({ user }: { user: SessionUser }) {
                 <div>
                   <div className="flex items-center gap-2">
                     <h2 className="text-[14px] font-semibold text-text">Kelola Akun Petugas</h2>
-                    <span className="text-[10px] font-mono font-medium px-1.5 py-0.5 rounded-[4px] bg-brand/10 text-brand uppercase">
+                    <span className="text-[10px] font-semibold px-1.5 py-0.5 rounded-[4px] bg-brand/10 text-brand uppercase tracking-[0.06em]">
                       Admin
                     </span>
                   </div>
@@ -180,7 +180,7 @@ export function PengaturanView({ user }: { user: SessionUser }) {
                 <div>
                   <div className="flex items-center gap-2">
                     <h2 className="text-[14px] font-semibold text-text">Tahun Ajaran & Master Kelas</h2>
-                    <span className="text-[10px] font-mono font-medium px-1.5 py-0.5 rounded-[4px] bg-brand/10 text-brand uppercase">
+                    <span className="text-[10px] font-semibold px-1.5 py-0.5 rounded-[4px] bg-brand/10 text-brand uppercase tracking-[0.06em]">
                       Admin
                     </span>
                   </div>

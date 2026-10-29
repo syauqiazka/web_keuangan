@@ -126,7 +126,7 @@ export function GrafikBulanan({ data, tahun }: GrafikBulananProps) {
             fill="var(--text-3)"
             textAnchor="middle"
             transform={`rotate(-90, 12, ${PADDING_TOP + chartH / 2})`}
-            className="font-mono uppercase tracking-wider font-semibold"
+            className="uppercase tracking-wider font-semibold"
           >
             Juta Rp
           </text>

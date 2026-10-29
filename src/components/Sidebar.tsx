@@ -193,7 +193,7 @@ function MobileDrawer({
                 <div className="text-[13px] font-medium text-sidebar-text leading-tight">
                   {user.nama}
                 </div>
-                <div className="text-[11px] font-mono text-sidebar-text-muted">
+                <div className="text-[11px] font-semibold text-sidebar-text-muted uppercase tracking-[0.06em]">
                   {user.peran}
                 </div>
               </div>
@@ -327,7 +327,7 @@ export function Sidebar({ user }: { user?: SessionUser | null }) {
                   {user.nama}
                 </div>
                 <div className="flex items-center gap-1.5 mt-0.5">
-                  <span className="inline-block text-[10px] font-mono uppercase px-1.5 py-0.5 rounded-[4px] bg-sidebar-hover-bg text-sidebar-gold leading-none border border-sidebar-divider">
+                  <span className="inline-block text-[10px] font-semibold uppercase px-1.5 py-0.5 rounded-[4px] bg-sidebar-hover-bg text-sidebar-gold leading-none border border-sidebar-divider tracking-[0.06em]">
                     {user.peran}
                   </span>
                 </div>

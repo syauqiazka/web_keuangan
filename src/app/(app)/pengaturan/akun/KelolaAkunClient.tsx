@@ -251,7 +251,7 @@ function BahanAkun({
       <td className="px-4 py-2 text-text font-medium text-[13px]">{akun.nama}</td>
       <td className="px-4 py-2">
         <span
-          className={`inline-block text-[11px] font-mono px-2 py-0.5 rounded-[4px] ${
+          className={`inline-block text-[11px] font-semibold px-2 py-0.5 rounded-[4px] tracking-[0.05em] uppercase ${
             akun.peran === "ADMIN"
               ? "bg-brand/10 text-brand font-medium border border-brand/20"
               : "bg-panel text-text-2 border border-line"

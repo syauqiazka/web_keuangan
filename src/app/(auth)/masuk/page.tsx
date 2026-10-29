@@ -162,7 +162,7 @@ export default function MasukPage() {
         </div>
 
         {/* Footer label */}
-        <div className="hero-item text-[11px] text-white/70 font-mono uppercase tracking-wider flex items-center gap-2">
+        <div className="hero-item text-[11px] text-white/70 font-medium uppercase tracking-[0.07em] flex items-center gap-2">
           <span className="w-2 h-2 rounded-full bg-gold" />
           <span>Sistem Internal — Hanya untuk Petugas Resmi</span>
         </div>
@@ -206,7 +206,7 @@ export default function MasukPage() {
               <div className="w-8 h-8 rounded-[8px] bg-gold-soft border border-gold-border flex items-center justify-center">
                 <LockKeyhole className="w-4 h-4 text-gold-text" strokeWidth={2} />
               </div>
-              <span className="text-[12px] font-mono font-medium text-gold-text uppercase tracking-wider">
+              <span className="text-[11px] font-semibold text-gold-text uppercase tracking-[0.08em]">
                 Masuk ke Sistem
               </span>
             </div>

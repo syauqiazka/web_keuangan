@@ -4,7 +4,7 @@ export default function AppLoading() {
       {/* Indikator Memuat di Bagian Atas */}
       <div className="flex items-center justify-between pb-5 border-b border-line">
         <div className="h-8 w-56 bg-panel animate-pulse rounded-[4px]" />
-        <div className="text-[12px] font-mono text-text-3">Memuat data…</div>
+        <div className="text-[12px] text-text-3">Memuat data…</div>
       </div>
 
       {/* Placeholder Ringkasan / Filter */}
