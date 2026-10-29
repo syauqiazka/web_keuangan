@@ -639,7 +639,7 @@ export function DataGrid<T>({
                     {isEditing && (
                       <td className="px-3 py-2 text-right whitespace-nowrap">
                         {isUnsaved && (
-                          <span className="font-mono text-[11px] font-semibold text-gold-text bg-gold-soft border border-gold-border px-2 py-0.5 rounded">
+                          <span className="text-[11px] font-semibold text-gold-text bg-gold-soft border border-gold-border px-2 py-0.5 rounded-[4px]">
                             Belum disimpan
                           </span>
                         )}
