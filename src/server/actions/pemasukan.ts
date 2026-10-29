@@ -4,6 +4,8 @@ import { z } from "zod";
 import { db } from "@/lib/db";
 import { requireAdmin, requirePetugas } from "@/server/auth/guards";
 import { resolveTahunKalender } from "@/lib/dates";
+import { revalidatePath } from "next/cache";
+import { validateNominalDanTanggal } from "@/lib/validators";
 
 export interface ActionState {
   error?: string;
@@ -233,7 +235,75 @@ export async function tambahPembayaranSiswaAction(
     },
   });
 
+  revalidatePath("/pemasukan");
   return { success: true, createdId: created.id };
+}
+
+export async function ubahPembayaranSiswaAction(
+  _prev: ActionState | null,
+  formData: FormData
+): Promise<ActionState> {
+  const user = await requirePetugas().catch(() => null);
+  if (!user) return { error: "Sesi tidak valid. Silakan masuk kembali." };
+
+  const id = String(formData.get("id") ?? "");
+  if (!id) return { error: "ID pembayaran tidak ditemukan." };
+
+  const existing = await db.pembayaranSiswa.findFirst({
+    where: { id, deletedAt: null },
+    include: {
+      penempatan: {
+        include: { tahunAjaran: { select: { mulai: true, selesai: true } } },
+      },
+      jenisPemasukan: true,
+    },
+  });
+  if (!existing) return { error: "Data pembayaran tidak ditemukan." };
+
+  if (user.peran !== "ADMIN" && existing.petugasId !== user.id) {
+    return { error: "Anda tidak memiliki izin untuk mengubah data ini." };
+  }
+
+  const tanggalRaw = String(formData.get("tanggal") ?? "");
+  const nominalRaw = String(formData.get("nominal") ?? "");
+  const metodeRaw = String(formData.get("metode") ?? "SETOR_TUNAI");
+  const catatanRaw = formData.get("catatan");
+  const bulanTerbayarRaw = formData.get("bulanTerbayar");
+
+  const val = validateNominalDanTanggal(nominalRaw, tanggalRaw);
+  if (!val.valid) {
+    return { error: val.error };
+  }
+
+  let bulanTerbayarDate: Date | null = null;
+  if (existing.jenisPemasukan.bulanan) {
+    if (!bulanTerbayarRaw) {
+      return { error: "Bulan terbayar harus diisi untuk jenis pemasukan bulanan." };
+    }
+    const m = Number(bulanTerbayarRaw);
+    if (!Number.isInteger(m) || m < 1 || m > 12) {
+      return { error: "Bulan terbayar tidak valid." };
+    }
+    const y = resolveTahunKalender(existing.penempatan.tahunAjaran, m);
+    bulanTerbayarDate = new Date(Date.UTC(y, m - 1, 1));
+  }
+
+  const metode = metodeRaw === "TRANSFER" ? "TRANSFER" : "SETOR_TUNAI";
+  const catatan = catatanRaw ? String(catatanRaw).trim() || null : null;
+
+  await db.pembayaranSiswa.update({
+    where: { id },
+    data: {
+      tanggal: val.tanggal,
+      nominal: val.nominal,
+      metode,
+      bulanTerbayar: bulanTerbayarDate,
+      catatan,
+    },
+  });
+
+  revalidatePath("/pemasukan");
+  return { success: true };
 }
 
 export async function hapusPembayaranSiswaAction(
@@ -254,6 +324,7 @@ export async function hapusPembayaranSiswaAction(
   }
 
   await db.pembayaranSiswa.update({ where: { id }, data: { deletedAt: new Date() } });
+  revalidatePath("/pemasukan");
   return { success: true };
 }
 
@@ -315,7 +386,60 @@ export async function tambahPemasukanDanaAction(
     },
   });
 
+  revalidatePath("/pemasukan");
   return { success: true, createdId: created.id };
+}
+
+export async function ubahPemasukanDanaAction(
+  _prev: ActionState | null,
+  formData: FormData
+): Promise<ActionState> {
+  const user = await requirePetugas().catch(() => null);
+  if (!user) return { error: "Sesi tidak valid. Silakan masuk kembali." };
+
+  const id = String(formData.get("id") ?? "");
+  if (!id) return { error: "ID tidak ditemukan." };
+
+  const existing = await db.pemasukanDana.findFirst({ where: { id, deletedAt: null } });
+  if (!existing) return { error: "Data pemasukan tidak ditemukan." };
+
+  if (user.peran !== "ADMIN" && existing.petugasId !== user.id) {
+    return { error: "Anda tidak memiliki izin untuk mengubah data ini." };
+  }
+
+  const sumberDanaIdRaw = formData.get("sumberDanaId");
+  const tanggalRaw = String(formData.get("tanggal") ?? "");
+  const nominalRaw = String(formData.get("nominal") ?? "");
+  const catatanRaw = formData.get("catatan");
+
+  let targetSumberDanaId = existing.sumberDanaId;
+  if (sumberDanaIdRaw) {
+    const sumber = await db.sumberDana.findUnique({
+      where: { id: String(sumberDanaIdRaw) },
+    });
+    if (!sumber) return { error: "Sumber dana tidak ditemukan." };
+    targetSumberDanaId = sumber.id;
+  }
+
+  const val = validateNominalDanTanggal(nominalRaw, tanggalRaw);
+  if (!val.valid) {
+    return { error: val.error };
+  }
+
+  const catatan = catatanRaw ? String(catatanRaw).trim() || null : null;
+
+  await db.pemasukanDana.update({
+    where: { id },
+    data: {
+      sumberDanaId: targetSumberDanaId,
+      tanggal: val.tanggal,
+      nominal: val.nominal,
+      catatan,
+    },
+  });
+
+  revalidatePath("/pemasukan");
+  return { success: true };
 }
 
 export async function hapusPemasukanDanaAction(
@@ -336,6 +460,7 @@ export async function hapusPemasukanDanaAction(
   }
 
   await db.pemasukanDana.update({ where: { id }, data: { deletedAt: new Date() } });
+  revalidatePath("/pemasukan");
   return { success: true };
 }
 

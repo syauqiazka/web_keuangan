@@ -23,7 +23,7 @@ import type {
 import type { TahunAjaranOption, KelasOption } from "@/server/queries/anggota";
 
 const BULAN_OPTIONS = [
-  { value: "", label: "— Semua Bulan —" },
+  { value: "", label: "Semua bulan" },
   { value: "01", label: "Januari" },
   { value: "02", label: "Februari" },
   { value: "03", label: "Maret" },
@@ -138,8 +138,15 @@ export function PemasukanClient({
 
   const activeTa = tahunAjaranList.find((t) => t.aktif);
 
+  const labelJenis =
+    tab === "dari-siswa"
+      ? "Jenis Pembayaran"
+      : tab === "bantuan"
+      ? "Jenis Bantuan"
+      : "Jenis Donatur";
+
   const kelasOptions = [
-    { value: "", label: "— Semua Kelas —" },
+    { value: "", label: "Semua kelas" },
     { value: "guru", label: "Guru" },
     ...kelasList.map((k) => ({ value: k.id, label: k.nama })),
   ];
@@ -148,7 +155,7 @@ export function PemasukanClient({
   const jenisOptionsForTab = useMemo(() => {
     if (tab === "dari-siswa") {
       return [
-        { value: "", label: "— Semua Jenis Pembayaran —" },
+        { value: "", label: "Semua jenis" },
         ...allJenisOptions.map((j) => ({
           value: j.id,
           label: `${j.nama}${j.bulanan ? " (Bulanan)" : ""}`,
@@ -157,12 +164,12 @@ export function PemasukanClient({
     }
     if (tab === "bantuan") {
       return [
-        { value: "", label: "— Semua Jenis Bantuan —" },
+        { value: "", label: "Semua jenis" },
         ...bantuanSumber.map((s) => ({ value: s.id, label: s.nama })),
       ];
     }
     return [
-      { value: "", label: "— Semua Jenis Donatur —" },
+      { value: "", label: "Semua jenis" },
       ...donaturSumber.map((s) => ({ value: s.id, label: s.nama })),
     ];
   }, [tab, allJenisOptions, bantuanSumber, donaturSumber]);
@@ -338,15 +345,16 @@ export function PemasukanClient({
               <form method="GET" action="/pemasukan" className="space-y-4">
                 <input type="hidden" name="tab" value={tab} />
 
-                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 gap-3">
+                <div className="grid gap-3" style={{ gridTemplateColumns: "repeat(auto-fit, minmax(200px, 1fr))" }}>
                   {/* Filter Tahun Ajaran */}
                   <div>
                     <Select
                       name="tahunAjaran"
                       label="Tahun Ajaran"
+                      title="Saring berdasarkan Tahun Ajaran"
                       defaultValue={tahunAjaranId || "all"}
                       options={[
-                        { value: "all", label: "— Semua Tahun Ajaran —" },
+                        { value: "all", label: "Semua tahun ajaran" },
                         ...tahunAjaranList.map((ta) => ({
                           value: ta.id,
                           label: ta.aktif ? `${ta.nama} (Aktif)` : ta.nama,
@@ -356,29 +364,32 @@ export function PemasukanClient({
                   </div>
 
                   {/* Filter Kelas (Hanya untuk tab Dari Siswa) */}
-                  <div>
-                    <Select
-                      name="kelas"
-                      label="Kelas Siswa"
-                      defaultValue={kelasId}
-                      options={kelasOptions}
-                      disabled={tab !== "dari-siswa"}
-                    />
-                  </div>
+                  {tab === "dari-siswa" && (
+                    <div>
+                      <Select
+                        name="kelas"
+                        label="Kelas Siswa"
+                        title="Saring berdasarkan Tingkatan Kelas Siswa"
+                        defaultValue={kelasId}
+                        options={kelasOptions}
+                      />
+                    </div>
+                  )}
 
                   {/* Filter Bulan Transaksi */}
                   <div>
                     <Select
                       name="bulan"
                       label="Bulan Transaksi"
+                      title="Saring berdasarkan Bulan Transaksi"
                       defaultValue={bulanNomor}
                       options={BULAN_OPTIONS}
                     />
                   </div>
 
                   {/* Filter Tanggal Mulai */}
-                  <div>
-                    <label htmlFor="filter-dari-pemasukan" className="block text-[12px] font-medium text-text-2 mb-1.5">
+                  <div className="flex flex-col gap-1.5 w-full">
+                    <label htmlFor="filter-dari-pemasukan" className="text-[13px] font-medium text-text select-none">
                       Tanggal Mulai
                     </label>
                     <input
@@ -386,13 +397,14 @@ export function PemasukanClient({
                       type="date"
                       name="dari"
                       defaultValue={dari}
-                      className="w-full bg-surface border border-line text-text text-[13px] px-3 py-2 rounded-[8px] focus:outline-none focus:ring-2 focus:ring-income/20 focus:border-income transition-colors"
+                      title="Tanggal Mulai Transaksi"
+                      className="w-full h-10 px-3.5 py-2 bg-surface border border-input-border hover:border-line-strong rounded-[10px] text-text text-[14px] transition-colors focus:outline-none focus:ring-2 focus:ring-income/20 focus:border-income"
                     />
                   </div>
 
                   {/* Filter Tanggal Akhir */}
-                  <div>
-                    <label htmlFor="filter-sampai-pemasukan" className="block text-[12px] font-medium text-text-2 mb-1.5">
+                  <div className="flex flex-col gap-1.5 w-full">
+                    <label htmlFor="filter-sampai-pemasukan" className="text-[13px] font-medium text-text select-none">
                       Tanggal Akhir
                     </label>
                     <input
@@ -400,7 +412,8 @@ export function PemasukanClient({
                       type="date"
                       name="sampai"
                       defaultValue={sampai}
-                      className="w-full bg-surface border border-line text-text text-[13px] px-3 py-2 rounded-[8px] focus:outline-none focus:ring-2 focus:ring-income/20 focus:border-income transition-colors"
+                      title="Tanggal Akhir Transaksi"
+                      className="w-full h-10 px-3.5 py-2 bg-surface border border-input-border hover:border-line-strong rounded-[10px] text-text text-[14px] transition-colors focus:outline-none focus:ring-2 focus:ring-income/20 focus:border-income"
                     />
                   </div>
 
@@ -408,7 +421,8 @@ export function PemasukanClient({
                   <div>
                     <Select
                       name="jenis"
-                      label="Jenis Pembayaran"
+                      label={labelJenis}
+                      title={`Saring berdasarkan ${labelJenis}`}
                       defaultValue={jenisId}
                       options={jenisOptionsForTab}
                     />
@@ -420,7 +434,7 @@ export function PemasukanClient({
                     Catatan: Filter rentang tanggal inklusif dan memfilter transaksi berdasarkan tanggal transaksi.
                   </p>
                   <div className="flex items-center gap-2">
-                    <Button type="submit" variant="outline-brand" size="md">
+                    <Button type="submit" variant="primary" size="md">
                       <Filter className="w-4 h-4" />
                       <span>Terapkan Filter</span>
                     </Button>
@@ -495,7 +509,7 @@ export function PemasukanClient({
 
               {jenisId && activeJenisNama && (
                 <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-[6px] bg-surface border border-line text-text">
-                  <span>Jenis: {activeJenisNama}</span>
+                  <span>{labelJenis}: {activeJenisNama}</span>
                   <button
                     type="button"
                     onClick={() => removeFilter("jenis")}
@@ -522,8 +536,9 @@ export function PemasukanClient({
                 onClick={() => {
                   const sp = new URLSearchParams(window.location.search);
                   sp.set("tab", t.key);
-                  // Kosongkan jenis jika tab berganti agar tidak tabrakan ID
+                  // Bersihkan parameter jenis dan kelas saat berpindah tab agar tidak bocor antar-kategori
                   sp.delete("jenis");
+                  sp.delete("kelas");
                   router.push(`/pemasukan?${sp.toString()}`);
                 }}
                 className={`px-4 py-2.5 text-[13px] font-medium border-b-[3px] -mb-px transition-colors cursor-pointer ${

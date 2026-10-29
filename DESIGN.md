@@ -56,6 +56,24 @@ Identitas merek: **HIJAU + EMAS**. Setiap tombol dan status memiliki peranan fun
 | `--line` | `#dcdcdc` | `#2b3530` | Garis batas tipis (border kartu, divider, garis tabel) |
 | `--line-strong` | `#a3a3a3` | `#4d5b54` | Border input dan kontrol fokus aktif (kontras >= 3:1) |
 
+
+### Token Warna Area Pengaturan `--setting-*` [Tambahan]
+
+Biru kalem dipakai untuk area Pengaturan (header halaman, kartu menu, chip Admin, header tabel akun). Tidak dipakai untuk tombol — tombol tetap mengikuti makna (hijau/emas/merah).
+
+| Token | Terang | Gelap | Peran |
+|---|---|---|---|
+| `--setting` | `#3a6ea5` | `#3f78b8` | Chip solid ikon (teks putih 5,3:1 / 4,6:1) |
+| `--setting-text` | `#2b5d94` | `#8fbdee` | Teks label di atas `setting-soft` (>= 6:1) |
+| `--setting-soft` | `#eef4fb` | `#16222f` | Latar header & kartu pengaturan |
+| `--setting-border` | `#b3cbe6` | `#2f4d6e` | Garis tepi area pengaturan |
+
+**Penerapan:**
+- Dashboard Aksi Cepat kartu "Pengaturan Sistem": `bg-setting-soft border-setting-border`, ikon chip `bg-setting text-white`.
+- Header halaman `/pengaturan` dan sub-halaman: pita judul `bg-setting-soft border-b border-setting-border text-setting-text`.
+- Header tabel Kelola Akun: `bg-setting-soft text-setting-text`.
+- Badge peran "Admin": `bg-setting-soft text-setting-text border-setting-border`. Badge "Petugas": netral (`bg-panel`). Badge "Wajib ganti sandi": emas lunak (`bg-gold-soft text-gold-text`).
+- Sidebar tint ikon non-aktif: Pemasukan `#7fe0b5`, Pengeluaran `#f28f85`, Pengaturan `#8fbdee` (kontras >= 4,5:1 di atas sidebar `#17402f`).
 ### Aturan Kontras & Tema Area
 
 1. **Tema Area Menyebar:** Warna area (Hijau = Pemasukan, Merah = Pengeluaran, Emas = Saldo/Edit) diterapkan ke SELURUH permukaan area tersebut (kartu ringkasan latar `-soft`, border `-border`, angka besar `-text`, header tabel `-soft`, chip rincian, dan batang grafik).
@@ -82,6 +100,25 @@ Setiap tombol aksi WAJIB memiliki **ikon Lucide 16px + label teks eksplisit** ag
 | `danger-solid` | Latar merah solid (`--danger`), teks putih | Tombol konfirmasi final dalam modal dialog bahaya |
 | `ghost` | Tanpa border, hover lembut | Reset filter (`RotateCcw`), aksi baris sekunder |
 
+
+### Komponen PasswordInput (`components/ui/PasswordInput.tsx`) [Tambahan]
+
+Turunan dari `Input`. Menambahkan tombol toggle tampil/sembunyikan di kolom kanan input (ikon `Eye`/`EyeOff` Lucide 16px).
+
+- `type="button"` (tidak boleh men-submit form).
+- `aria-label` dinamis: "Tampilkan kata sandi" / "Sembunyikan kata sandi"; `aria-pressed` sesuai state.
+- Area sentuh tombol >= 40x40px; ring fokus 2px terlihat di kedua tema.
+- Default tersembunyi; kembali tersembunyi setelah submit sukses (`resetVisibilityKey` prop) dan saat modal ditutup.
+- Diteruskan: `autoComplete="current-password"` untuk login, `autoComplete="new-password"` untuk kata sandi baru.
+- Semua `input[type="password"]` di luar file ini dilarang. Verifikasi: `git grep type="password"` harus kosong.
+
+### Komponen BackLink (`components/ui/BackLink.tsx`) [Tambahan]
+
+Tombol kembali bergaya ghost untuk semua sub-halaman `/pengaturan/*`.
+
+- Varian ghost, `min-h-[40px]`, ikon `ArrowLeft` 16px + label teks.
+- Diletakkan di atas judul halaman, sebelum breadcrumb.
+- Wajib ada di semua sub-halaman `/pengaturan` (akun, tahun-ajaran, dll.).
 **Aturan Hirarki Tombol:** Maksimal **SATU** tombol solid per area kerja.
 - Saat mode lihat: tombol solid adalah EMAS `accent` ("Edit Pembayaran Siswa" / "Input").
 - Saat mode edit: tombol solid adalah HIJAU `primary` ("Simpan Perubahan"). Tombol Input berubah menjadi `secondary` netral ("Batal").
@@ -107,6 +144,9 @@ Ini komponen terpenting. Spreadsheet meminta perilaku seperti lembar kerja: Tamb
 - Total di kaki tabel: baris dengan border atas 1px Ink, label "Total", angka 600.
 - Di bawah 640px, tabel tetap tabel (bergulir horizontal di dalam wadahnya). Jangan diubah menjadi tumpukan kartu.
 
+- **Scroller aksesibel:** Tabel lebar dibungkus kontainer `max-h-[calc(100dvh-16rem)] overflow-auto` sehingga scrollbar horizontal selalu terlihat tanpa perlu menggulir halaman ke bawah. `thead` sticky (`top-0 z-20`) agar header selalu tampak. Kolom-kolom sticky (No, Nama Siswa) memiliki `sticky left-0` dan `z-10` dengan latar matching tema area.
+- **Aksi dalam sel (in-cell actions, tab Dari Siswa):** Setiap transaksi di dalam sel ditampilkan sebagai daftar sub-baris, masing-masing memiliki tombol ikon **Ubah** (`Pencil`, warna emas `--gold-text`, area sentuh >= 36px) dan **Hapus** (`Trash2`, warna merah `--danger`). Chip status LUNAS (`CheckCircle2`, hijau lunak) atau KURANG (`AlertCircle Rp...`, merah lunak) tampil di baris pertama sel. Tombol `+ Catat` (outline hijau, `Plus`) di bawah transaksi membuka `DialogPembayaran` mode tambah. Klik baris transaksi membuka mode ubah.
+- **Aksi dalam baris (in-row actions, tab Bantuan & Donatur):** Setiap baris memiliki kolom Aksi dengan tombol `Pencil` (emas) dan `Trash2` (merah). Opacity 70% normal, 100% saat hover. Dialog Ubah terpisah dari dialog Catat; keduanya menggunakan `DialogDana` yang sama dengan prop `mode`.
 ## 8. Layout per halaman
 
 **Login** — satu kolom, lebar 360px di tengah, latar Paper. Logo 56px, judul "Masuk" 32px, dua field (Kode, Kata sandi), satu tombol utama penuh lebar. Tanpa gambar latar, tanpa kutipan, tanpa "Lupa kata sandi" (admin yang mengatur ulang; tulis: "Hubungi admin untuk mengatur ulang kata sandi.").
@@ -127,7 +167,13 @@ Ini komponen terpenting. Spreadsheet meminta perilaku seperti lembar kerja: Tamb
 
 **Pengeluaran** — header: judul, filter **Tahun Ajaran**, **Bulan**, tombol **Tarik Data**. Blok ringkasan "Jumlah Pengeluaran Bulan Ini" dan "Total Pengeluaran Per Tahun". Tabel: No, Tanggal, Jenis Pengeluaran, Nominal, Petugas. Alur edit: Input, Tambah Baris, Simpan (bagian 7). Paste dari Excel aktif.
 
-**Pengaturan** — daftar vertikal tiga baris dengan garis pemisah: **Ganti Kata Sandi** (dialog), **Mode** (dua pilihan: Terang / Gelap, radio biasa), **Keluar**. Untuk ADMIN ditambah baris **Kelola Akun** (lihat AGENTS.md, bagian "Tambahan di luar spreadsheet").
+**Pengaturan** — header pita biru (`bg-setting-soft border-b border-setting-border`). Kartu menu: Ganti Kata Sandi, Mode Tampilan (Terang/Gelap), Keluar; untuk ADMIN tambah Kelola Akun dan Kelola Tahun Ajaran.
+
+**Kelola Akun** — sub-halaman `/pengaturan/akun` (hanya ADMIN). Fitur: daftar akun, buat akun baru, reset kata sandi, nonaktifkan, dan hapus permanen.
+- Tombol **Hapus Akun** (ikon Trash2, varian danger outline): hanya aktif jika akun tidak punya transaksi apa pun (termasuk soft-deleted). Jika punya transaksi: tombol dinonaktifkan, tooltip "Punya N transaksi — gunakan Nonaktifkan".
+- Dialog konfirmasi hapus: pengguna harus mengetik `kode` akun untuk mengaktifkan tombol `danger-solid`.
+- Aturan keamanan murni di `src/lib/akun-rules.ts` (`canDeleteAccount`): tolak jika (a) diri sendiri, (b) satu-satunya admin aktif, (c) punya transaksi. Unit test di `tests/akun-rules.test.ts`.
+- Semua tombol aksi sejajar dalam satu baris per baris tabel (`h-8`, ukuran seragam): Reset Sandi, Nonaktifkan/Aktifkan, Hapus.
 
 ## 9. Tailwind v4 (`src/app/globals.css`) [Sumber + Tambahan]
 
@@ -252,6 +298,30 @@ Penggunaan: tombol utama = `bg-text text-on-ink` (Ink di tema terang, terbalik d
 
 Nilai tema gelap adalah turunan saya dari palet sumber (hijau diterangkan agar teks lolos kontras 4,5:1; seri grafik dibedakan oleh kecerahan). Periksa visual di perangkat nyata sebelum rilis.
 
+
+### Token Scrollbar & Color-Scheme [Tambahan]
+
+```
+/* Scrollbar bertema */
+:root {
+  --scroll-track: #e6efea;
+  --scroll-thumb: #4a8d75;
+  --scroll-thumb-hover: #9a6f00;
+  color-scheme: light;
+}
+:root[data-theme="dark"] {
+  --scroll-track: #1c2420;
+  --scroll-thumb: #4aa083;
+  --scroll-thumb-hover: #e5a93c;
+  color-scheme: dark;
+}
+```
+
+`color-scheme: light / dark` memastikan dropdown `<select>` bawaan browser dan ikon kalender `<input type="date">` mengikuti tema.
+
+### Token Border Input [Tambahan]
+
+`--input-border`: `#868b88` (terang, 3,46:1 di putih) / `#66756e` (gelap, 3,53:1 di permukaan). Memenuhi WCAG 3:1 untuk elemen grafis. Dipakai di `Input.tsx` dan `Select.tsx` (`border-input-border hover:border-line-strong`).
 ## 10. Gambar dan ikon
 
 - Satu-satunya gambar: logo Bank Saku Digital.

@@ -7,6 +7,7 @@ import { useGSAP } from "@gsap/react";
 import { loginAction, type ActionState } from "@/server/actions/auth";
 import { Button } from "@/components/ui/Button";
 import { Input } from "@/components/ui/Input";
+import { PasswordInput } from "@/components/ui/PasswordInput";
 import { checkReducedMotion, GSAP_DURATION, GSAP_EASE } from "@/lib/motion";
 import {
   ShieldCheck,
@@ -241,10 +242,9 @@ export default function MasukPage() {
               disabled={isPending}
             />
 
-            <Input
+            <PasswordInput
               id="password"
               name="password"
-              type="password"
               label="Kata Sandi"
               placeholder="Masukkan kata sandi akun Anda"
               autoComplete="current-password"

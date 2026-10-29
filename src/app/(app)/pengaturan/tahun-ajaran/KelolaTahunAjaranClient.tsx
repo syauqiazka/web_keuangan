@@ -1,11 +1,11 @@
 "use client";
 
 import { useState, useTransition } from "react";
-import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/Button";
 import { Dialog } from "@/components/ui/Dialog";
 import { Input } from "@/components/ui/Input";
+import { BackLink } from "@/components/ui/BackLink";
 import { useToast } from "@/components/ui/Toast";
 import { BlurReveal } from "@/components/motion/BlurReveal";
 import { StaggerGroup, StaggerItem } from "@/components/motion/StaggerGroup";
@@ -19,7 +19,6 @@ import {
   Calendar,
   GraduationCap,
   CheckCircle2,
-  ArrowLeft,
   Plus,
   Layers,
   Clock,
@@ -133,13 +132,9 @@ export function KelolaTahunAjaranClient({
       <BlurReveal blur={10} duration={0.75}>
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-5 border-b border-line">
           <div>
-            <Link
-              href="/pengaturan"
-              className="inline-flex items-center gap-1.5 text-[13px] text-text-3 hover:text-text mb-2 transition-colors font-medium"
-            >
-              <ArrowLeft className="w-4 h-4" />
-              Kembali ke Pengaturan
-            </Link>
+            <div className="mb-2">
+              <BackLink href="/pengaturan" label="Kembali ke Pengaturan" />
+            </div>
             <h1 className="text-[22px] lg:text-[26px] font-semibold text-text tracking-tight">
               Pengelolaan Tahun Ajaran & Kelas
             </h1>

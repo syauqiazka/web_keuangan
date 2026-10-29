@@ -46,7 +46,7 @@ interface EditablePengeluaranRow {
 }
 
 const BULAN_OPTIONS = [
-  { value: "", label: "— Semua Bulan —" },
+  { value: "", label: "Semua bulan" },
   { value: "01", label: "Januari" },
   { value: "02", label: "Februari" },
   { value: "03", label: "Maret" },
@@ -138,7 +138,7 @@ export function PengeluaranClient({
   }, [router]);
 
   const tahunOptions = [
-    { value: "", label: "— Semua Tahun Ajaran —" },
+    { value: "", label: "Semua tahun ajaran" },
     ...tahunAjaranList.map((t) => ({
       value: t.id,
       label: t.aktif ? `${t.nama} (Aktif)` : t.nama,
@@ -146,7 +146,7 @@ export function PengeluaranClient({
   ];
 
   const jenisOptions = [
-    { value: "", label: "— Semua Jenis Pengeluaran —" },
+    { value: "", label: "Semua jenis pengeluaran" },
     ...jenisList.map((j) => ({ value: j, label: j })),
   ];
 
@@ -478,11 +478,12 @@ export function PengeluaranClient({
             {filterPanelOpen && (
               <div className="p-4 border-b border-line">
                 <form method="GET" action="/pengeluaran" className="space-y-4">
-                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-3">
+                  <div className="grid gap-3" style={{ gridTemplateColumns: "repeat(auto-fit, minmax(200px, 1fr))" }}>
                     <div>
                       <Select
                         name="tahunAjaran"
                         label="Tahun Ajaran"
+                        title="Saring berdasarkan Tahun Ajaran"
                         defaultValue={tahunAjaranId}
                         options={tahunOptions}
                       />
@@ -491,12 +492,13 @@ export function PengeluaranClient({
                       <Select
                         name="bulan"
                         label="Bulan Transaksi"
+                        title="Saring berdasarkan Bulan Transaksi"
                         defaultValue={bulanNomor}
                         options={BULAN_OPTIONS}
                       />
                     </div>
-                    <div>
-                      <label htmlFor="filter-dari-pengeluaran" className="block text-[12px] font-medium text-text-2 mb-1.5">
+                    <div className="flex flex-col gap-1.5 w-full">
+                      <label htmlFor="filter-dari-pengeluaran" className="text-[13px] font-medium text-text select-none">
                         Tanggal Mulai
                       </label>
                       <input
@@ -504,11 +506,12 @@ export function PengeluaranClient({
                         type="date"
                         name="dari"
                         defaultValue={dari}
-                        className="w-full bg-surface border border-line-strong text-text text-[13px] px-3 py-2 rounded-[8px] focus:outline-none focus:ring-2 focus:ring-brand/20 focus:border-brand transition-colors"
+                        title="Tanggal Mulai Transaksi"
+                        className="w-full h-10 px-3.5 py-2 bg-surface border border-input-border hover:border-line-strong rounded-[10px] text-text text-[14px] transition-colors focus:outline-none focus:ring-2 focus:ring-brand/20 focus:border-brand"
                       />
                     </div>
-                    <div>
-                      <label htmlFor="filter-sampai-pengeluaran" className="block text-[12px] font-medium text-text-2 mb-1.5">
+                    <div className="flex flex-col gap-1.5 w-full">
+                      <label htmlFor="filter-sampai-pengeluaran" className="text-[13px] font-medium text-text select-none">
                         Tanggal Akhir
                       </label>
                       <input
@@ -516,13 +519,15 @@ export function PengeluaranClient({
                         type="date"
                         name="sampai"
                         defaultValue={sampai}
-                        className="w-full bg-surface border border-line-strong text-text text-[13px] px-3 py-2 rounded-[8px] focus:outline-none focus:ring-2 focus:ring-brand/20 focus:border-brand transition-colors"
+                        title="Tanggal Akhir Transaksi"
+                        className="w-full h-10 px-3.5 py-2 bg-surface border border-input-border hover:border-line-strong rounded-[10px] text-text text-[14px] transition-colors focus:outline-none focus:ring-2 focus:ring-brand/20 focus:border-brand"
                       />
                     </div>
                     <div>
                       <Select
                         name="jenis"
                         label="Jenis Pengeluaran"
+                        title="Saring berdasarkan Jenis Pengeluaran"
                         defaultValue={jenis}
                         options={jenisOptions}
                       />
@@ -534,7 +539,7 @@ export function PengeluaranClient({
                       Catatan: Filter rentang tanggal bersifat inklusif terhadap tanggal transaksi.
                     </p>
                     <div className="flex items-center gap-2">
-                      <Button type="submit" variant="outline-brand" size="md">
+                      <Button type="submit" variant="primary" size="md">
                         <Filter className="w-4 h-4" />
                         <span>Terapkan Filter</span>
                       </Button>

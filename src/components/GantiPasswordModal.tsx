@@ -4,7 +4,7 @@ import { useActionState, useEffect } from "react";
 import { gantiPasswordAction, type ActionState } from "@/server/actions/auth";
 import { Dialog } from "@/components/ui/Dialog";
 import { Button } from "@/components/ui/Button";
-import { Input } from "@/components/ui/Input";
+import { PasswordInput } from "@/components/ui/PasswordInput";
 
 export interface GantiPasswordModalProps {
   open: boolean;
@@ -54,34 +54,39 @@ export function GantiPasswordModal({
         )}
 
         <div>
-          <Input
+          <PasswordInput
             id="passwordLama"
             name="passwordLama"
-            type="password"
             label="Kata sandi saat ini"
+            autoComplete="current-password"
+            resetVisibilityKey={open}
             required
             disabled={isPending}
           />
         </div>
 
         <div>
-          <Input
+          <PasswordInput
             id="passwordBaru"
             name="passwordBaru"
-            type="password"
             label="Kata sandi baru (minimal 8 karakter)"
+            autoComplete="new-password"
+            resetVisibilityKey={open}
             required
+            minLength={8}
             disabled={isPending}
           />
         </div>
 
         <div>
-          <Input
+          <PasswordInput
             id="konfirmasiPassword"
             name="konfirmasiPassword"
-            type="password"
             label="Konfirmasi kata sandi baru"
+            autoComplete="new-password"
+            resetVisibilityKey={open}
             required
+            minLength={8}
             disabled={isPending}
           />
         </div>

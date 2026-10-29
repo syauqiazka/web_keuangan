@@ -25,6 +25,7 @@ export const Select = React.forwardRef<HTMLSelectElement, SelectProps>(
       tableCell = false,
       className = "",
       id,
+      title,
       ...props
     },
     ref
@@ -46,16 +47,17 @@ export const Select = React.forwardRef<HTMLSelectElement, SelectProps>(
         <select
           ref={ref}
           id={selectId}
+          title={title}
           className={`w-full bg-surface border rounded-[10px] text-text ${height} ${textSize} transition-colors focus:outline-none focus:ring-2 focus:border-brand disabled:opacity-50 disabled:bg-panel disabled:cursor-not-allowed ${
             error
               ? "border-danger focus:ring-danger/20 focus:border-danger"
-              : "border-line hover:border-line-strong focus:ring-brand/20"
+              : "border-input-border hover:border-line-strong focus:ring-brand/20"
           } ${className}`}
           {...props}
         >
           {options
             ? options.map((opt) => (
-                <option key={opt.value} value={opt.value}>
+                <option key={opt.value} value={opt.value} title={opt.label}>
                   {opt.label}
                 </option>
               ))

@@ -2,8 +2,10 @@
 
 import { z } from "zod";
 import { hash } from "@node-rs/argon2";
+import { revalidatePath } from "next/cache";
 import { db } from "@/lib/db";
 import { requireAdmin } from "@/server/auth/guards";
+import { canDeleteAccount } from "@/lib/akun-rules";
 
 export interface ActionState {
   error?: string;
@@ -65,13 +67,14 @@ export async function buatAkunAction(
     },
   });
 
+  revalidatePath("/pengaturan/akun");
   return { success: true };
 }
 
 // ─── Reset Password ───────────────────────────────────────────────
 
 const resetPasswordSchema = z.object({
-  penggunaId: z.string().min(1),
+  penggunaId: z.string().min(1, "ID akun tidak ditemukan."),
   passwordBaru: z.string().min(8, "Kata sandi minimal 8 karakter."),
 });
 
@@ -107,10 +110,15 @@ export async function resetPasswordAction(
     },
   });
 
+  revalidatePath("/pengaturan/akun");
   return { success: true };
 }
 
 // ─── Nonaktifkan Akun ─────────────────────────────────────────────
+
+const toggleAkunSchema = z.object({
+  penggunaId: z.string().min(1, "ID akun tidak ditemukan."),
+});
 
 export async function nonaktifkanAkunAction(
   _prev: ActionState | null,
@@ -119,8 +127,14 @@ export async function nonaktifkanAkunAction(
   const admin = await requireAdmin().catch(() => null);
   if (!admin) return { error: "Hanya admin yang dapat menonaktifkan akun." };
 
-  const penggunaId = String(formData.get("penggunaId") ?? "");
-  if (!penggunaId) return { error: "ID akun tidak ditemukan." };
+  const parsed = toggleAkunSchema.safeParse({
+    penggunaId: formData.get("penggunaId"),
+  });
+  if (!parsed.success) {
+    return { error: parsed.error.issues[0]?.message ?? "ID akun tidak valid." };
+  }
+
+  const { penggunaId } = parsed.data;
 
   // Jangan nonaktifkan diri sendiri
   if (penggunaId === admin.id) {
@@ -135,6 +149,7 @@ export async function nonaktifkanAkunAction(
     data: { aktif: false },
   });
 
+  revalidatePath("/pengaturan/akun");
   return { success: true };
 }
 
@@ -147,18 +162,29 @@ export async function aktifkanAkunAction(
   const admin = await requireAdmin().catch(() => null);
   if (!admin) return { error: "Hanya admin yang dapat mengaktifkan akun." };
 
-  const penggunaId = String(formData.get("penggunaId") ?? "");
-  if (!penggunaId) return { error: "ID akun tidak ditemukan." };
+  const parsed = toggleAkunSchema.safeParse({
+    penggunaId: formData.get("penggunaId"),
+  });
+  if (!parsed.success) {
+    return { error: parsed.error.issues[0]?.message ?? "ID akun tidak valid." };
+  }
+
+  const { penggunaId } = parsed.data;
 
   await db.pengguna.update({
     where: { id: penggunaId },
     data: { aktif: true },
   });
 
+  revalidatePath("/pengaturan/akun");
   return { success: true };
 }
 
 // ─── Hapus Akun ───────────────────────────────────────────────────
+
+const hapusAkunSchema = z.object({
+  penggunaId: z.string().min(1, "ID akun tidak ditemukan."),
+});
 
 export async function hapusAkunAction(
   _prev: ActionState | null,
@@ -167,46 +193,75 @@ export async function hapusAkunAction(
   const admin = await requireAdmin().catch(() => null);
   if (!admin) return { error: "Hanya admin yang dapat menghapus akun." };
 
-  const penggunaId = String(formData.get("penggunaId") ?? "");
-  if (!penggunaId) return { error: "ID akun tidak ditemukan." };
-
-  // Jangan hapus akun sendiri
-  if (penggunaId === admin.id) {
-    return { error: "Anda tidak dapat menghapus akun yang sedang Anda gunakan." };
+  const parsed = hapusAkunSchema.safeParse({
+    penggunaId: formData.get("penggunaId"),
+  });
+  if (!parsed.success) {
+    return { error: parsed.error.issues[0]?.message ?? "ID akun tidak valid." };
   }
 
-  const pengguna = await db.pengguna.findUnique({
-    where: { id: penggunaId },
-    include: {
-      _count: {
-        select: {
-          pembayaranSiswa: true,
-          pemasukanDana: true,
-          pengeluaran: true,
+  const { penggunaId } = parsed.data;
+
+  // Ambil data target user beserta jumlah transaksi (termasuk yang soft-delete)
+  const [targetUser, jumlahAdminAktif] = await Promise.all([
+    db.pengguna.findUnique({
+      where: { id: penggunaId },
+      include: {
+        _count: {
+          select: {
+            pembayaranSiswa: true,
+            pemasukanDana: true,
+            pengeluaran: true,
+          },
         },
       },
-    },
-  });
+    }),
+    db.pengguna.count({
+      where: { peran: "ADMIN", aktif: true },
+    }),
+  ]);
 
-  if (!pengguna) return { error: "Akun tidak ditemukan." };
+  if (!targetUser) return { error: "Akun tidak ditemukan." };
 
   const totalTransaksi =
-    pengguna._count.pembayaranSiswa +
-    pengguna._count.pemasukanDana +
-    pengguna._count.pengeluaran;
+    (targetUser._count?.pembayaranSiswa ?? 0) +
+    (targetUser._count?.pemasukanDana ?? 0) +
+    (targetUser._count?.pengeluaran ?? 0);
 
-  if (totalTransaksi > 0) {
+  // Periksa aturan keamanan penghapusan akun menggunakan fungsi murni
+  const ruleCheck = canDeleteAccount({
+    currentUserId: admin.id,
+    targetUser: {
+      id: targetUser.id,
+      peran: targetUser.peran as "ADMIN" | "PETUGAS",
+      aktif: targetUser.aktif,
+    },
+    jumlahAdminAktif,
+    totalTransaksi,
+  });
+
+  if (!ruleCheck.dapatDihapus) {
+    return { error: ruleCheck.alasan ?? "Akun tidak memenuhi syarat untuk dihapus." };
+  }
+
+  // Jika lolos semua validasi: jalankan penghapusan dalam satu transaksi
+  try {
+    await db.$transaction([
+      db.sesi.deleteMany({ where: { penggunaId } }),
+      db.pengguna.delete({ where: { id: penggunaId } }),
+    ]);
+  } catch (err: unknown) {
+    // Tangkap error relasi Prisma P2003 dengan pesan ramah
+    if (typeof err === "object" && err !== null && "code" in err && (err as { code: string }).code === "P2003") {
+      return {
+        error: "Akun tidak dapat dihapus karena masih terkait dengan data lain dalam sistem.",
+      };
+    }
     return {
-      error: `Akun "${pengguna.nama}" memiliki ${totalTransaksi} riwayat pencatatan transaksi keuangan. Akun tidak dapat dihapus permanen demi menjaga keutuhan laporan audit sekolah. Silakan gunakan opsi Nonaktifkan Akun.`,
+      error: "Gagal menghapus akun. Terjadi kesalahan pada basis data.",
     };
   }
 
-  // Jika akun belum pernah mencatat transaksi, hapus sesi dan akun permanen
-  await db.$transaction([
-    db.sesi.deleteMany({ where: { penggunaId } }),
-    db.pengguna.delete({ where: { id: penggunaId } }),
-  ]);
-
+  revalidatePath("/pengaturan/akun");
   return { success: true };
 }
-

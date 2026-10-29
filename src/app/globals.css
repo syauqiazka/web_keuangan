@@ -41,6 +41,7 @@
 
 /* Token semantik yang berganti saat tema berubah */
 :root {
+  color-scheme: light;
   --canvas: #f7f8fa;
   --surface: #ffffff;
   --panel: #f0f2f5;
@@ -53,6 +54,7 @@
   --text-3: #595959;
   --line: #dcdcdc;
   --line-strong: #a3a3a3;
+  --input-border: #868b88;
   --on-ink: #ffffff;
   --accent: #29735c;
   --accent-hover: #215e4b;
@@ -81,6 +83,17 @@
   --balance-border: var(--gold-border);
   --balance-text: var(--gold-text);
 
+  /* PENGATURAN (Biru Kalem) - Tema Terang */
+  --setting: #3a6ea5;
+  --setting-text: #2b5d94;
+  --setting-soft: #eef4fb;
+  --setting-border: #b3cbe6;
+
+  /* Scrollbar Bertema - Terang */
+  --scroll-track: #e6efea;
+  --scroll-thumb: #4a8d75;
+  --scroll-thumb-hover: #9a6f00;
+
   --series-in: #146340;
   --series-out: #e0604f;
   --warning: #a96d19;
@@ -103,6 +116,7 @@
 
 /* Tema gelap yang tenang dan kontras tinggi */
 :root[data-theme="dark"] {
+  color-scheme: dark;
   --canvas: #111413;
   --surface: #181d1a;
   --panel: #202723;
@@ -115,6 +129,7 @@
   --text-3: #999999;
   --line: #2b3530;
   --line-strong: #4d5b54;
+  --input-border: #66756e;
   --on-ink: #ffffff;
   --accent: #2a7059;
   --accent-hover: #2f7d65;
@@ -143,13 +158,24 @@
   --balance-border: var(--gold-border);
   --balance-text: var(--gold-text);
 
+  /* PENGATURAN (Biru Kalem) - Tema Gelap */
+  --setting: #3f78b8;
+  --setting-text: #8fbdee;
+  --setting-soft: #16222f;
+  --setting-border: #2f4d6e;
+
+  /* Scrollbar Bertema - Gelap */
+  --scroll-track: #1c2420;
+  --scroll-thumb: #4aa083;
+  --scroll-thumb-hover: #e5a93c;
+
   --series-in: #3dc08f;
   --series-out: #c4453b;
   --warning: #d48e24;
   --danger: #ef6b61;
   --label: #999999;
 
-  /* Sidebar Dark Mode (KOREKSI 1: Hijau Hutan #17402f terpisah jelas dari canvas #111413) */
+  /* Sidebar Dark Mode (Hijau Hutan #17402f terpisah jelas dari canvas #111413) */
   --sidebar-bg: #17402f;
   --sidebar-border: #3a7a62;
   --sidebar-divider: #2a5a47;
@@ -165,6 +191,7 @@
 
 @media (prefers-color-scheme: dark) {
   :root[data-theme="system"] {
+    color-scheme: dark;
     --canvas: #111413;
     --surface: #181d1a;
     --panel: #202723;
@@ -177,6 +204,7 @@
     --text-3: #999999;
     --line: #2b3530;
     --line-strong: #4d5b54;
+    --input-border: #66756e;
     --on-ink: #ffffff;
     --accent: #2a7059;
     --accent-hover: #2f7d65;
@@ -202,6 +230,15 @@
     --balance-soft: var(--gold-soft);
     --balance-border: var(--gold-border);
     --balance-text: var(--gold-text);
+
+    --setting: #3f78b8;
+    --setting-text: #8fbdee;
+    --setting-soft: #16222f;
+    --setting-border: #2f4d6e;
+
+    --scroll-track: #1c2420;
+    --scroll-thumb: #4aa083;
+    --scroll-thumb-hover: #e5a93c;
 
     --series-in: #3dc08f;
     --series-out: #c4453b;
@@ -237,6 +274,7 @@
   --color-text-3: var(--text-3);
   --color-line: var(--line);
   --color-line-strong: var(--line-strong);
+  --color-input-border: var(--input-border);
   --color-on-ink: var(--on-ink);
   --color-accent: var(--accent);
   --color-accent-hover: var(--accent-hover);
@@ -268,6 +306,15 @@
   --color-balance-border: var(--balance-border);
   --color-balance-text: var(--balance-text);
 
+  --color-setting: var(--setting);
+  --color-setting-text: var(--setting-text);
+  --color-setting-soft: var(--setting-soft);
+  --color-setting-border: var(--setting-border);
+
+  --color-scroll-track: var(--scroll-track);
+  --color-scroll-thumb: var(--scroll-thumb);
+  --color-scroll-thumb-hover: var(--scroll-thumb-hover);
+
   --color-sidebar-bg: var(--sidebar-bg);
   --color-sidebar-border: var(--sidebar-border);
   --color-sidebar-divider: var(--sidebar-divider);
@@ -279,6 +326,39 @@
   --color-sidebar-active-border: var(--sidebar-active-border);
   --color-sidebar-active-text: var(--sidebar-active-text);
   --color-sidebar-gold: var(--sidebar-gold);
+}
+
+html {
+  scrollbar-gutter: stable;
+}
+
+* {
+  scrollbar-width: thin;
+  scrollbar-color: var(--scroll-thumb) var(--scroll-track);
+}
+
+::-webkit-scrollbar {
+  width: 12px;
+  height: 12px;
+}
+
+::-webkit-scrollbar-track {
+  background: var(--scroll-track);
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--scroll-thumb);
+  border-radius: 9999px;
+  border: 3px solid var(--scroll-track);
+}
+
+::-webkit-scrollbar-thumb:hover,
+::-webkit-scrollbar-thumb:active {
+  background: var(--scroll-thumb-hover);
+}
+
+::-webkit-scrollbar-corner {
+  background: var(--scroll-track);
 }
 
 body {
@@ -293,15 +373,13 @@ body {
   font-variant-numeric: tabular-nums;
 }
 
-/* Animasi transisi halaman halus */
+/* Animasi transisi halaman halus (hanya opacity agar tidak merusak containing block position:fixed) */
 @keyframes pageFadeIn {
   from {
     opacity: 0.85;
-    transform: translateY(2px);
   }
   to {
     opacity: 1;
-    transform: translateY(0);
   }
 }
 
@@ -325,4 +403,3 @@ body {
 .animate-indeterminate-progress {
   animation: indeterminateProgress 1.2s infinite ease-in-out;
 }
-

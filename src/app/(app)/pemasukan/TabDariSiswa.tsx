@@ -1,7 +1,7 @@
 "use client";
 
 import * as React from "react";
-import { useState, useActionState } from "react";
+import { useState, useActionState, useTransition } from "react";
 import {
   Pencil,
   Check,
@@ -21,6 +21,7 @@ import { useToast } from "@/components/ui/Toast";
 import {
   tambahJenisPemasukanAction,
   tambahPembayaranSiswaAction,
+  ubahPembayaranSiswaAction,
   hapusPembayaranSiswaAction,
   hapusJenisPemasukanAction,
   type ActionState,
@@ -91,12 +92,16 @@ function DialogTambahKolom({
   onClose: () => void;
   onSuccess: () => void;
 }) {
+  const { showToast } = useToast();
   const [state, formAction, isPending] = useActionState<ActionState | null, FormData>(
     async (_prev, fd) => {
       const result = await tambahJenisPemasukanAction(_prev, fd);
       if (result.success) {
+        showToast("Jenis pembayaran baru berhasil ditambahkan.", "success");
         onSuccess();
         onClose();
+      } else if (result.error) {
+        showToast(result.error, "error");
       }
       return result;
     },
@@ -132,7 +137,7 @@ function DialogTambahKolom({
           placeholder="Contoh: 200.000 (kosongkan jika fleksibel)"
           helperText="Nominal kewajiban. Untuk jenis bulanan, ini berlaku per bulan; untuk sekali bayar, berlaku per tahun ajaran."
         />
-        {state?.error && <p className="text-[14px] text-danger">{state.error}</p>}
+        {state?.error && <p className="text-[13px] text-danger">{state.error}</p>}
         <div className="flex justify-end gap-2 pt-2">
           <Button type="button" variant="secondary" onClick={onClose}>
             Batal
@@ -146,24 +151,35 @@ function DialogTambahKolom({
   );
 }
 
-// ─── Dialog Tambah Pembayaran Siswa ───────────────────────────────
+// ─── Dialog Pembayaran (Tambah & Ubah) ─────────────────────────────
 
-function DialogTambahPembayaran({
-  open,
-  onClose,
-  onSuccess,
-  penempatanId,
-  namaSiswa,
-  jenisList,
-}: {
+interface DialogPembayaranProps {
   open: boolean;
+  mode: "tambah" | "ubah";
   onClose: () => void;
   onSuccess: () => void;
   penempatanId: string;
   namaSiswa: string;
   jenisList: JenisPemasukanOption[];
-}) {
-  const [selectedJenisId, setSelectedJenisId] = useState(jenisList[0]?.id ?? "");
+  initialJenisId?: string;
+  initialPembayaran?: PembayaranSel | null;
+}
+
+function DialogPembayaran({
+  open,
+  mode,
+  onClose,
+  onSuccess,
+  penempatanId,
+  namaSiswa,
+  jenisList,
+  initialJenisId,
+  initialPembayaran,
+}: DialogPembayaranProps) {
+  const { showToast } = useToast();
+  const [selectedJenisId, setSelectedJenisId] = useState(
+    initialJenisId || (initialPembayaran ? jenisList[0]?.id ?? "" : jenisList[0]?.id ?? "")
+  );
   const selectedJenis = jenisList.find((j) => j.id === selectedJenisId);
 
   const today = new Date();
@@ -171,81 +187,146 @@ function DialogTambahPembayaran({
     today.getMonth() + 1
   ).padStart(2, "0")}-${today.getFullYear()}`;
 
+  let defaultTanggal = defaultToday;
+  let defaultBulan = String(today.getMonth() + 1);
+  let defaultMetode = "SETOR_TUNAI";
+  let defaultNominal = selectedJenis?.nominalStandar ? String(selectedJenis.nominalStandar) : "";
+  let defaultCatatan = "";
+
+  if (mode === "ubah" && initialPembayaran) {
+    const d = new Date(initialPembayaran.tanggal);
+    defaultTanggal = `${String(d.getUTCDate()).padStart(2, "0")}-${String(
+      d.getUTCMonth() + 1
+    ).padStart(2, "0")}-${d.getUTCFullYear()}`;
+    if (initialPembayaran.bulanTerbayar) {
+      defaultBulan = String(new Date(initialPembayaran.bulanTerbayar).getUTCMonth() + 1);
+    }
+    defaultMetode = initialPembayaran.metode;
+    defaultNominal = String(initialPembayaran.nominal);
+    defaultCatatan = initialPembayaran.catatan ?? "";
+  }
+
   const [state, formAction, isPending] = useActionState<ActionState | null, FormData>(
     async (_prev, fd) => {
-      const result = await tambahPembayaranSiswaAction(_prev, fd);
+      const result =
+        mode === "ubah"
+          ? await ubahPembayaranSiswaAction(_prev, fd)
+          : await tambahPembayaranSiswaAction(_prev, fd);
       if (result.success) {
+        showToast(
+          mode === "ubah" ? "Pembayaran diperbarui." : "Pembayaran berhasil dicatat.",
+          "success"
+        );
         onSuccess();
         onClose();
+      } else if (result.error) {
+        showToast(result.error, "error");
       }
       return result;
     },
     null
   );
 
+  const dialogTitle =
+    mode === "ubah"
+      ? `Ubah Pembayaran — ${namaSiswa} · ${selectedJenis?.nama ?? "Pembayaran"}`
+      : `Catat Pembayaran — ${namaSiswa}`;
+
   return (
-    <Dialog open={open} title={`Catat Pembayaran — ${namaSiswa}`} onClose={onClose}>
+    <Dialog
+      key={initialPembayaran?.id ? `ubah-${initialPembayaran.id}` : `tambah-${selectedJenisId}-${penempatanId}`}
+      open={open}
+      title={dialogTitle}
+      onClose={onClose}
+    >
       <form action={formAction} className="space-y-4">
-        <input type="hidden" name="penempatanId" value={penempatanId} />
-        <Select
-          name="jenisPemasukanId"
-          label="Pilih Jenis Pembayaran"
-          value={selectedJenisId}
-          onChange={(e) => setSelectedJenisId(e.target.value)}
-          options={jenisList.map((j) => ({
-            value: j.id,
-            label: `${j.nama}${j.nominalStandar ? ` (Standar: ${formatRupiah(j.nominalStandar)})` : ""}`,
-          }))}
-        />
+        {mode === "ubah" ? (
+          <>
+            <input type="hidden" name="id" value={initialPembayaran?.id} />
+            <div className="p-3 bg-panel rounded-[8px] text-[13px] border border-line flex flex-wrap items-center justify-between gap-2">
+              <span>
+                Siswa: <strong className="font-semibold text-text">{namaSiswa}</strong>
+              </span>
+              <span>
+                Jenis: <strong className="font-semibold text-text">{selectedJenis?.nama}</strong>
+              </span>
+            </div>
+          </>
+        ) : (
+          <>
+            <input type="hidden" name="penempatanId" value={penempatanId} />
+            <Select
+              name="jenisPemasukanId"
+              label="Pilih Jenis Pembayaran"
+              value={selectedJenisId}
+              onChange={(e) => setSelectedJenisId(e.target.value)}
+              options={jenisList.map((j) => ({
+                value: j.id,
+                label: `${j.nama}${j.nominalStandar ? ` (Standar: ${formatRupiah(j.nominalStandar)})` : ""}`,
+              }))}
+            />
+          </>
+        )}
+
         <Input
           id="bayar-tanggal"
           name="tanggal"
           label="Tanggal Transaksi (DD-MM-YYYY)"
-          defaultValue={defaultToday}
+          defaultValue={defaultTanggal}
           placeholder="DD-MM-YYYY"
           required
-          helperText="Format: tanggal-bulan-tahun"
+          helperText="Format: tanggal-bulan-tahun (contoh: 26-10-2026)"
         />
+
         {selectedJenis?.bulanan && (
           <Select
             name="bulanTerbayar"
             label="Bulan yang Dibayar (SPP)"
-            defaultValue={String(today.getMonth() + 1)}
+            defaultValue={defaultBulan}
             options={BULAN_DAFTAR}
           />
         )}
+
         <Select
           name="metode"
           label="Metode Pembayaran"
+          defaultValue={defaultMetode}
           options={[
             { value: "SETOR_TUNAI", label: "Setor Tunai (ST)" },
             { value: "TRANSFER", label: "Transfer Bank (TF)" },
           ]}
         />
+
         <Input
           id="bayar-nominal"
           name="nominal"
           label="Nominal Pembayaran (Rp)"
-          defaultValue={
-            selectedJenis?.nominalStandar ? String(selectedJenis.nominalStandar) : ""
-          }
+          defaultValue={defaultNominal}
           placeholder="Contoh: 150000 atau 150.000"
           required
-          helperText="Ketik nominal rupiah yang dibayarkan siswa."
+          helperText="Ketik nominal rupiah utuh tanpa desimal."
         />
+
         <Input
           id="bayar-catatan"
           name="catatan"
           label="Catatan Tambahan (opsional)"
+          defaultValue={defaultCatatan}
           placeholder="Contoh: Titipan orang tua, cicilan ke-1"
         />
-        {state?.error && <p className="text-[14px] text-danger">{state.error}</p>}
+
+        {state?.error && <p className="text-[13px] text-danger">{state.error}</p>}
+
         <div className="flex justify-end gap-2 pt-2">
           <Button type="button" variant="secondary" onClick={onClose}>
             Batal
           </Button>
           <Button type="submit" variant="primary" disabled={isPending}>
-            {isPending ? "Menyimpan pembayaran…" : "Simpan Pembayaran"}
+            {isPending
+              ? "Menyimpan…"
+              : mode === "ubah"
+              ? "Simpan Perubahan"
+              : "Simpan Pembayaran"}
           </Button>
         </div>
       </form>
@@ -253,19 +334,27 @@ function DialogTambahPembayaran({
   );
 }
 
-// ─── Tombol Hapus Pembayaran ──────────────────────────────────────
+// ─── Tombol Hapus Jenis Pembayaran ─────────────────────────────────
 
-function TombolHapusPembayaran({
+function TombolHapusJenisPembayaran({
   id,
+  nama,
   onSuccess,
 }: {
   id: string;
+  nama: string;
   onSuccess: () => void;
 }) {
+  const { showToast } = useToast();
   const [state, formAction, isPending] = useActionState<ActionState | null, FormData>(
     async (_prev, fd) => {
-      const result = await hapusPembayaranSiswaAction(_prev, fd);
-      if (result.success) onSuccess();
+      const result = await hapusJenisPemasukanAction(_prev, fd);
+      if (result.success) {
+        showToast(`Jenis pembayaran "${nama}" berhasil dihapus.`, "success");
+        onSuccess();
+      } else if (result.error) {
+        showToast(result.error, "error");
+      }
       return result;
     },
     null
@@ -274,49 +363,32 @@ function TombolHapusPembayaran({
   return (
     <form
       action={formAction}
-      className="inline ml-1"
+      className="mt-1.5"
       onSubmit={(e) => {
-        if (!window.confirm("Hapus catatan transaksi pembayaran siswa ini dari database?")) {
+        if (
+          !window.confirm(
+            `Hapus jenis pembayaran "${nama}"? Jenis ini akan disembunyikan dari tahun ajaran aktif; riwayat transaksinya tetap tersimpan.`
+          )
+        )
           e.preventDefault();
-        }
       }}
     >
       <input type="hidden" name="id" value={id} />
       <button
         type="submit"
         disabled={isPending}
-        className="inline-flex items-center gap-1 text-[12px] px-1.5 py-0.5 rounded-[4px] border border-danger/40 text-danger hover:bg-danger/10 disabled:opacity-40 font-medium transition-colors cursor-pointer"
-        title="Hapus catatan pembayaran ini"
-        aria-label="Hapus pembayaran"
+        className="inline-flex items-center gap-1 text-[11px] px-2 py-0.5 rounded-[4px] border border-danger/40 text-danger hover:bg-danger/10 disabled:opacity-40 font-medium transition-colors cursor-pointer"
+        title={`Hapus jenis ${nama}`}
+        aria-label={`Hapus jenis ${nama}`}
       >
-        <Trash2 className="w-3 h-3 text-danger" />
-        <span>{isPending ? "…" : "Hapus"}</span>
-      </button>
-      {state?.error && <span className="text-[12px] text-danger">{state.error}</span>}
-    </form>
-  );
-}
-
-// ─── Tombol Hapus Jenis Pembayaran ─────────────────────────────────
-function TombolHapusJenisPembayaran({ id, nama, onSuccess }: { id: string; nama: string; onSuccess: () => void }) {
-  const [state, formAction, isPending] = useActionState<ActionState | null, FormData>(
-    async (_prev, fd) => {
-      const result = await hapusJenisPemasukanAction(_prev, fd);
-      if (result.success) onSuccess();
-      return result;
-    },
-    null
-  );
-  return (
-    <form action={formAction} className="mt-1.5" onSubmit={(e) => {
-      if (!window.confirm(`Hapus jenis pembayaran "${nama}"? Jenis ini akan disembunyikan dari tahun ajaran aktif; riwayat transaksinya tetap tersimpan.`)) e.preventDefault();
-    }}>
-      <input type="hidden" name="id" value={id} />
-      <button type="submit" disabled={isPending} className="inline-flex items-center gap-1 text-[11px] px-2 py-0.5 rounded-[4px] border border-danger/40 text-danger hover:bg-danger/10 disabled:opacity-40 font-medium transition-colors cursor-pointer">
         <Trash2 className="w-3 h-3 text-danger" />
         <span>{isPending ? "Menghapus…" : "Hapus jenis"}</span>
       </button>
-      {state?.error && <p className="mt-1 max-w-[150px] text-[11px] text-danger font-normal">{state.error}</p>}
+      {state?.error && (
+        <p className="mt-1 max-w-[150px] text-[11px] text-danger font-normal">
+          {state.error}
+        </p>
+      )}
     </form>
   );
 }
@@ -332,11 +404,22 @@ export function TabDariSiswa({
   const { showToast } = useToast();
   const [isEditing, setIsEditing] = useState(false);
   const [dialogKolomOpen, setDialogKolomOpen] = useState(false);
-  const [dialogBayarState, setDialogBayarState] = useState<{
+  const [isDeletingPayment, startDeletingPayment] = useTransition();
+
+  // State dialog pembayaran (tambah atau ubah)
+  const [dialogBayar, setDialogBayar] = useState<{
     open: boolean;
+    mode: "tambah" | "ubah";
     penempatanId: string;
     namaSiswa: string;
-  }>({ open: false, penempatanId: "", namaSiswa: "" });
+    initialJenisId?: string;
+    initialPembayaran?: PembayaranSel | null;
+  }>({
+    open: false,
+    mode: "tambah",
+    penempatanId: "",
+    namaSiswa: "",
+  });
 
   // ATURAN: SPP selalu grup pertama (dan satu-satunya yang bulanan)
   const sortedJenis = [...jenisOptions].sort((a, b) => {
@@ -344,6 +427,55 @@ export function TabDariSiswa({
     if (!a.bulanan && b.bulanan) return 1;
     return a.urutan - b.urutan;
   });
+
+  const openTambahDialog = (penempatanId: string, namaSiswa: string, jenisId?: string) => {
+    setDialogBayar({
+      open: true,
+      mode: "tambah",
+      penempatanId,
+      namaSiswa,
+      initialJenisId: jenisId,
+      initialPembayaran: null,
+    });
+  };
+
+  const openUbahDialog = (
+    penempatanId: string,
+    namaSiswa: string,
+    jenisId: string,
+    pembayaran: PembayaranSel
+  ) => {
+    setDialogBayar({
+      open: true,
+      mode: "ubah",
+      penempatanId,
+      namaSiswa,
+      initialJenisId: jenisId,
+      initialPembayaran: pembayaran,
+    });
+  };
+
+  const handleDeletePembayaran = async (pembayaranId: string, nominal: number, tanggal: string) => {
+    if (
+      !window.confirm(
+        `Apakah Anda yakin ingin menghapus catatan pembayaran ${formatRupiah(nominal)} (${formatTanggal(tanggal)})?`
+      )
+    ) {
+      return;
+    }
+
+    startDeletingPayment(async () => {
+      const fd = new FormData();
+      fd.append("id", pembayaranId);
+      const res = await hapusPembayaranSiswaAction(null, fd);
+      if (res.success) {
+        showToast("Pembayaran berhasil dihapus.", "success");
+        onRefresh();
+      } else {
+        showToast(res.error ?? "Gagal menghapus pembayaran.", "error");
+      }
+    });
+  };
 
   if (sortedJenis.length === 0) {
     return (
@@ -379,7 +511,7 @@ export function TabDariSiswa({
         <div className="p-3.5 rounded-[8px] bg-gold-soft border border-gold-border text-gold-text text-[13px] flex items-center gap-2.5 font-medium shadow-xs">
           <Info className="w-4 h-4 shrink-0 text-gold-text" />
           <span>
-            Mode edit aktif. Catat transaksi pembayaran siswa atau tambah jenis pembayaran baru. Klik <strong>Simpan Perubahan</strong> untuk selesai.
+            Mode edit aktif. Catat pembayaran langsung di dalam sel, ubah nominal/tanggal, atau tambah kolom jenis pembayaran baru. Klik <strong>Selesai Edit</strong> bila sudah selesai.
           </span>
         </div>
       )}
@@ -406,11 +538,11 @@ export function TabDariSiswa({
                 size="sm"
                 onClick={() => {
                   setIsEditing(false);
-                  showToast("Perubahan tersimpan", "success");
+                  showToast("Mode edit ditutup.", "default");
                 }}
               >
                 <Check className="w-4 h-4" />
-                <span>Simpan Perubahan</span>
+                <span>Selesai Edit</span>
               </Button>
 
               {!!tahunAjaranId && (
@@ -446,33 +578,33 @@ export function TabDariSiswa({
         </div>
       </div>
 
-      {/* Grid Tabel Lebar dengan Garis Emas saat Mode Edit */}
+      {/* Grid Tabel Lebar Scroller Dua Arah dengan Scrollbar Bertema */}
       <div
-        className={`w-full overflow-x-auto bg-surface rounded-[12px] shadow-xs transition-all ${
+        className={`w-full max-h-[calc(100dvh-16rem)] overflow-auto bg-surface rounded-[12px] shadow-xs transition-all ${
           isEditing
             ? "border border-gold-border ring-1 ring-gold-border"
             : "border border-line"
         }`}
       >
-        <table className="border-collapse text-[14px] w-full" style={{ minWidth: "1000px" }}>
+        <table className="border-collapse text-[13px] w-full" style={{ minWidth: "1100px" }}>
           <thead>
-            {/* Header Grup Pemasukan (Area Hijau) */}
-            <tr className="border-b border-income-border bg-income-soft text-income-text">
+            {/* Header Grup Pemasukan (Sticky Top 0) */}
+            <tr className="border-b border-income-border bg-income-soft text-income-text sticky top-0 z-20">
               <th
                 rowSpan={2}
-                className="px-3 py-2.5 text-right font-semibold border-r border-income-border w-[48px] min-w-[48px] max-w-[48px] sticky left-0 bg-income-soft z-20"
+                className="px-3 py-2.5 text-right font-semibold border-r border-income-border w-[48px] min-w-[48px] max-w-[48px] sticky left-0 bg-income-soft z-30"
               >
                 No
               </th>
               <th
                 rowSpan={2}
-                className="px-3 py-2.5 text-left font-semibold border-r border-income-border w-[180px] min-w-[180px] max-w-[180px] sticky left-[48px] bg-income-soft z-20"
+                className="px-3 py-2.5 text-left font-semibold border-r-2 border-income-border w-[190px] min-w-[190px] max-w-[190px] sticky left-[48px] bg-income-soft z-30 shadow-[2px_0_4px_-1px_rgba(0,0,0,0.06)]"
               >
                 Nama Siswa
               </th>
               <th
                 rowSpan={2}
-                className="px-3 py-2.5 text-left font-semibold border-r-2 border-income-border w-[120px] min-w-[120px] max-w-[120px] sticky left-[228px] bg-income-soft z-20 shadow-[2px_0_4px_-1px_rgba(0,0,0,0.06)]"
+                className="px-3 py-2.5 text-left font-semibold border-r-2 border-income-border w-[110px] min-w-[110px] max-w-[110px] bg-income-soft"
               >
                 Kode UID
               </th>
@@ -495,10 +627,7 @@ export function TabDariSiswa({
                       <TombolHapusJenisPembayaran
                         id={jenis.id}
                         nama={jenis.nama}
-                        onSuccess={() => {
-                          showToast("Jenis pembayaran berhasil dihapus.", "success");
-                          onRefresh();
-                        }}
+                        onSuccess={onRefresh}
                       />
                     )}
                     {jenis.nominalStandar !== null ? (
@@ -513,46 +642,37 @@ export function TabDariSiswa({
                   </th>
                 );
               })}
-
-              {isEditing && (
-                <th
-                  rowSpan={2}
-                  className="px-3 py-2 text-center font-semibold text-income-text border-l border-income-border min-w-[130px]"
-                >
-                  Aksi
-                </th>
-              )}
             </tr>
 
-            {/* Sub-Header Kolom */}
-            <tr className="border-b border-income-border bg-income-soft/70 text-income-text">
+            {/* Sub-Header Kolom (Sticky Top 41px) */}
+            <tr className="border-b border-income-border bg-income-soft/95 text-income-text sticky top-[41px] z-20">
               {sortedJenis.map((jenis) =>
                 jenis.bulanan ? (
                   // SPP: 4 sub-kolom
                   <React.Fragment key={`${jenis.id}-subheaders`}>
-                    <th className="px-3 py-2 text-[12px] font-semibold text-left border-r border-income-border/70 min-w-[120px]">
+                    <th className="px-3 py-2 text-[12px] font-semibold text-left border-r border-income-border/70 min-w-[110px]">
                       Tgl. Transaksi
                     </th>
-                    <th className="px-3 py-2 text-[12px] font-medium text-left border-r border-line min-w-[130px]">
+                    <th className="px-3 py-2 text-[12px] font-medium text-left border-r border-line min-w-[120px]">
                       Bulan Terbayar
                     </th>
-                    <th className="px-3 py-2 text-[12px] font-medium text-center border-r border-line min-w-[80px]">
+                    <th className="px-3 py-2 text-[12px] font-medium text-center border-r border-line min-w-[70px]">
                       Metode
                     </th>
-                    <th className="px-3 py-2 text-[12px] font-medium text-right border-r border-line min-w-[240px] whitespace-nowrap">
+                    <th className="px-3 py-2 text-[12px] font-medium text-right border-r border-line min-w-[280px] whitespace-nowrap">
                       Nominal & Petugas
                     </th>
                   </React.Fragment>
                 ) : (
                   // Jenis lain: 3 sub-kolom
                   <React.Fragment key={`${jenis.id}-subheaders`}>
-                    <th className="px-3 py-2 text-[12px] font-medium text-left border-r border-line min-w-[120px]">
+                    <th className="px-3 py-2 text-[12px] font-medium text-left border-r border-line min-w-[110px]">
                       Tanggal
                     </th>
-                    <th className="px-3 py-2 text-[12px] font-medium text-center border-r border-line min-w-[80px]">
+                    <th className="px-3 py-2 text-[12px] font-medium text-center border-r border-line min-w-[70px]">
                       Metode
                     </th>
-                    <th className="px-3 py-2 text-[12px] font-medium text-right border-r border-line min-w-[240px] whitespace-nowrap">
+                    <th className="px-3 py-2 text-[12px] font-medium text-right border-r border-line min-w-[280px] whitespace-nowrap">
                       Nominal & Petugas
                     </th>
                   </React.Fragment>
@@ -567,8 +687,7 @@ export function TabDariSiswa({
                 <td
                   colSpan={
                     3 +
-                    sortedJenis.reduce((acc, j) => acc + (j.bulanan ? 4 : 3), 0) +
-                    (isEditing ? 1 : 0)
+                    sortedJenis.reduce((acc, j) => acc + (j.bulanan ? 4 : 3), 0)
                   }
                   className="px-4 py-12 text-center text-text-3 font-normal"
                 >
@@ -579,20 +698,32 @@ export function TabDariSiswa({
               siswaRows.map((siswa, idx) => (
                 <tr
                   key={siswa.penempatanId}
-                  className="border-b border-line bg-surface"
+                  className="border-b border-line bg-surface hover:bg-panel/20 transition-colors"
                 >
                   <td className="px-3 py-2.5 text-right text-text-3 num border-r border-line w-[48px] min-w-[48px] max-w-[48px] sticky left-0 bg-surface z-10">
                     {idx + 1}
                   </td>
-                  <td className="px-3 py-2.5 text-text border-r border-line font-medium w-[180px] min-w-[180px] max-w-[180px] sticky left-[48px] bg-surface z-10">
-                    <div className="truncate" title={siswa.nama}>
-                      {siswa.nama}
+                  <td className="px-3 py-2.5 text-text border-r-2 border-line-strong font-medium w-[190px] min-w-[190px] max-w-[190px] sticky left-[48px] bg-surface z-10 shadow-[2px_0_4px_-1px_rgba(0,0,0,0.06)]">
+                    <div className="flex items-center justify-between gap-1.5">
+                      <span className="truncate font-medium text-text text-[13px]" title={siswa.nama}>
+                        {siswa.nama}
+                      </span>
+                      {isEditing && (
+                        <button
+                          type="button"
+                          onClick={() => openTambahDialog(siswa.penempatanId, siswa.nama, sortedJenis[0]?.id)}
+                          className="p-1 rounded text-income hover:bg-income-soft shrink-0 transition-colors cursor-pointer"
+                          title={`Catat pembayaran untuk ${siswa.nama}`}
+                          aria-label={`Catat pembayaran untuk ${siswa.nama}`}
+                        >
+                          <Plus className="w-3.5 h-3.5" />
+                        </button>
+                      )}
                     </div>
                   </td>
-                  <td className="px-3 py-2.5 font-mono text-[13px] text-text-2 border-r-2 border-line-strong w-[120px] min-w-[120px] max-w-[120px] sticky left-[228px] bg-surface z-10 shadow-[2px_0_4px_-1px_rgba(0,0,0,0.06)]">
+                  <td className="px-3 py-2.5 font-mono text-[12px] text-text-2 border-r-2 border-line w-[110px] min-w-[110px] max-w-[110px]">
                     <div className="truncate">{siswa.uid}</div>
                   </td>
-
 
                   {sortedJenis.map((jenis) => {
                     const pembayaranList: PembayaranSel[] = siswa.pembayaran[jenis.id] ?? [];
@@ -602,13 +733,12 @@ export function TabDariSiswa({
                     );
 
                     const isBelumLunas = !status.lunas;
-                    const last = pembayaranList[pembayaranList.length - 1];
 
                     if (jenis.bulanan) {
                       // SPP: 4 sub-kolom
                       return (
                         <React.Fragment key={`${siswa.penempatanId}-${jenis.id}`}>
-                          <td className="px-3 py-2.5 text-text-2 num border-r border-line text-left">
+                          <td className="px-3 py-2.5 text-text-2 num border-r border-line text-left align-top">
                             {pembayaranList.length ? (
                               <div className="space-y-1">
                                 {pembayaranList.map((p) => (
@@ -624,11 +754,11 @@ export function TabDariSiswa({
                               "—"
                             )}
                           </td>
-                          <td className="px-3 py-2.5 text-text-2 border-r border-line text-left">
+                          <td className="px-3 py-2.5 text-text-2 border-r border-line text-left align-top">
                             {pembayaranList.length ? (
                               <div className="space-y-1">
                                 {pembayaranList.map((p) => (
-                                  <div key={p.id} className="whitespace-nowrap text-[13px]">
+                                  <div key={p.id} className="whitespace-nowrap text-[12px]">
                                     {p.bulanTerbayar ? formatBulan(p.bulanTerbayar) : "—"}
                                   </div>
                                 ))}
@@ -637,7 +767,7 @@ export function TabDariSiswa({
                               "—"
                             )}
                           </td>
-                          <td className="px-3 py-2.5 text-center text-text-2 border-r border-line font-mono text-[13px]">
+                          <td className="px-3 py-2.5 text-center text-text-2 border-r border-line font-mono text-[12px] align-top">
                             {pembayaranList.length ? (
                               <div className="space-y-1">
                                 {pembayaranList.map((p) => (
@@ -648,109 +778,24 @@ export function TabDariSiswa({
                               "—"
                             )}
                           </td>
-                          <td className="px-3 py-2.5 text-right border-r border-line-strong">
-                            {pembayaranList.length === 0 && !jenis.bulanan ? (
-                              <span className="text-text-3">—</span>
-                            ) : (
-                              <div>
-                                {/* Satu baris nominal + chip status kecil */}
-                                <div className="flex items-center justify-end gap-2 flex-wrap sm:flex-nowrap">
-                                  <span
-                                    className={`num font-semibold text-[14px] ${
-                                      isBelumLunas ? "text-danger" : "text-text"
-                                    }`}
-                                  >
-                                    {formatRupiah(status.totalTerbayar)}
-                                  </span>
-
-                                  {jenis.nominalStandar !== null && (
-                                    status.lunas ? (
-                                      <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded-[4px] bg-income-soft text-income border border-income-border text-[11px] font-semibold tracking-wide whitespace-nowrap">
-                                        <CheckCircle2 className="w-3.5 h-3.5 text-income shrink-0" />
-                                        <span>LUNAS</span>
-                                      </span>
-                                    ) : (
-                                      <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded-[4px] bg-danger/10 text-danger border border-danger/25 text-[11px] font-semibold tracking-wide whitespace-nowrap">
-                                        <AlertCircle className="w-3.5 h-3.5 text-danger shrink-0" />
-                                        <span>KURANG {formatRupiah(status.kekurangan)}</span>
-                                      </span>
-                                    )
-                                  )}
-
-                                  {isEditing && !!tahunAjaranId && last && (
-                                    <TombolHapusPembayaran id={last.id} onSuccess={onRefresh} />
-                                  )}
-                                </div>
-
-                                {/* Rincian pembayaran */}
-                                {pembayaranList.map((p) => (
-                                  <div
-                                    key={p.id}
-                                    className="mt-1.5 border-t border-line/50 pt-1 text-[12px] leading-tight text-text-3"
-                                  >
-                                    <div className="flex items-center justify-end gap-1.5">
-                                      <span className="font-medium text-text-2">
-                                        {formatRupiah(p.nominal)} ({p.metode === "TRANSFER" ? "TF" : "ST"})
-                                      </span>
-                                      <span className="text-text-3">· {formatTanggal(p.tanggal)}</span>
-                                    </div>
-                                    <div className="text-[12px] text-text-3 mt-0.5">
-                                      oleh {p.petugasNama}
-                                    </div>
-                                  </div>
-                                ))}
-
-                                {status.isCicilan && (
-                                  <div className="text-[12px] text-text-3 font-mono mt-0.5">
-                                    Total {pembayaranList.length} transaksi
-                                  </div>
-                                )}
-                              </div>
-                            )}
-                          </td>
-                        </React.Fragment>
-                      );
-                    }
-
-                    // Jenis Lain: 3 sub-kolom
-                    return (
-                      <React.Fragment key={`${siswa.penempatanId}-${jenis.id}`}>
-                        <td className="px-3 py-2.5 text-text-2 num border-r border-line text-left">
-                          {pembayaranList.length ? (
-                            <div className="space-y-1">
-                              {pembayaranList.map((p) => (
-                                <div
-                                  key={p.id}
-                                  className="inline-block rounded-[4px] border border-line bg-panel px-1.5 py-0.5 text-[12px] leading-tight whitespace-nowrap tabular-nums"
-                                >
-                                  {formatTanggal(p.tanggal)}
-                                </div>
-                              ))}
-                            </div>
-                          ) : (
-                            "—"
-                          )}
-                        </td>
-                        <td className="px-3 py-2.5 text-center text-text-2 border-r border-line font-mono text-[13px]">
-                          {pembayaranList.length ? (
-                            <div className="space-y-1">
-                              {pembayaranList.map((p) => (
-                                <div key={p.id}>{p.metode === "TRANSFER" ? "TF" : "ST"}</div>
-                              ))}
-                            </div>
-                          ) : (
-                            "—"
-                          )}
-                        </td>
-                        <td className="px-3 py-2.5 text-right border-r border-line-strong">
-                          {pembayaranList.length === 0 && !jenis.nominalStandar ? (
-                            <span className="text-text-3">—</span>
-                          ) : (
-                            <div>
-                              {/* Satu baris nominal + chip status kecil */}
-                              <div className="flex items-center justify-end gap-2 flex-wrap sm:flex-nowrap">
+                          <td
+                            className={`px-3 py-2 text-right border-r border-line-strong align-top transition-colors ${
+                              isEditing ? "hover:bg-gold-soft/30 cursor-pointer" : ""
+                            }`}
+                            onClick={
+                              isEditing
+                                ? (e) => {
+                                    if ((e.target as HTMLElement).closest("button, form, a")) return;
+                                    openTambahDialog(siswa.penempatanId, siswa.nama, jenis.id);
+                                  }
+                                : undefined
+                            }
+                          >
+                            <div className="space-y-1.5">
+                              {/* Satu baris nominal total + chip status kecil */}
+                              <div className="flex items-center justify-end gap-2 flex-wrap">
                                 <span
-                                  className={`num font-semibold text-[14px] ${
+                                  className={`num font-semibold text-[14px] whitespace-nowrap ${
                                     isBelumLunas ? "text-danger" : "text-text"
                                   }`}
                                 >
@@ -770,61 +815,262 @@ export function TabDariSiswa({
                                     </span>
                                   )
                                 )}
-
-                                {isEditing && last && (
-                                  <TombolHapusPembayaran id={last.id} onSuccess={onRefresh} />
-                                )}
                               </div>
 
-                              {/* Rincian pembayaran */}
+                              {/* Rincian per transaksi dengan tombol Ubah dan Hapus langsung di dalam sel */}
                               {pembayaranList.map((p) => (
                                 <div
                                   key={p.id}
-                                  className="mt-1.5 border-t border-line/50 pt-1 text-[12px] leading-tight text-text-3"
+                                  onClick={
+                                    isEditing
+                                      ? (e) => {
+                                          e.stopPropagation();
+                                          openUbahDialog(siswa.penempatanId, siswa.nama, jenis.id, p);
+                                        }
+                                      : undefined
+                                  }
+                                  className={`p-1.5 rounded-[6px] border border-line/60 bg-surface flex items-center justify-between gap-2 text-left transition-all ${
+                                    isEditing
+                                      ? "hover:border-gold hover:bg-gold-soft/40 cursor-pointer shadow-2xs"
+                                      : ""
+                                  }`}
+                                  title={isEditing ? `Klik untuk mengubah pembayaran ini` : undefined}
                                 >
-                                  <div className="flex items-center justify-end gap-1.5">
-                                    <span className="font-medium text-text-2">
-                                      {formatRupiah(p.nominal)} ({p.metode === "TRANSFER" ? "TF" : "ST"})
-                                    </span>
-                                    <span className="text-text-3">· {formatTanggal(p.tanggal)}</span>
+                                  <div className="min-w-0 flex-1">
+                                    <div className="flex items-center gap-1.5 flex-wrap">
+                                      <span className="font-semibold text-[13px] text-text tabular-nums whitespace-nowrap num">
+                                        {formatRupiah(p.nominal)}
+                                      </span>
+                                      <span className="text-[10px] font-mono px-1 py-0.2 rounded bg-panel border border-line text-text-2">
+                                        {p.metode === "TRANSFER" ? "TF" : "ST"}
+                                      </span>
+                                      <span className="text-[11px] text-text-3 whitespace-nowrap">
+                                        {formatTanggal(p.tanggal)}
+                                      </span>
+                                      {p.catatan && (
+                                        <span title={`Catatan: ${p.catatan}`} className="inline-flex text-text-3">
+                                          <Info className="w-3 h-3 text-text-3" />
+                                        </span>
+                                      )}
+                                    </div>
+                                    <div className="text-[11px] text-text-3 mt-0.5">
+                                      oleh {p.petugasNama}
+                                    </div>
                                   </div>
-                                  <div className="text-[12px] text-text-3 mt-0.5">
-                                    oleh {p.petugasNama}
-                                  </div>
+
+                                  {/* Tombol Ubah (emas) & Hapus (merah) */}
+                                  {isEditing && (
+                                    <div className="flex items-center gap-0.5 shrink-0" onClick={(e) => e.stopPropagation()}>
+                                      <button
+                                        type="button"
+                                        onClick={() =>
+                                          openUbahDialog(siswa.penempatanId, siswa.nama, jenis.id, p)
+                                        }
+                                        className="w-9 h-9 p-2 rounded-[6px] text-gold-text hover:bg-gold-soft hover:text-gold-hover transition-colors flex items-center justify-center focus:outline-none focus:ring-2 focus:ring-gold/40 cursor-pointer"
+                                        title={`Ubah pembayaran ${formatRupiah(p.nominal)} tanggal ${formatTanggal(p.tanggal)}`}
+                                        aria-label={`Ubah pembayaran ${formatRupiah(p.nominal)} tanggal ${formatTanggal(p.tanggal)}`}
+                                      >
+                                        <Pencil className="w-3.5 h-3.5" />
+                                      </button>
+                                      <button
+                                        type="button"
+                                        disabled={isDeletingPayment}
+                                        onClick={() =>
+                                          handleDeletePembayaran(p.id, p.nominal, p.tanggal)
+                                        }
+                                        className="w-9 h-9 p-2 rounded-[6px] text-danger hover:bg-danger/10 transition-colors flex items-center justify-center focus:outline-none focus:ring-2 focus:ring-danger/30 cursor-pointer"
+                                        title={`Hapus pembayaran ${formatRupiah(p.nominal)} tanggal ${formatTanggal(p.tanggal)}`}
+                                        aria-label={`Hapus pembayaran ${formatRupiah(p.nominal)} tanggal ${formatTanggal(p.tanggal)}`}
+                                      >
+                                        <Trash2 className="w-3.5 h-3.5" />
+                                      </button>
+                                    </div>
+                                  )}
                                 </div>
                               ))}
 
-                              {status.isCicilan && (
-                                <div className="text-[12px] text-text-3 font-mono mt-0.5">
-                                  Total {pembayaranList.length} transaksi
-                                </div>
+                              {/* Tombol Catat di dalam sel (Mode Edit) */}
+                              {isEditing && (
+                                <button
+                                  type="button"
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    openTambahDialog(siswa.penempatanId, siswa.nama, jenis.id);
+                                  }}
+                                  className="w-full mt-1 py-1 px-2 text-[12px] font-medium text-income border border-dashed border-income-border rounded-[6px] hover:bg-income-soft flex items-center justify-center gap-1 transition-colors cursor-pointer"
+                                  title={`Catat pembayaran baru untuk ${jenis.nama}`}
+                                >
+                                  <Plus className="w-3.5 h-3.5" />
+                                  <span>Catat</span>
+                                </button>
                               )}
                             </div>
+                          </td>
+                        </React.Fragment>
+                      );
+                    }
+
+                    // Jenis Lain: 3 sub-kolom
+                    return (
+                      <React.Fragment key={`${siswa.penempatanId}-${jenis.id}`}>
+                        <td className="px-3 py-2.5 text-text-2 num border-r border-line text-left align-top">
+                          {pembayaranList.length ? (
+                            <div className="space-y-1">
+                              {pembayaranList.map((p) => (
+                                <div
+                                  key={p.id}
+                                  className="inline-block rounded-[4px] border border-line bg-panel px-1.5 py-0.5 text-[12px] leading-tight whitespace-nowrap tabular-nums"
+                                >
+                                  {formatTanggal(p.tanggal)}
+                                </div>
+                              ))}
+                            </div>
+                          ) : (
+                            "—"
                           )}
+                        </td>
+                        <td className="px-3 py-2.5 text-center text-text-2 border-r border-line font-mono text-[12px] align-top">
+                          {pembayaranList.length ? (
+                            <div className="space-y-1">
+                              {pembayaranList.map((p) => (
+                                <div key={p.id}>{p.metode === "TRANSFER" ? "TF" : "ST"}</div>
+                              ))}
+                            </div>
+                          ) : (
+                            "—"
+                          )}
+                        </td>
+                        <td
+                          className={`px-3 py-2 text-right border-r border-line-strong align-top transition-colors ${
+                            isEditing ? "hover:bg-gold-soft/30 cursor-pointer" : ""
+                          }`}
+                          onClick={
+                            isEditing
+                              ? (e) => {
+                                  if ((e.target as HTMLElement).closest("button, form, a")) return;
+                                  openTambahDialog(siswa.penempatanId, siswa.nama, jenis.id);
+                                }
+                              : undefined
+                          }
+                        >
+                          <div className="space-y-1.5">
+                            {/* Satu baris nominal total + chip status kecil */}
+                            <div className="flex items-center justify-end gap-2 flex-wrap">
+                              <span
+                                className={`num font-semibold text-[14px] whitespace-nowrap ${
+                                  isBelumLunas ? "text-danger" : "text-text"
+                                }`}
+                              >
+                                {formatRupiah(status.totalTerbayar)}
+                              </span>
+
+                              {jenis.nominalStandar !== null && (
+                                status.lunas ? (
+                                  <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded-[4px] bg-income-soft text-income border border-income-border text-[11px] font-semibold tracking-wide whitespace-nowrap">
+                                    <CheckCircle2 className="w-3.5 h-3.5 text-income shrink-0" />
+                                    <span>LUNAS</span>
+                                  </span>
+                                ) : (
+                                  <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded-[4px] bg-danger/10 text-danger border border-danger/25 text-[11px] font-semibold tracking-wide whitespace-nowrap">
+                                    <AlertCircle className="w-3.5 h-3.5 text-danger shrink-0" />
+                                    <span>KURANG {formatRupiah(status.kekurangan)}</span>
+                                  </span>
+                                )
+                              )}
+                            </div>
+
+                            {/* Rincian per transaksi */}
+                            {pembayaranList.map((p) => (
+                              <div
+                                key={p.id}
+                                onClick={
+                                  isEditing
+                                    ? (e) => {
+                                        e.stopPropagation();
+                                        openUbahDialog(siswa.penempatanId, siswa.nama, jenis.id, p);
+                                      }
+                                    : undefined
+                                }
+                                className={`p-1.5 rounded-[6px] border border-line/60 bg-surface flex items-center justify-between gap-2 text-left transition-all ${
+                                  isEditing
+                                    ? "hover:border-gold hover:bg-gold-soft/40 cursor-pointer shadow-2xs"
+                                    : ""
+                                }`}
+                                title={isEditing ? `Klik untuk mengubah pembayaran ini` : undefined}
+                              >
+                                <div className="min-w-0 flex-1">
+                                  <div className="flex items-center gap-1.5 flex-wrap">
+                                    <span className="font-semibold text-[13px] text-text tabular-nums whitespace-nowrap num">
+                                      {formatRupiah(p.nominal)}
+                                    </span>
+                                    <span className="text-[10px] font-mono px-1 py-0.2 rounded bg-panel border border-line text-text-2">
+                                      {p.metode === "TRANSFER" ? "TF" : "ST"}
+                                    </span>
+                                    <span className="text-[11px] text-text-3 whitespace-nowrap">
+                                      {formatTanggal(p.tanggal)}
+                                    </span>
+                                    {p.catatan && (
+                                      <span title={`Catatan: ${p.catatan}`} className="inline-flex text-text-3">
+                                        <Info className="w-3 h-3 text-text-3" />
+                                      </span>
+                                    )}
+                                  </div>
+                                  <div className="text-[11px] text-text-3 mt-0.5">
+                                    oleh {p.petugasNama}
+                                  </div>
+                                </div>
+
+                                {/* Tombol Ubah (emas) & Hapus (merah) */}
+                                {isEditing && (
+                                  <div className="flex items-center gap-0.5 shrink-0" onClick={(e) => e.stopPropagation()}>
+                                    <button
+                                      type="button"
+                                      onClick={() =>
+                                        openUbahDialog(siswa.penempatanId, siswa.nama, jenis.id, p)
+                                      }
+                                      className="w-9 h-9 p-2 rounded-[6px] text-gold-text hover:bg-gold-soft hover:text-gold-hover transition-colors flex items-center justify-center focus:outline-none focus:ring-2 focus:ring-gold/40 cursor-pointer"
+                                      title={`Ubah pembayaran ${formatRupiah(p.nominal)} tanggal ${formatTanggal(p.tanggal)}`}
+                                      aria-label={`Ubah pembayaran ${formatRupiah(p.nominal)} tanggal ${formatTanggal(p.tanggal)}`}
+                                    >
+                                      <Pencil className="w-3.5 h-3.5" />
+                                    </button>
+                                    <button
+                                      type="button"
+                                      disabled={isDeletingPayment}
+                                      onClick={() =>
+                                        handleDeletePembayaran(p.id, p.nominal, p.tanggal)
+                                      }
+                                      className="w-9 h-9 p-2 rounded-[6px] text-danger hover:bg-danger/10 transition-colors flex items-center justify-center focus:outline-none focus:ring-2 focus:ring-danger/30 cursor-pointer"
+                                      title={`Hapus pembayaran ${formatRupiah(p.nominal)} tanggal ${formatTanggal(p.tanggal)}`}
+                                      aria-label={`Hapus pembayaran ${formatRupiah(p.nominal)} tanggal ${formatTanggal(p.tanggal)}`}
+                                    >
+                                      <Trash2 className="w-3.5 h-3.5" />
+                                    </button>
+                                  </div>
+                                )}
+                              </div>
+                            ))}
+
+                            {/* Tombol Catat di dalam sel (Mode Edit) */}
+                            {isEditing && (
+                              <button
+                                type="button"
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  openTambahDialog(siswa.penempatanId, siswa.nama, jenis.id);
+                                }}
+                                className="w-full mt-1 py-1 px-2 text-[12px] font-medium text-income border border-dashed border-income-border rounded-[6px] hover:bg-income-soft flex items-center justify-center gap-1 transition-colors cursor-pointer"
+                                title={`Catat pembayaran baru untuk ${jenis.nama}`}
+                              >
+                                <Plus className="w-3.5 h-3.5" />
+                                <span>Catat</span>
+                              </button>
+                            )}
+                          </div>
                         </td>
                       </React.Fragment>
                     );
                   })}
-
-                  {isEditing && (
-                    <td className="px-3 py-2.5 text-center border-l border-line-strong">
-                      <Button
-                        type="button"
-                        variant="outline-brand"
-                        size="sm"
-                        onClick={() =>
-                          setDialogBayarState({
-                            open: true,
-                            penempatanId: siswa.penempatanId,
-                            namaSiswa: siswa.nama,
-                          })
-                        }
-                      >
-                        <Plus className="w-4 h-4" />
-                        <span>Catat Bayar</span>
-                      </Button>
-                    </td>
-                  )}
                 </tr>
               ))
             )}
@@ -833,30 +1079,27 @@ export function TabDariSiswa({
       </div>
 
       {/* Dialog Tambah Kolom Baru */}
-      {dialogKolomOpen && (
+      {dialogKolomOpen && !!tahunAjaranId && (
         <DialogTambahKolom
           tahunAjaranId={tahunAjaranId}
           open={dialogKolomOpen}
           onClose={() => setDialogKolomOpen(false)}
-          onSuccess={() => {
-            showToast("Kolom pemasukan baru berhasil ditambahkan.", "success");
-            onRefresh();
-          }}
+          onSuccess={onRefresh}
         />
       )}
 
-      {/* Dialog Tambah Pembayaran Siswa */}
-      {dialogBayarState.open && !!tahunAjaranId && (
-        <DialogTambahPembayaran
-          open={dialogBayarState.open}
-          onClose={() => setDialogBayarState((s) => ({ ...s, open: false }))}
-          onSuccess={() => {
-            showToast("Pembayaran berhasil dicatat.", "success");
-            onRefresh();
-          }}
-          penempatanId={dialogBayarState.penempatanId}
-          namaSiswa={dialogBayarState.namaSiswa}
+      {/* Dialog Pembayaran Siswa (Tambah / Ubah) */}
+      {dialogBayar.open && (
+        <DialogPembayaran
+          open={dialogBayar.open}
+          mode={dialogBayar.mode}
+          onClose={() => setDialogBayar((s) => ({ ...s, open: false }))}
+          onSuccess={onRefresh}
+          penempatanId={dialogBayar.penempatanId}
+          namaSiswa={dialogBayar.namaSiswa}
           jenisList={sortedJenis}
+          initialJenisId={dialogBayar.initialJenisId}
+          initialPembayaran={dialogBayar.initialPembayaran}
         />
       )}
     </div>

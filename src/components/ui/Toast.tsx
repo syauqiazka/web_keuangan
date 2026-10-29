@@ -1,6 +1,7 @@
 "use client";
 
 import * as React from "react";
+import { createPortal } from "react-dom";
 import { motion, AnimatePresence } from "motion/react";
 import { slideRight } from "@/lib/motion";
 
@@ -19,6 +20,12 @@ const ToastContext = React.createContext<ToastContextType | null>(null);
 
 export function ToastProvider({ children }: { children: React.ReactNode }) {
   const [toasts, setToasts] = React.useState<ToastMessage[]>([]);
+  const [mounted, setMounted] = React.useState(false);
+
+  React.useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
+    setMounted(true);
+  }, []);
 
   const toast = React.useCallback(
     (message: string, type: "default" | "error" = "default") => {
@@ -44,37 +51,41 @@ export function ToastProvider({ children }: { children: React.ReactNode }) {
   return (
     <ToastContext.Provider value={{ toast, showToast }}>
       {children}
-      <div
-        className="fixed bottom-5 right-5 z-50 flex flex-col gap-2 max-w-sm w-full pointer-events-none"
-        aria-live="polite"
-        aria-atomic="false"
-      >
-        <AnimatePresence mode="popLayout">
-          {toasts.map((t) => (
-            <motion.div
-              key={t.id}
-              role="status"
-              className={`pointer-events-auto bg-surface border rounded-[10px] p-3.5 shadow-overlay text-[13px] font-medium leading-snug flex items-start gap-2.5 ${
-                t.type === "error"
-                  ? "border-danger/30 text-danger"
-                  : "border-line text-text"
-              }`}
-              initial="hidden"
-              animate="visible"
-              exit="exit"
-              variants={slideRight}
-              layout
-            >
-              <span
-                className={`w-1.5 h-1.5 rounded-full mt-1.5 shrink-0 ${
-                  t.type === "error" ? "bg-danger" : "bg-brand"
-                }`}
-              />
-              <span className="flex-1">{t.message}</span>
-            </motion.div>
-          ))}
-        </AnimatePresence>
-      </div>
+      {mounted &&
+        createPortal(
+          <div
+            className="fixed bottom-5 right-5 z-50 flex flex-col gap-2 max-w-sm w-full pointer-events-none"
+            aria-live="polite"
+            aria-atomic="false"
+          >
+            <AnimatePresence mode="popLayout">
+              {toasts.map((t) => (
+                <motion.div
+                  key={t.id}
+                  role="status"
+                  className={`pointer-events-auto bg-surface border rounded-[10px] p-3.5 shadow-overlay text-[13px] font-medium leading-snug flex items-start gap-2.5 ${
+                    t.type === "error"
+                      ? "border-danger/30 text-danger"
+                      : "border-line text-text"
+                  }`}
+                  initial="hidden"
+                  animate="visible"
+                  exit="exit"
+                  variants={slideRight}
+                  layout
+                >
+                  <span
+                    className={`w-1.5 h-1.5 rounded-full mt-1.5 shrink-0 ${
+                      t.type === "error" ? "bg-danger" : "bg-brand"
+                    }`}
+                  />
+                  <span className="flex-1">{t.message}</span>
+                </motion.div>
+              ))}
+            </AnimatePresence>
+          </div>,
+          document.body
+        )}
     </ToastContext.Provider>
   );
 }

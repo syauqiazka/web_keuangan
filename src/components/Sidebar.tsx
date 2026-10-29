@@ -118,6 +118,12 @@ function NavLink({
           className={`w-4 h-4 transition-colors ${
             isActive
               ? "text-sidebar-gold"
+              : item.href === "/pemasukan"
+              ? "text-[#7fe0b5] group-hover:text-sidebar-hover-text"
+              : item.href === "/pengeluaran"
+              ? "text-[#f28f85] group-hover:text-sidebar-hover-text"
+              : item.href === "/pengaturan"
+              ? "text-[#8fbdee] group-hover:text-sidebar-hover-text"
               : "text-sidebar-text-muted group-hover:text-sidebar-hover-text"
           }`}
           strokeWidth={isActive ? 2.25 : 1.75}
@@ -171,7 +177,7 @@ function MobileDrawer({
     <div ref={containerRef} className="lg:hidden fixed inset-0 z-40">
       <div
         ref={backdropRef}
-        className="fixed inset-0 bg-black/50 backdrop-blur-[2px]"
+        className="fixed inset-0 bg-black/50"
         onClick={onClose}
       />
       <div

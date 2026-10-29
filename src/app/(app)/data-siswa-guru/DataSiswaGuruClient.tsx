@@ -61,14 +61,14 @@ export function DataSiswaGuruClient({
 
   // Opsi filter
   const tahunOptions: SelectOption[] = [
-    { value: "", label: "— Semua Tahun Ajaran —" },
+    { value: "", label: "Semua tahun ajaran" },
     ...tahunAjaranList.map((ta) => ({
       value: ta.id,
       label: ta.aktif ? `${ta.nama} (Aktif)` : ta.nama,
     })),
   ];
   const kelasOptions: SelectOption[] = [
-    { value: "", label: "— Semua Kelas —" },
+    { value: "", label: "Semua kelas" },
     { value: "guru", label: "Guru" },
     ...kelasList.map((k) => ({ value: k.id, label: k.nama })),
   ];
