@@ -46,6 +46,9 @@ export function KelolaTahunAjaranClient({
   const { showToast } = useToast();
   const [isPending, startTransition] = useTransition();
 
+  // Modal Konfirmasi Tetapkan Aktif
+  const [confirmSetAktif, setConfirmSetAktif] = useState<TahunAjaranItem | null>(null);
+
   // Modal Tambah Tahun Ajaran
   const [modalTaOpen, setModalTaOpen] = useState(false);
   const [taNama, setTaNama] = useState("");
@@ -87,20 +90,7 @@ export function KelolaTahunAjaranClient({
   };
 
   const handleSetAktif = (ta: TahunAjaranItem) => {
-    const confirmSwitch = window.confirm(
-      `Apakah Anda yakin ingin menetapkan "${ta.nama}" sebagai Tahun Ajaran Aktif saat ini? Seluruh pencatatan dan filter awal akan dialihkan ke periode ini.`
-    );
-    if (!confirmSwitch) return;
-
-    startTransition(async () => {
-      const res = await setTahunAjaranAktifAction(ta.id);
-      if (!res.success) {
-        showToast(res.error ?? "Gagal mengaktifkan tahun ajaran.", "error");
-      } else {
-        showToast(`Tahun ajaran "${ta.nama}" kini berstatus Aktif.`, "success");
-        router.refresh();
-      }
-    });
+    setConfirmSetAktif(ta);
   };
 
   const handleTambahKelas = async (e: React.FormEvent) => {
@@ -403,6 +393,50 @@ export function KelolaTahunAjaranClient({
             </Button>
           </div>
         </form>
+      </Dialog>
+
+      {/* Dialog Konfirmasi Tetapkan Tahun Ajaran Aktif */}
+      <Dialog
+        open={Boolean(confirmSetAktif)}
+        onClose={() => !isPending && setConfirmSetAktif(null)}
+        title="Tetapkan Tahun Ajaran Aktif"
+      >
+        {confirmSetAktif && (
+          <div className="space-y-4">
+            <p className="text-[14px] text-text-2 leading-relaxed">
+              Apakah Anda yakin ingin menetapkan <strong className="text-text">{confirmSetAktif.nama}</strong> sebagai Tahun Ajaran Aktif saat ini? Seluruh pencatatan dan filter awal akan dialihkan ke periode ini.
+            </p>
+            <div className="flex justify-end gap-2 pt-2 border-t border-line">
+              <Button
+                type="button"
+                variant="secondary"
+                disabled={isPending}
+                onClick={() => setConfirmSetAktif(null)}
+              >
+                Batal
+              </Button>
+              <Button
+                type="button"
+                variant="primary"
+                disabled={isPending}
+                onClick={() => {
+                  startTransition(async () => {
+                    const res = await setTahunAjaranAktifAction(confirmSetAktif.id);
+                    if (!res.success) {
+                      showToast(res.error ?? "Gagal mengaktifkan tahun ajaran.", "error");
+                    } else {
+                      showToast(`Tahun ajaran "${confirmSetAktif.nama}" kini berstatus Aktif.`, "success");
+                      setConfirmSetAktif(null);
+                      router.refresh();
+                    }
+                  });
+                }}
+              >
+                {isPending ? "Memproses…" : "Tetapkan Aktif"}
+              </Button>
+            </div>
+          </div>
+        )}
       </Dialog>
     </div>
   );

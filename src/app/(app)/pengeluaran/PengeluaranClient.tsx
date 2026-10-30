@@ -6,6 +6,7 @@ import type { PengeluaranRow, RingkasanPengeluaran } from "@/server/queries/peng
 import type { TahunAjaranOption } from "@/server/queries/anggota";
 import { formatRupiah, parseRupiah } from "@/lib/money";
 import { Button } from "@/components/ui/Button";
+import { Dialog } from "@/components/ui/Dialog";
 import { Select } from "@/components/ui/Select";
 import { DataGrid, type ColumnDef } from "@/components/ui/DataGrid";
 import { useToast } from "@/components/ui/Toast";
@@ -77,6 +78,10 @@ export function PengeluaranClient({
   const router = useRouter();
   const { showToast } = useToast();
   const [isEditing, setIsEditing] = useState(false);
+  const [deleteConfirm, setDeleteConfirm] = useState<{
+    open: boolean;
+    row: EditablePengeluaranRow | null;
+  }>({ open: false, row: null });
   const [isSaving, startSaving] = useTransition();
   const [filterPanelOpen, setFilterPanelOpen] = useState(true);
 
@@ -208,7 +213,7 @@ export function PengeluaranClient({
     });
   };
 
-  const handleDelete = async (row: EditablePengeluaranRow) => {
+  const handleDelete = (row: EditablePengeluaranRow) => {
     if (isEditing) {
       showToast("Selesaikan atau batalkan mode edit sebelum menghapus transaksi.", "error");
       return;
@@ -217,21 +222,7 @@ export function PengeluaranClient({
       showToast("Baris baru yang belum disimpan tidak bisa dihapus dengan tombol ini.", "error");
       return;
     }
-    if (!window.confirm(`Hapus transaksi pengeluaran "${row.jenis}" sebesar ${formatRupiah(typeof row.nominal === "number" ? row.nominal : parseRupiah(String(row.nominal)))}? Data akan disembunyikan dari laporan.`)) {
-      return;
-    }
-
-    const formData = new FormData();
-    formData.set("id", row.id);
-    startSaving(async () => {
-      const result = await hapusPengeluaranAction(null, formData);
-      if (!result.success) {
-        showToast(result.error ?? "Gagal menghapus pengeluaran.", "error");
-        return;
-      }
-      showToast("Transaksi pengeluaran berhasil dihapus.", "success");
-      router.refresh();
-    });
+    setDeleteConfirm({ open: true, row });
   };
 
   const totalNominalHalaman = rows.reduce((sum, r) => sum + r.nominal, 0);
@@ -679,6 +670,60 @@ export function PengeluaranClient({
           </div>
         </div>
       )}
+
+      {/* Dialog Konfirmasi Hapus Transaksi Pengeluaran */}
+      <Dialog
+        open={deleteConfirm.open}
+        onClose={() => !isSaving && setDeleteConfirm({ open: false, row: null })}
+        title="Hapus Transaksi Pengeluaran"
+      >
+        {deleteConfirm.row && (
+          <div className="space-y-4">
+            <p className="text-[14px] text-text-2 leading-relaxed">
+              Hapus transaksi pengeluaran <strong className="text-text">{deleteConfirm.row.jenis}</strong> sebesar{" "}
+              <strong className="text-text">
+                {formatRupiah(
+                  typeof deleteConfirm.row.nominal === "number"
+                    ? deleteConfirm.row.nominal
+                    : parseRupiah(String(deleteConfirm.row.nominal))
+                )}
+              </strong>? Data akan disembunyikan dari laporan.
+            </p>
+            <div className="flex justify-end gap-2 pt-2 border-t border-line">
+              <Button
+                type="button"
+                variant="secondary"
+                disabled={isSaving}
+                onClick={() => setDeleteConfirm({ open: false, row: null })}
+              >
+                Batal
+              </Button>
+              <Button
+                type="button"
+                variant="danger-solid"
+                disabled={isSaving}
+                onClick={() => {
+                  if (!deleteConfirm.row?.id) return;
+                  const formData = new FormData();
+                  formData.set("id", deleteConfirm.row.id);
+                  startSaving(async () => {
+                    const result = await hapusPengeluaranAction(null, formData);
+                    if (!result.success) {
+                      showToast(result.error ?? "Gagal menghapus pengeluaran.", "error");
+                      return;
+                    }
+                    showToast("Transaksi pengeluaran berhasil dihapus.", "success");
+                    setDeleteConfirm({ open: false, row: null });
+                    router.refresh();
+                  });
+                }}
+              >
+                {isSaving ? "Menghapus…" : "Hapus Pengeluaran"}
+              </Button>
+            </div>
+          </div>
+        )}
+      </Dialog>
     </div>
   );
 }

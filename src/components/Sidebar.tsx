@@ -270,7 +270,7 @@ export function Sidebar({ user }: { user?: SessionUser | null }) {
         <button
           type="button"
           onClick={() => setMobileMenuOpen((prev) => !prev)}
-          className="p-2 text-sidebar-text rounded-[8px] border border-sidebar-border hover:bg-sidebar-hover-bg focus:outline-none transition-colors"
+          className="p-2 text-sidebar-text rounded-[8px] border border-sidebar-border hover:bg-sidebar-hover-bg focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand/40 transition-colors"
           aria-label={mobileMenuOpen ? "Tutup navigasi" : "Buka navigasi"}
           aria-expanded={mobileMenuOpen}
         >

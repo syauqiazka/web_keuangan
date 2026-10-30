@@ -346,11 +346,13 @@ function TombolHapusJenisPembayaran({
   onSuccess: () => void;
 }) {
   const { showToast } = useToast();
+  const [confirmOpen, setConfirmOpen] = useState(false);
   const [state, formAction, isPending] = useActionState<ActionState | null, FormData>(
     async (_prev, fd) => {
       const result = await hapusJenisPemasukanAction(_prev, fd);
       if (result.success) {
         showToast(`Jenis pembayaran "${nama}" berhasil dihapus.`, "success");
+        setConfirmOpen(false);
         onSuccess();
       } else if (result.error) {
         showToast(result.error, "error");
@@ -361,35 +363,54 @@ function TombolHapusJenisPembayaran({
   );
 
   return (
-    <form
-      action={formAction}
-      className="mt-1.5"
-      onSubmit={(e) => {
-        if (
-          !window.confirm(
-            `Hapus jenis pembayaran "${nama}"? Jenis ini akan disembunyikan dari tahun ajaran aktif; riwayat transaksinya tetap tersimpan.`
-          )
-        )
-          e.preventDefault();
-      }}
-    >
-      <input type="hidden" name="id" value={id} />
+    <>
       <button
-        type="submit"
+        type="button"
         disabled={isPending}
-        className="inline-flex items-center gap-1 text-[11px] px-2 py-0.5 rounded-[4px] border border-danger/40 text-danger hover:bg-danger/10 disabled:opacity-40 font-medium transition-colors cursor-pointer"
+        onClick={() => setConfirmOpen(true)}
+        className="mt-1.5 inline-flex items-center gap-1 text-[11px] px-2 py-0.5 rounded-[4px] border border-danger/40 text-danger hover:bg-danger/10 disabled:opacity-40 font-medium transition-colors cursor-pointer"
         title={`Hapus jenis ${nama}`}
         aria-label={`Hapus jenis ${nama}`}
       >
         <Trash2 className="w-3 h-3 text-danger" />
-        <span>{isPending ? "Menghapus…" : "Hapus jenis"}</span>
+        <span>Hapus jenis</span>
       </button>
-      {state?.error && (
-        <p className="mt-1 max-w-[150px] text-[11px] text-danger font-normal">
-          {state.error}
-        </p>
-      )}
-    </form>
+
+      <Dialog
+        open={confirmOpen}
+        onClose={() => !isPending && setConfirmOpen(false)}
+        title="Hapus Jenis Pembayaran"
+      >
+        <div className="space-y-4">
+          <p className="text-[14px] text-text-2 leading-relaxed">
+            Hapus jenis pembayaran <strong className="text-text">{nama}</strong>? Jenis ini akan disembunyikan dari tahun ajaran aktif; riwayat transaksinya tetap tersimpan.
+          </p>
+          {state?.error && (
+            <p className="text-[12px] text-danger font-medium">{state.error}</p>
+          )}
+          <div className="flex justify-end gap-2 pt-2 border-t border-line">
+            <Button
+              type="button"
+              variant="secondary"
+              onClick={() => setConfirmOpen(false)}
+              disabled={isPending}
+            >
+              Batal
+            </Button>
+            <form action={formAction}>
+              <input type="hidden" name="id" value={id} />
+              <Button
+                type="submit"
+                variant="danger-solid"
+                disabled={isPending}
+              >
+                {isPending ? "Menghapus…" : "Hapus Jenis"}
+              </Button>
+            </form>
+          </div>
+        </div>
+      </Dialog>
+    </>
   );
 }
 
@@ -455,25 +476,19 @@ export function TabDariSiswa({
     });
   };
 
-  const handleDeletePembayaran = async (pembayaranId: string, nominal: number, tanggal: string) => {
-    if (
-      !window.confirm(
-        `Apakah Anda yakin ingin menghapus catatan pembayaran ${formatRupiah(nominal)} (${formatTanggal(tanggal)})?`
-      )
-    ) {
-      return;
-    }
+  const [deleteConfirm, setDeleteConfirm] = useState<{
+    open: boolean;
+    id: string;
+    nominal: number;
+    tanggal: string;
+  } | null>(null);
 
-    startDeletingPayment(async () => {
-      const fd = new FormData();
-      fd.append("id", pembayaranId);
-      const res = await hapusPembayaranSiswaAction(null, fd);
-      if (res.success) {
-        showToast("Pembayaran berhasil dihapus.", "success");
-        onRefresh();
-      } else {
-        showToast(res.error ?? "Gagal menghapus pembayaran.", "error");
-      }
+  const handleDeletePembayaran = (pembayaranId: string, nominal: number, tanggal: string) => {
+    setDeleteConfirm({
+      open: true,
+      id: pembayaranId,
+      nominal,
+      tanggal,
     });
   };
 
@@ -1102,6 +1117,55 @@ export function TabDariSiswa({
           initialPembayaran={dialogBayar.initialPembayaran}
         />
       )}
+
+      {/* Dialog Konfirmasi Hapus Pembayaran */}
+      <Dialog
+        open={Boolean(deleteConfirm?.open)}
+        onClose={() => !isDeletingPayment && setDeleteConfirm(null)}
+        title="Hapus Catatan Pembayaran"
+      >
+        {deleteConfirm && (
+          <div className="space-y-4">
+            <p className="text-[14px] text-text-2 leading-relaxed">
+              Apakah Anda yakin ingin menghapus catatan pembayaran sebesar{" "}
+              <strong className="text-text">{formatRupiah(deleteConfirm.nominal)}</strong>{" "}
+              pada tanggal{" "}
+              <strong className="text-text">{formatTanggal(deleteConfirm.tanggal)}</strong>?
+            </p>
+            <div className="flex justify-end gap-2 pt-2 border-t border-line">
+              <Button
+                type="button"
+                variant="secondary"
+                disabled={isDeletingPayment}
+                onClick={() => setDeleteConfirm(null)}
+              >
+                Batal
+              </Button>
+              <Button
+                type="button"
+                variant="danger-solid"
+                disabled={isDeletingPayment}
+                onClick={() => {
+                  startDeletingPayment(async () => {
+                    const fd = new FormData();
+                    fd.append("id", deleteConfirm.id);
+                    const res = await hapusPembayaranSiswaAction(null, fd);
+                    if (res.success) {
+                      showToast("Pembayaran berhasil dihapus.", "success");
+                      setDeleteConfirm(null);
+                      onRefresh();
+                    } else {
+                      showToast(res.error ?? "Gagal menghapus pembayaran.", "error");
+                    }
+                  });
+                }}
+              >
+                {isDeletingPayment ? "Menghapus…" : "Hapus Pembayaran"}
+              </Button>
+            </div>
+          </div>
+        )}
+      </Dialog>
     </div>
   );
 }

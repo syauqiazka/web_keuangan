@@ -32,7 +32,7 @@ export function Tabs({ tabs, activeTab, onChange, className = "" }: TabsProps) {
             role="tab"
             aria-selected={isActive}
             onClick={() => onChange(tab.id)}
-            className={`relative pb-2.5 px-2 text-[14px] transition-colors duration-150 focus:outline-none ${
+            className={`relative pb-2.5 px-2 text-[14px] transition-colors duration-150 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand/30 rounded-[4px] ${
               isActive
                 ? "font-semibold text-brand"
                 : "font-[500] text-text-3 hover:text-text"

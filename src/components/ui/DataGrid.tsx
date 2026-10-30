@@ -406,17 +406,17 @@ export function DataGrid<T>({
 
       {/* Tabel Data Asli dengan Garis Tepi Emas Tipis saat Mode Edit */}
       <div
-        className={`w-full overflow-x-auto bg-surface rounded-[12px] shadow-xs transition-all ${
+        className={`w-full max-h-[calc(100dvh-16rem)] overflow-auto bg-surface rounded-[12px] shadow-xs transition-all ${
           isEditing
             ? "border border-gold-border ring-1 ring-gold-border"
             : "border border-line"
         }`}
       >
         <table className="w-full border-collapse text-[14px]">
-          {/* Header Grup Jika Ada */}
-          {columnGroups && columnGroups.length > 0 && (
-            <thead>
-              <tr className="border-b border-line bg-panel/70 text-text">
+          <thead className="sticky top-0 z-20 shadow-xs">
+            {/* Header Grup Jika Ada */}
+            {columnGroups && columnGroups.length > 0 && (
+              <tr className="border-b border-line bg-panel text-text">
                 {columnGroups.map((grp, i) => (
                   <th
                     key={`${grp.title}-${i}`}
@@ -426,20 +426,18 @@ export function DataGrid<T>({
                     {grp.title}
                   </th>
                 ))}
-                {isEditing && <th className="w-28 border-b border-line"></th>}
+                {isEditing && <th className="w-28 border-b border-line bg-panel"></th>}
               </tr>
-            </thead>
-          )}
+            )}
 
-          {/* Header Kolom */}
-          <thead>
+            {/* Header Kolom */}
             <tr
               className={`border-b ${
                 areaTheme === "income"
                   ? "border-income-border bg-income-soft text-income-text"
                   : areaTheme === "expense"
                   ? "border-expense-border bg-expense-soft text-expense-text"
-                  : "border-line bg-panel/50 text-text-2"
+                  : "border-line bg-panel text-text-2"
               }`}
             >
               {columns.map((col) => {
@@ -451,7 +449,7 @@ export function DataGrid<T>({
                     : "text-left";
 
                 const stickyClass = col.sticky
-                  ? `sticky left-0 z-10 ${
+                  ? `sticky left-0 z-30 ${
                       areaTheme === "income"
                         ? "bg-income-soft text-income-text"
                         : areaTheme === "expense"

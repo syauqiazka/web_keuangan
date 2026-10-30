@@ -272,6 +272,7 @@ function BarisAkun({
   const { showToast } = useToast();
   const [dialogResetOpen, setDialogResetOpen] = useState(false);
   const [dialogHapusOpen, setDialogHapusOpen] = useState(false);
+  const [dialogToggleOpen, setDialogToggleOpen] = useState(false);
 
   const [, toggleAction, isPendingToggle] = useActionState<
     ActionState | null,
@@ -354,41 +355,79 @@ function BarisAkun({
             </span>
           ) : (
             <>
-              <form
-                action={toggleAction}
-                className="inline-flex shrink-0"
-                onSubmit={(e) => {
-                  const aksi = akun.aktif ? "menonaktifkan" : "mengaktifkan kembali";
-                  if (!window.confirm(`Apakah Anda yakin ingin ${aksi} akun petugas "${akun.nama}" (${akun.kode})?`)) {
-                    e.preventDefault();
-                  }
-                }}
+              {akun.aktif ? (
+                <Button
+                  type="button"
+                  variant="danger"
+                  size="sm"
+                  className="h-8 text-[12px] px-2.5 gap-1 shrink-0"
+                  disabled={isPendingToggle}
+                  onClick={() => setDialogToggleOpen(true)}
+                >
+                  <UserX className="w-3.5 h-3.5" />
+                  <span>Nonaktifkan</span>
+                </Button>
+              ) : (
+                <Button
+                  type="button"
+                  variant="outline-brand"
+                  size="sm"
+                  className="h-8 text-[12px] px-2.5 gap-1 shrink-0"
+                  disabled={isPendingToggle}
+                  onClick={() => setDialogToggleOpen(true)}
+                >
+                  <UserCheck className="w-3.5 h-3.5" />
+                  <span>Aktifkan</span>
+                </Button>
+              )}
+
+              {/* Dialog Konfirmasi Nonaktifkan / Aktifkan */}
+              <Dialog
+                open={dialogToggleOpen}
+                onClose={() => !isPendingToggle && setDialogToggleOpen(false)}
+                title={akun.aktif ? "Nonaktifkan Akun Petugas" : "Aktifkan Kembali Akun"}
               >
-                <input type="hidden" name="penggunaId" value={akun.id} />
-                {akun.aktif ? (
-                  <Button
-                    type="submit"
-                    variant="danger"
-                    size="sm"
-                    className="h-8 text-[12px] px-2.5 gap-1"
-                    disabled={isPendingToggle}
-                  >
-                    <UserX className="w-3.5 h-3.5" />
-                    <span>{isPendingToggle ? "Memproses…" : "Nonaktifkan"}</span>
-                  </Button>
-                ) : (
-                  <Button
-                    type="submit"
-                    variant="outline-brand"
-                    size="sm"
-                    className="h-8 text-[12px] px-2.5 gap-1"
-                    disabled={isPendingToggle}
-                  >
-                    <UserCheck className="w-3.5 h-3.5" />
-                    <span>{isPendingToggle ? "Memproses…" : "Aktifkan"}</span>
-                  </Button>
-                )}
-              </form>
+                <div className="space-y-4">
+                  <p className="text-[14px] text-text-2 leading-relaxed">
+                    Apakah Anda yakin ingin {akun.aktif ? "menonaktifkan" : "mengaktifkan kembali"} akun petugas{" "}
+                    <strong className="text-text">{akun.nama}</strong> ({akun.kode})?
+                  </p>
+                  {akun.aktif && (
+                    <p className="text-[12px] text-text-3 leading-relaxed">
+                      Petugas tidak akan dapat masuk ke sistem selama akun dinonaktifkan. Riwayat transaksi tetap aman tersimpan.
+                    </p>
+                  )}
+                  <div className="flex justify-end gap-2 pt-2 border-t border-line">
+                    <Button
+                      type="button"
+                      variant="secondary"
+                      disabled={isPendingToggle}
+                      onClick={() => setDialogToggleOpen(false)}
+                    >
+                      Batal
+                    </Button>
+                    <form
+                      action={async (fd) => {
+                        await toggleAction(fd);
+                        setDialogToggleOpen(false);
+                      }}
+                    >
+                      <input type="hidden" name="penggunaId" value={akun.id} />
+                      <Button
+                        type="submit"
+                        variant={akun.aktif ? "danger-solid" : "primary"}
+                        disabled={isPendingToggle}
+                      >
+                        {isPendingToggle
+                          ? "Memproses…"
+                          : akun.aktif
+                          ? "Nonaktifkan Akun"
+                          : "Aktifkan Akun"}
+                      </Button>
+                    </form>
+                  </div>
+                </div>
+              </Dialog>
 
               {hasTransactions ? (
                 <div
